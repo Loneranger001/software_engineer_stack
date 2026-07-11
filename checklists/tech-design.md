@@ -8,6 +8,8 @@ Run before presenting the TDD for approval.
 - [ ] Interface impact analysis is backed by the research call graph — "no callers affected" is proven, not assumed
 - [ ] Data model changes include migration/backfill AND rollback for each object
 - [ ] Design follows the repo's .conventions.md (or standards/ defaults where the repo is silent)
+- [ ] As-is and to-be flow diagrams present and consistent with the research call graph
+- [ ] Verification-approach table covers every acceptance criterion (an untestable criterion blocks approval); operational impact stated line by line, "none" explicit
 - [ ] Non-functional section addresses performance, security, operability — or states why not applicable
 - [ ] At least one alternative was considered and its rejection justified
 - [ ] doc-fact-checker agent ran on the TDD and its findings were resolved

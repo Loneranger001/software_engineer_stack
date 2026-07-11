@@ -20,7 +20,30 @@ someone who has not read the brief.}
 
 {Condensed from research-notes.md, with source references retained.}
 
+### As-is flow
+
+<!-- Must match the research call graph — the fact-checker verifies diagrams
+     against the actual call order. Keep source refs under the diagram. -->
+```mermaid
+flowchart TD
+    {trigger/schedule} --> {entry point}
+    {entry point} --> {component} --> {data object / file}
+```
+
+{One paragraph walking the diagram; source: research-notes.md §call graph.}
+
 ## 4. Proposed design
+
+### To-be flow
+
+<!-- Same notation as the as-is diagram; highlight what changes (new/changed
+     nodes marked, e.g. with `:::changed` or a note). -->
+```mermaid
+flowchart TD
+    {as-is flow with the changed/new hops marked}
+```
+
+{One paragraph: what differs from as-is, and why.}
 
 ### 4.1 {Component / object 1}
 
@@ -42,22 +65,40 @@ someone who has not read the brief.}
 {Callers affected, contract changes, backward compatibility. "None" must be
 justified with the call-graph evidence from research.}
 
-## 7. Non-functional considerations
+## 7. Verification approach
+
+<!-- Every acceptance criterion from the scope contract appears here. A
+     criterion with no viable test blocks TDD approval — fix the design or
+     renegotiate the criterion. The detailed test plan lands in impl-doc §3. -->
+| Acceptance criterion | Test type (unit / integration / regression) | Sketch |
+|---|---|---|
+| A1 | {…} | {…} |
+
+## 8. Operational impact
+
+<!-- Batch reality check. "None" must be stated per line, not implied. -->
+- Schedule / trigger changes: {…}
+- Restartability: {how the changed job behaves on rerun after failure}
+- File handoffs: {new/changed files, consumers informed?}
+- Logging & monitoring: {new log lines, alerts, what ops should watch}
+- Run duration / volumes: {expected change, basis}
+
+## 9. Non-functional considerations
 
 - Performance: {expected volumes, plans, indexes}
 - Security: {grants, injection surfaces, secrets}
-- Operability: {logging, monitoring, restartability of batch jobs}
+- Operability: {anything not already covered in §8}
 
-## 8. Alternatives considered
+## 10. Alternatives considered
 
 | Alternative | Why rejected |
 |---|---|
 
-## 9. Risks & mitigations
+## 11. Risks & mitigations
 
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
 
-## 10. Out of scope
+## 12. Out of scope
 
 {Restate the contract's exclusions that readers might otherwise expect here.}
