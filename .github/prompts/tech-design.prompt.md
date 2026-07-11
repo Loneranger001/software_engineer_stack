@@ -29,14 +29,16 @@ for HOW the scope will be met.
 
 1. Copy `./templates/tdd.md` → `work/<id>/tdd.md`.
 2. Choose the implementation option (from research §Options) and justify it in
-   §8 Alternatives; if you deviate from the research recommendation, say why.
+   §10 Alternatives; if you deviate from the research recommendation, say why.
 3. Fill §2 traceability FIRST: every in-scope item → the design section that
    will satisfy it. If an item has no natural home, the design is incomplete.
 4. Design each component against the repo's conventions (`.conventions.md`,
    else `./standards/<language>.md`): naming, error
    handling, logging, transaction boundaries.
-5. Data model changes always carry migration/backfill AND rollback.
-6. Interface impact (§6) must cite the research call graph. "No callers
+5. Draw the as-is and to-be mermaid flow diagrams from the research call
+   graph — never from memory; the fact-checker verifies them against the code.
+6. Data model changes always carry migration/backfill AND rollback.
+7. Interface impact (§6) must cite the research call graph. "No callers
    affected" requires the evidence, not the assertion.
 
 ### Scope discipline
