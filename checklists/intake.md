@@ -10,4 +10,5 @@ Run before presenting the scope contract for approval.
 - [ ] Ambiguities are recorded as open questions, not resolved by silent assumption
 - [ ] Affected interfaces/objects listed reflect the brief plus a first scan of the repo
 - [ ] Applicable lessons from knowledge/lessons.md were loaded and considered
+- [ ] ASSUMPTIONS.md reviewed — every open entry presented for ratification at this gate (decision-protocol §4)
 - [ ] STATUS.md updated: intake in-progress → awaiting approval

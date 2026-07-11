@@ -44,6 +44,28 @@ Option B — clone next to your work repos and add it to a session with `claude 
 
 Then open Claude Code **inside the work repo** you're changing and run the commands above.
 
+## Using with GitHub Copilot
+
+The canonical skills are harness-neutral; a generator produces the Copilot
+layer (never edit generated files — edit `skills/` and regenerate):
+
+```sh
+# install the adapter into a work repo
+python3 scripts/build_copilot.py --target /path/to/your/work-repo
+```
+
+This writes `.github/prompts/<stage>.prompt.md` (invoke as `/intake`,
+`/implement`, … in Copilot Chat — enable prompt files in VS Code settings and
+prefer **agent mode**) and `.github/copilot-instructions.md` (the shared
+rules: decision protocol, scope discipline, conventions, verification). Path
+references point back at this repo, so keep it checked out at a stable
+location. Copilot has no subagents — the review procedures in `agents/` run
+inline as separate fresh passes.
+
+A root `AGENTS.md` is also generated for any other AGENTS.md-aware tool
+(opencode, Copilot coding agent, etc.): it explains the lifecycle and how to
+execute the stage instructions directly.
+
 ## Task workspaces
 
 Every engagement (task, change request, doc request) lives in its own workspace directory, `work/<task-id>/`, created by `/intake` (or `scripts/new-task.sh`):
@@ -56,6 +78,7 @@ work/PROJ-123/
 ├── tdd.md
 ├── impl-doc.md
 ├── evidence/          # captured run outputs, test results, before/after
+├── ASSUMPTIONS.md     # proceed-and-log decisions awaiting gate ratification
 ├── PARKED.md          # out-of-scope findings logged, never acted on
 └── deliverables/      # converted docx / pdf / Confluence outputs
 ```
@@ -68,6 +91,29 @@ work/PROJ-123/
 - **Fault-tolerant** — stages are idempotent and resumable via `STATUS.md`; implementation happens on a branch with checkpoint commits; every impl doc has a rollback section.
 - **Self-improving** — `/retro` appends structured lessons to `knowledge/lessons.md`; every skill loads applicable lessons before starting. Retro can also propose edits to templates/checklists, applied only with your approval.
 - **Scope-disciplined** — `/intake` produces a scope contract you approve; every later skill re-reads it. Anything discovered out of scope goes to `PARKED.md`, never into the change. The `scope-auditor` agent gates `/deliver`.
+
+## When the agent doesn't know
+
+Every skill follows the shared [decision protocol](core/decision-protocol.md).
+The short version:
+
+1. **Checkable facts get checked** — if reading code or running a query can
+   answer it, that happens; confidence estimates are reserved for genuine
+   judgment calls.
+2. **Proceed + log** (no interruption) only when the call is ~90%+ confident
+   AND cheaply reversible AND inside the scope contract AND touches nothing
+   dangerous (data changes, external contracts, prod). The assumption is
+   recorded in the workspace's `ASSUMPTIONS.md` with its basis, impact-if-wrong,
+   and reversal step.
+3. **Stop and ask** for everything else — genuinely unknown, irreversible or
+   high blast-radius (regardless of confidence), scope-affecting, or
+   user-reserved. Blocking questions ask immediately; the rest batch at stage
+   boundaries.
+4. **Every approval gate ratifies open assumptions** — you see what was
+   assumed before you sign off, and nothing is delivered on an unratified
+   guess (the scope auditor enforces it).
+5. `/retro` reviews corrected assumptions as calibration feedback, so
+   over-confidence turns into lessons.
 
 ## Environment configuration for live verification
 

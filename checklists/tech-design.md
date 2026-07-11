@@ -12,4 +12,5 @@ Run before presenting the TDD for approval.
 - [ ] At least one alternative was considered and its rejection justified
 - [ ] doc-fact-checker agent ran on the TDD and its findings were resolved
 - [ ] Open questions from research are resolved or explicitly carried as risks
+- [ ] ASSUMPTIONS.md reviewed — open entries presented for ratification; design-shaping ones promoted into the TDD (decision-protocol §4)
 - [ ] STATUS.md updated: tech-design → awaiting approval

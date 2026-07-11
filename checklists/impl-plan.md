@@ -11,4 +11,5 @@ Run before presenting the implementation document for approval.
 - [ ] Whole-change rollback plan exists and does not depend on memory ("redeploy previous" names the previous version)
 - [ ] Evidence capture points are defined (which files land in evidence/)
 - [ ] No step implements anything outside the scope contract
+- [ ] ASSUMPTIONS.md reviewed — every open entry presented for ratification at this gate (decision-protocol §4)
 - [ ] STATUS.md updated: impl-plan → awaiting approval

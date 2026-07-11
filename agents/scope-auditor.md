@@ -28,7 +28,10 @@ only (git diff/log/show, ls) — never commands that modify anything.
    with PASS.
 4. Check exclusions: nothing in the diff implements an N# item.
 5. Check PARKED.md: parked items must NOT appear in the diff.
-6. Check commit messages reference the task id and steps match the impl-doc.
+6. Check ASSUMPTIONS.md: every entry must be `ratified` or `corrected` — an
+   `open` entry at delivery is a finding; also spot-check that ratified
+   assumptions promoted into the contract/TDD actually appear there.
+7. Check commit messages reference the task id and steps match the impl-doc.
 
 ## Report format
 
@@ -39,9 +42,10 @@ Unmapped changes (diff not traceable to scope):   [file:hunk — why suspicious]
 Unmet scope (in-scope items without work/evidence): [S#/A# — what's missing]
 Exclusion breaches:                                [N# — offending change]
 Parked-but-implemented:                            [PARKED entry — offending change]
+Open assumptions:                                  [ASSUMPTIONS entry — still unratified]
 Notes (non-blocking observations):                 […]
 ```
 
-FAIL if any of the first four categories is non-empty. Borderline judgement
+FAIL if any of the first five categories is non-empty. Borderline judgement
 calls (e.g. a mechanical rename needed to implement S1 touching an extra file)
 go under Notes with your reasoning — flag, don't fabricate certainty either way.

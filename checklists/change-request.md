@@ -11,4 +11,5 @@ Run before delivering a fast-path change.
 - [ ] Diff maps 1:1 to the mini contract; scope-auditor pass on anything larger than a single-file change
 - [ ] Conventions respected (.conventions.md / standards defaults)
 - [ ] Rollback note written (even for small changes: exact revert/redeploy step)
+- [ ] ASSUMPTIONS.md has no open entries — ratified at the mini-contract gate or resolved since (decision-protocol §4)
 - [ ] STATUS.md updated through analyze → mini-contract → change → verify → deliver

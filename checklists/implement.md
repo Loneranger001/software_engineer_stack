@@ -12,4 +12,5 @@ Run before marking the implement stage done.
 - [ ] code-reviewer agent ran on the full diff and its findings were resolved or consciously waived
 - [ ] Code follows .conventions.md / standards defaults (naming, error handling, logging)
 - [ ] No secrets, connect strings, or environment-specific paths hardcoded
+- [ ] New assumptions made while coding are in ASSUMPTIONS.md (not just in commit messages or memory)
 - [ ] STATUS.md updated: implement → done, with branch and last commit recorded
