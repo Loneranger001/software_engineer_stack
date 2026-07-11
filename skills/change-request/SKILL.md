@@ -1,0 +1,77 @@
+---
+name: change-request
+description: Fast path for a small change to an existing interface - impact analysis, mini scope contract, surgical change, verification, delivery. Use for small CRs where the full lifecycle would be overkill; escalates to the full pipeline if impact analysis shows the change is not small.
+argument-hint: <change description or CR reference> [task-id]
+---
+
+# /change-request — small change, full discipline
+
+The compressed pipeline: `analyze → mini-contract → change → verify → deliver`.
+Small change does NOT mean lowered standards — it means fewer documents, same
+verification, same scope discipline.
+
+## 0. Preamble
+
+1. Load lessons tagged `stage:change-request` from
+   `${CLAUDE_PLUGIN_ROOT}/knowledge/lessons.md`.
+2. Create the workspace:
+   `${CLAUDE_PLUGIN_ROOT}/scripts/new-task.sh <task-id> <root> change-request`
+   (or resume from an existing STATUS.md).
+3. Store the CR text as `work/<id>/brief.md`.
+
+## 1. Impact analysis
+
+1. Read the target interface fully (spec and body / whole script, not just the
+   lines to change).
+2. Find ALL callers and dependents: grep for object/proc/script names, check
+   imports, scheduler references, other repos' known touchpoints the user
+   mentions. Record the exact commands used.
+3. Read `.conventions.md` (run /repo-profile if missing).
+4. Write `work/<id>/analysis.md`: current behaviour (source-referenced),
+   callers found, blast radius, and the proposed change sketch.
+
+**Escalation rule**: if the analysis shows >3 objects changing, an interface
+contract change affecting external callers, or data migration — tell the user
+this is not a small change and recommend the full pipeline (/intake). Let them
+decide; record the decision in STATUS.md.
+
+## 2. Mini scope contract (approval gate)
+
+Append to `analysis.md` and get explicit user approval before touching code:
+
+- **Change**: exactly what will change (objects, behaviour before → after)
+- **Not changing**: adjacent things deliberately left alone
+- **Acceptance criteria**: how each is verified (≥1 per change, plus a
+  regression check per impacted caller)
+- **Rollback**: the exact revert/redeploy step
+
+## 3. Change
+
+1. Branch per repo conventions; one commit per logical unit referencing the
+   task id.
+2. Surgical diff only. Anything else you itch to fix → PARKED.md.
+3. Match surrounding code style over the standards defaults.
+
+## 4. Verify
+
+1. Run /verify-code recipes on every changed file (live via `$SES_DB_CONN`/
+   `$SES_KSH_HOST`/`$SES_PY` where reachable; static fallback recorded).
+2. Run the regression checks for the impacted callers from §1 — the change
+   isn't verified until its callers still work.
+3. Capture everything to `evidence/` with
+   `${CLAUDE_PLUGIN_ROOT}/templates/test-evidence.md`.
+
+## 5. Deliver
+
+1. Self-check `${CLAUDE_PLUGIN_ROOT}/checklists/change-request.md`. For
+   multi-file changes, also run the `scope-auditor` agent against the mini
+   contract.
+2. Short release note (template: release-notes.md, trimmed): change, deploy
+   step, rollback step, evidence table.
+3. Push the branch; report to the user; STATUS.md → `deliver: done`; offer
+   /retro (a one-lesson retro is fine for CRs).
+
+## Fault tolerance
+
+Same recovery model as /implement: STATUS.md + branch commits + evidence/ let
+any session resume mid-CR without redoing the analysis.

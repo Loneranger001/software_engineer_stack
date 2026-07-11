@@ -1,0 +1,8 @@
+{
+  "name": "software-engineer-stack",
+  "version": "0.1.0",
+  "description": "End-to-end software engineering lifecycle framework: intake, research, technical design, implementation planning, coding with verification, delivery, change requests, and documentation — for PL/SQL, SQL, KSH, and Python codebases. Accurate (source-referenced docs, runnable verification), fault-tolerant (resumable stage gates), self-improving (retro lessons), and scope-disciplined (scope contracts).",
+  "author": {
+    "name": "loneranger001"
+  }
+}
