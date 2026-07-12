@@ -62,7 +62,9 @@ for HOW the scope will be met.
    traceability table, risks — plus open ASSUMPTIONS.md entries for
    ratification (decision-protocol §4); promote design-shaping ones into the
    TDD. Iterate until approved; record approval + date in the TDD header.
-4. Update STATUS.md: `tech-design: approved`, next action `/impl-plan`.
+4. Update STATUS.md: `tech-design: approved`, next action `/grill` (the
+   adversarial completeness interrogation runs before any implementation
+   planning).
 
 ## Fault tolerance
 

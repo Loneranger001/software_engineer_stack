@@ -18,6 +18,7 @@ and documentation. Full docs: README.md.
 | `/change-request` | Fast path for a small change to an existing interface - impact analysis, mini scope contract, surgical change, verification, delivery. | `skills/change-request/SKILL.md` |
 | `/deliver` | Package a finished task - scope audit, evidence bundle, release notes, document conversion to Word/PDF/Confluence, branch push. | `skills/deliver/SKILL.md` |
 | `/document` | Produce a how-to guide, knowledge-base article, or understanding document for an existing interface or component - fully verified against the code, fact-checked, and converted to the needed formats. | `skills/document/SKILL.md` |
+| `/grill` | Adversarial interrogation of the technical design before the implementation document is written - stress-test the TDD with concrete edge-case scenarios, fix the gaps the evidence can answer, and grill the user for the answers it cannot. | `skills/grill/SKILL.md` |
 | `/impl-plan` | Produce an implementation document from the approved TDD - ordered commit-sized steps with per-step verification and rollback, a test plan covering every acceptance criterion, and deployment steps. | `skills/impl-plan/SKILL.md` |
 | `/implement` | Execute the approved implementation document step by step on a task branch - code, verify each step against the live environment where available, capture evidence, checkpoint-commit, and pass code review. | `skills/implement/SKILL.md` |
 | `/intake` | Start a new engineering task from a solution design document or requirement brief. | `skills/intake/SKILL.md` |

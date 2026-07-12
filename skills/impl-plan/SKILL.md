@@ -14,7 +14,9 @@ session) with no memory of this conversation.
 
 1. Load lessons tagged `stage:impl-plan` from
    `${CLAUDE_PLUGIN_ROOT}/knowledge/lessons.md`.
-2. Locate the workspace; verify `tech-design: approved` in STATUS.md.
+2. Locate the workspace; verify `tech-design: approved` AND `grill: done`
+   (or an explicit user waiver recorded in STATUS.md) — the impl doc plans a
+   design that has survived the interrogation, not a first draft.
 3. Read scope-contract.md and the approved tdd.md.
 4. Unknowns follow `${CLAUDE_PLUGIN_ROOT}/core/decision-protocol.md`:
    planning calls passing §2 → ASSUMPTIONS.md; anything touching data,
