@@ -138,6 +138,7 @@ templates/    canonical Markdown templates for every document type
 standards/    default coding standards per language (a repo's .conventions.md overrides them)
 checklists/   per-stage quality gates
 knowledge/    lessons.md (self-improvement memory), decisions.md (framework decision log)
+docs/         QA.md — design Q&A: why it's built this way, and how to test it
 scripts/      new-task.sh, md2docx.sh, md2pdf.sh, md2confluence.sh
 examples/     sample work repo + a fully worked example task workspace
 ```
