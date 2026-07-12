@@ -30,7 +30,9 @@ for HOW the scope will be met.
    will satisfy it. If an item has no natural home, the design is incomplete.
 4. Design each component against the repo's conventions (`.conventions.md`,
    else `${CLAUDE_PLUGIN_ROOT}/standards/<language>.md`): naming, error
-   handling, logging, transaction boundaries.
+   handling, logging, transaction boundaries. Business terms in the TDD
+   reference their `.domain-glossary.md` entries (§1 Overview lists the terms
+   relied on) rather than re-defining them.
 5. Draw the as-is and to-be mermaid flow diagrams from the research call
    graph — never from memory; the fact-checker verifies them against the code.
 6. Data model changes always carry migration/backfill AND rollback.

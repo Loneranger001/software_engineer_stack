@@ -28,7 +28,11 @@ inspection only.
 3. Claims WITHOUT a source reference are automatic findings — the framework
    requires one (properly labelled `INFERRED`/`⚠ UNVERIFIED` items are exempt
    but listed for visibility).
-4. Spot-check the inverse: skim the referenced code for important behaviour
+4. Check business-term usage against the work repo's `.domain-glossary.md`
+   (when present): a document using a term contrary to its user-confirmed
+   glossary entry is a finding (report as STALE-REF, naming the entry) — one
+   of the two is wrong, and the author must reconcile them.
+5. Spot-check the inverse: skim the referenced code for important behaviour
    the doc omits or contradicts (e.g. an error path the doc's flow ignores).
 
 ## Report format

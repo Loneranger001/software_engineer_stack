@@ -58,7 +58,10 @@ code or dev DB can answer it, check it, don't reason about it. Verdicts:
 - `ask-user` — needs domain or business knowledge the repo cannot provide.
 
 Also collect **terminology challenges**: any term the brief/TDD uses that has
-two defensible readings ("balance: ledger or available?"). These are always
+two defensible readings ("balance: ledger or available?"). Consult the repo's
+`.domain-glossary.md` first — a documented, user-confirmed term with one
+meaning is not a challenge; a term the brief BENDS away from its entry, or an
+entry still `seeded — unconfirmed`, IS. Surviving challenges are always
 `ask-user` — never resolve terminology by assumption.
 
 ## 2. Phase 2 — grill the user
@@ -74,7 +77,9 @@ Take the `ask-user` list and interview the user until it is EMPTY:
   grilling.
 - Every answer lands immediately: TDD design section updated, §7 row added
   when testable, terminology recorded in the grill log (and the TDD overview
-  if load-bearing).
+  if load-bearing). Resolved terms also update the repo's
+  `.domain-glossary.md` marked `user-confirmed` — that's how the next task
+  skips this question.
 - The user may DEFER a question ("accept the risk", "later CR") — record the
   deferral verbatim in TDD §11 Risks with their ack, and in the grill log.
   Deferred is a user decision; unanswered is not a terminal state.

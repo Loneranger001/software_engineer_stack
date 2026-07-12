@@ -49,6 +49,13 @@ the user has explicitly approved. Nothing downstream may begin before that appro
   state. Improvements you spot go to open questions ("Should X also…?").
 - Ambiguity is never resolved by assumption. Collect open questions and ask the
   user in one batch (use AskUserQuestion when available).
+- **Term inventory**: list every business/functional term the brief leans on
+  ("purchase order", "approved", "settlement"), then look each up in the work
+  repo's `.domain-glossary.md`. Known terms: link the entry in the scope
+  contract instead of re-defining. Unknown terms: mark as research targets.
+  A term the brief uses DIFFERENTLY from its glossary entry is ALWAYS an open
+  question — the brief may be wrong or the glossary stale; never silently
+  pick a side.
 - Do a first scan of the repo for the objects the brief names, to populate the
   "interfaces & objects expected to change" table. If `.conventions.md` is
   missing, suggest running /repo-profile after intake.

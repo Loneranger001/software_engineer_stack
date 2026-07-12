@@ -42,6 +42,9 @@ Rules:
 - Tag precisely — the tags are how other skills filter for relevance.
 - Repo-specific lessons that are really CONVENTIONS belong in that repo's
   `.conventions.md` instead; put them there and note the move.
+- Term resolutions that only made it into the grill log or conversation get
+  promoted to the repo's `.domain-glossary.md` now (marked `user-confirmed`
+  with this task id) — glossary memory is the cheapest self-improvement there is.
 
 ## 3. Propose framework improvements (user-gated)
 
