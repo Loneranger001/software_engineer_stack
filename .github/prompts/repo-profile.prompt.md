@@ -61,7 +61,17 @@ Rules:
   should follow the file being edited first, dominant variant second.
 - Never copy secrets/connect strings into the profile.
 
-## 3. Cache & staleness
+## 3. Seed the domain glossary
+
+Alongside conventions, seed `<repo>/.domain-glossary.md` (template:
+`./templates/domain-glossary.md`) with the repo's obvious
+core entities — the tables/packages that dominate the schema and job names —
+each entry marked `seeded — unconfirmed` with source refs for the mechanical
+lines. Never overwrite an existing glossary: merge, and user hand-edits win.
+Confirmation happens later, task by task (intake/research/grill resolve terms
+and upgrade entries to `user-confirmed` / `from-code`).
+
+## 4. Cache & staleness
 
 - Write to `<repo>/.conventions.md`. Ask the user whether to commit it or
   gitignore it (teams differ).

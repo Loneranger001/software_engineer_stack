@@ -37,6 +37,15 @@ expand it:
    row volumes. Store queries + outputs in `evidence/research-*.txt`.
 4. **Conventions**: read `.conventions.md` (run /repo-profile first if missing)
    and note which conventions bind this change.
+5. **Term grounding**: for every business term intake marked as a research
+   target (and any new ones you meet), establish what it IS in this system —
+   tables + key columns, state values, the code paths that implement its verbs
+   ("approved" = which proc sets which status), entry points — each with
+   evidence. Write/refresh the term's entry in the repo's
+   `.domain-glossary.md` (template:
+   `${CLAUDE_PLUGIN_ROOT}/templates/domain-glossary.md`), marked `from-code`;
+   pure business semantics the code can't prove stay open questions for the
+   user.
 
 ### Accuracy rules
 

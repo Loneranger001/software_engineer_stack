@@ -9,6 +9,10 @@
 {What is being built/changed and why — one or two paragraphs, understandable by
 someone who has not read the brief.}
 
+Business terms relied on (see the repo's `.domain-glossary.md`):
+{purchase order, approved, …} — the glossary entry is authoritative; this
+document does not re-define terms.
+
 ## 2. Requirements traceability
 
 <!-- Every in-scope item from the scope contract must map to at least one design section. -->

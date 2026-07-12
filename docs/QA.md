@@ -47,7 +47,11 @@ Since v0.3, yes — the [`/grill`](../skills/grill/SKILL.md) stage runs between 
 
 At the **root of the repo you're working in** (next to `.git`), not inside `.github/`. VS Code Copilot Chat agent mode reads the workspace root's `AGENTS.md` (`chat.useAgentsMdFile`, on by default); the Copilot coding agent reads the repo root too (nested ones supported, closest wins). `.github/copilot-instructions.md` is the one that lives under `.github/`; when both exist their contents are combined.
 
-## 10. How do I test the framework?
+## 10. How does the framework make sense of business terms — e.g. "purchase order must be approved"?
+
+Three passes plus a persistent memory. `/intake` builds a **term inventory** from the brief and looks each term up in the work repo's `.domain-glossary.md`; unknown terms become research targets, and a term the brief uses differently from its entry is always an open question. `/research` **grounds** unresolved terms in checkable facts (decision-protocol §1): what a purchase order *is* — tables, state values, the proc whose execution *is* "approval" — read from the code with `file:line` evidence, never imagined; pure business semantics (approval limits, who may approve) stay questions for you. `/grill` challenges any term the brief bends or that's still unconfirmed. Every resolution is written to `.domain-glossary.md` ([template](../templates/domain-glossary.md)) marked `from-code` or `user-confirmed` — so next month's brief mentioning "purchase order" gets the answer from the glossary instead of re-asking you. `/repo-profile` seeds the glossary with the repo's core entities; the doc-fact-checker flags documents that contradict confirmed entries; hand-edits win.
+
+## 11. How do I test the framework?
 
 Two layers:
 
