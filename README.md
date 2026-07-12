@@ -44,7 +44,7 @@ claude plugin install software-engineer-stack
 
 Option B — clone next to your work repos and add it to a session with `claude --add-dir /path/to/software_engineer_stack`, or symlink `skills/` into your project's `.claude/skills/`.
 
-Then open Claude Code **inside the work repo** you're changing and run the commands above.
+Then open Claude Code **inside the work repo** you're changing and run the commands above. New here? Read the [narrated walkthrough](docs/walkthrough.md) of a full task first.
 
 ## Using with GitHub Copilot
 
@@ -138,6 +138,7 @@ templates/    canonical Markdown templates for every document type
 standards/    default coding standards per language (a repo's .conventions.md overrides them)
 checklists/   per-stage quality gates
 knowledge/    lessons.md (self-improvement memory), decisions.md (framework decision log)
+docs/         QA.md (design Q&A + testing guide), walkthrough.md (narrated example task)
 scripts/      new-task.sh, md2docx.sh, md2pdf.sh, md2confluence.sh
 examples/     sample work repo + a fully worked example task workspace
 ```
