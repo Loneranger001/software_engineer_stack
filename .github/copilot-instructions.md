@@ -3,7 +3,7 @@
 
 This repository is worked on with the software-engineer-stack lifecycle
 framework rooted at `.`. Stage prompts available in Copilot Chat:
-`/change-request`, `/deliver`, `/document`, `/impl-plan`, `/implement`, `/intake`, `/repo-profile`, `/research`, `/retro`, `/tech-design`, `/verify-code`.
+`/change-request`, `/deliver`, `/document`, `/grill`, `/impl-plan`, `/implement`, `/intake`, `/repo-profile`, `/research`, `/retro`, `/tech-design`, `/verify-code`.
 
 Rules that apply to ALL work here:
 

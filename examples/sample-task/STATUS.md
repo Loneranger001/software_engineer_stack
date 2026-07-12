@@ -13,6 +13,7 @@ Legend: pending | in-progress | done | approved (user sign-off)
 intake: approved
 research: done
 tech-design: pending
+grill: pending
 impl-plan: pending
 implement: pending
 deliver: pending

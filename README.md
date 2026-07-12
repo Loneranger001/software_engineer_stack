@@ -8,7 +8,8 @@ A Claude Code skill framework covering the full software engineering lifecycle f
 flowchart LR
     A[/intake/] -->|scope contract approved| B[/research/]
     B --> C[/tech-design/]
-    C -->|TDD approved| D[/impl-plan/]
+    C -->|TDD approved| G[/grill/]
+    G -->|design survived interrogation| D[/impl-plan/]
     D -->|impl doc approved| E[/implement/]
     E --> F[/deliver/]
     F --> G[/retro/]
@@ -22,6 +23,7 @@ flowchart LR
 | `/intake <brief>` | Parse a solution design / requirement brief into a requirements summary and a **scope contract** | User approves scope contract |
 | `/research` | Investigate the codebase and external sources; every finding carries a source reference | Checklist |
 | `/tech-design` | Produce a technical design document traceable to requirements and research | User approves TDD |
+| `/grill` | Adversarial interrogation of the TDD: concrete edge-case scenarios per category (data, lifecycle, interface, temporal, environment, security/ops); gaps fixed from evidence, the rest grilled out of you until answered or explicitly deferred | Zero open questions |
 | `/impl-plan` | Produce an implementation document: ordered steps, test plan, rollback plan | User approves impl doc |
 | `/implement` | Execute the impl doc step by step on a branch, verifying each step | Code review + verification evidence |
 | `/deliver` | Scope audit, evidence bundle, release notes, Word/PDF/Confluence conversion | Scope auditor passes |
@@ -87,7 +89,7 @@ work/PROJ-123/
 
 ## The four guarantees
 
-- **Accurate** — every factual claim in a generated document must carry a source reference (`file:line`, doc section, or captured run output). Code is verified by running it (`/verify-code`), and the `doc-fact-checker` agent re-verifies documents against the code before a stage closes.
+- **Accurate** — every factual claim in a generated document must carry a source reference (`file:line`, doc section, or captured run output). Code is verified by running it (`/verify-code`), the `doc-fact-checker` agent re-verifies documents against the code before a stage closes, and `/grill` attacks the design's *completeness* — the edge cases nobody wrote down — before implementation is planned.
 - **Fault-tolerant** — stages are idempotent and resumable via `STATUS.md`; implementation happens on a branch with checkpoint commits; every impl doc has a rollback section.
 - **Self-improving** — `/retro` appends structured lessons to `knowledge/lessons.md`; every skill loads applicable lessons before starting. Retro can also propose edits to templates/checklists, applied only with your approval.
 - **Scope-disciplined** — `/intake` produces a scope contract you approve; every later skill re-reads it. Anything discovered out of scope goes to `PARKED.md`, never into the change. The `scope-auditor` agent gates `/deliver`.

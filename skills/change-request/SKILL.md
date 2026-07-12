@@ -36,7 +36,8 @@ verification, same scope discipline.
 **Escalation rule**: if the analysis shows >3 objects changing, an interface
 contract change affecting external callers, or data migration — tell the user
 this is not a small change and recommend the full pipeline (/intake). Let them
-decide; record the decision in STATUS.md.
+decide; record the decision in STATUS.md. For borderline cases the user keeps
+on the fast path, recommend running /grill against analysis.md before coding.
 
 ## 2. Mini scope contract (approval gate)
 

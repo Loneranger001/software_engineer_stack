@@ -28,6 +28,7 @@ case "$PIPELINE" in
     STAGES="intake: pending
 research: pending
 tech-design: pending
+grill: pending
 impl-plan: pending
 implement: pending
 deliver: pending
