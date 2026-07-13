@@ -3,6 +3,7 @@
 
 Produces, in the target repo:
     .github/prompts/<skill>.prompt.md    one per skills/*/SKILL.md
+    .github/agents/<name>.agent.md       one per agents/*.md (Copilot custom agents)
     .github/copilot-instructions.md      framework overview + shared rules
 and, in the stack repo itself:
     AGENTS.md                            universal entry point (AGENTS.md-aware tools)
@@ -61,6 +62,19 @@ mode: agent
 {body}"""
 
 
+def build_agent(fm: dict, body: str, root_ref: str) -> str:
+    body = body.replace("${CLAUDE_PLUGIN_ROOT}", root_ref)
+    return f"""---
+name: {fm['name']}
+description: {fm['description']}
+---
+<!-- {MARKER} -->
+> Part of **software-engineer-stack** ({root_ref}). You are read-only: report
+> findings in your defined format; never modify files or repository state.
+
+{body}"""
+
+
 def build_instructions(root_ref: str, skill_names: list[str]) -> str:
     cmds = ", ".join(f"`/{n}`" for n in skill_names)
     return f"""<!-- {MARKER} -->
@@ -89,9 +103,12 @@ Rules that apply to ALL work here:
    directory. Fallback static checks must be labelled as such.
 5. **Resumability**: the task workspace `STATUS.md` records stage state;
    read it before starting, update it after every stage transition.
-6. Copilot has no subagents: where a prompt says to run an agent procedure
-   from `{root_ref}/agents/`, execute that procedure yourself as a separate,
-   fresh review pass and hold yourself to its report format.
+6. The review procedures (scope-auditor, code-reviewer, doc-fact-checker)
+   are installed as Copilot custom agents in `.github/agents/` — where a
+   prompt says to run one, delegate to the matching custom agent (VS Code,
+   Copilot CLI `/agents`, or the coding agent). On a surface without
+   custom-agent support, execute the procedure from `{root_ref}/agents/`
+   yourself as a separate, fresh review pass held to its report format.
 """
 
 
@@ -130,8 +147,9 @@ and documentation. Full docs: README.md.
    point, `scope-contract.md` = scope truth, `ASSUMPTIONS.md` = logged
    judgment calls, `evidence/` = verification outputs).
 5. Review procedures in `agents/` (scope-auditor, code-reviewer,
-   doc-fact-checker) run as subagents where supported, else as separate
-   fresh passes held to their report formats.
+   doc-fact-checker) run as subagents where supported — Claude Code agents
+   natively, Copilot custom agents via the generated `.github/agents/` — and
+   as separate fresh passes held to their report formats everywhere else.
 """
 
 
@@ -158,10 +176,16 @@ def main() -> None:
         write_generated(target / ".github" / "prompts" / f"{fm['name']}.prompt.md",
                         build_prompt(fm, body, root_ref))
 
+    agent_files = sorted((stack / "agents").glob("*.md"))
+    for f in agent_files:
+        fm, body = parse_frontmatter(f.read_text(), f)
+        write_generated(target / ".github" / "agents" / f"{fm['name']}.agent.md",
+                        build_agent(fm, body, root_ref))
+
     write_generated(target / ".github" / "copilot-instructions.md",
                     build_instructions(root_ref, names))
     write_generated(stack / "AGENTS.md", build_agents_md(skill_dirs))
-    print(f"done: {len(names)} prompts → {target / '.github'}")
+    print(f"done: {len(names)} prompts + {len(agent_files)} custom agents → {target / '.github'}")
 
 
 if __name__ == "__main__":

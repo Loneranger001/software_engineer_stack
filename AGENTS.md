@@ -37,5 +37,6 @@ and documentation. Full docs: README.md.
    point, `scope-contract.md` = scope truth, `ASSUMPTIONS.md` = logged
    judgment calls, `evidence/` = verification outputs).
 5. Review procedures in `agents/` (scope-auditor, code-reviewer,
-   doc-fact-checker) run as subagents where supported, else as separate
-   fresh passes held to their report formats.
+   doc-fact-checker) run as subagents where supported — Claude Code agents
+   natively, Copilot custom agents via the generated `.github/agents/` — and
+   as separate fresh passes held to their report formats everywhere else.
