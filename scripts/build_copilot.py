@@ -2,7 +2,8 @@
 """Generate the GitHub Copilot adapter from the canonical skills.
 
 Produces, in the target repo:
-    .github/prompts/<skill>.prompt.md    one per skills/*/SKILL.md
+    .github/prompts/<skill>.prompt.md    one per skills/*/SKILL.md (explicit /name invocation)
+    .github/skills/<name>/SKILL.md       one per skills/*/SKILL.md (native, model-invoked)
     .github/agents/<name>.agent.md       one per agents/*.md (Copilot custom agents)
     .github/copilot-instructions.md      framework overview + shared rules
 and, in the stack repo itself:
@@ -62,6 +63,16 @@ mode: agent
 {body}"""
 
 
+def build_skill(fm: dict, body: str, root_ref: str) -> str:
+    body = body.replace("${CLAUDE_PLUGIN_ROOT}", root_ref)
+    return f"""---
+name: {fm['name']}
+description: {fm['description']}
+---
+<!-- {MARKER} -->
+{body}"""
+
+
 def build_agent(fm: dict, body: str, root_ref: str) -> str:
     body = body.replace("${CLAUDE_PLUGIN_ROOT}", root_ref)
     return f"""---
@@ -81,8 +92,10 @@ def build_instructions(root_ref: str, skill_names: list[str]) -> str:
 # software-engineer-stack — Copilot instructions
 
 This repository is worked on with the software-engineer-stack lifecycle
-framework rooted at `{root_ref}`. Stage prompts available in Copilot Chat:
-{cmds}.
+framework rooted at `{root_ref}`. The stages are available two ways with the
+same instructions: explicitly as prompt files in Copilot Chat ({cmds}) and as
+native agent skills in `.github/skills/` which the Copilot CLI and coding
+agent load automatically when a request matches a stage's description.
 
 Rules that apply to ALL work here:
 
@@ -141,8 +154,8 @@ and documentation. Full docs: README.md.
 3. Instruction files reference framework paths as `${{CLAUDE_PLUGIN_ROOT}}` —
    that is this repository's root. Claude Code resolves it natively; other
    harnesses substitute the repo path (the Copilot adapter under
-   `.github/prompts/` is pre-substituted; regenerate with
-   `python3 scripts/build_copilot.py`).
+   `.github/prompts/` and the native-skill copies under `.github/skills/`
+   are pre-substituted; regenerate with `python3 scripts/build_copilot.py`).
 4. Task state lives in `work/<task-id>/` workspaces (`STATUS.md` = resume
    point, `scope-contract.md` = scope truth, `ASSUMPTIONS.md` = logged
    judgment calls, `evidence/` = verification outputs).
@@ -175,6 +188,8 @@ def main() -> None:
         names.append(fm["name"])
         write_generated(target / ".github" / "prompts" / f"{fm['name']}.prompt.md",
                         build_prompt(fm, body, root_ref))
+        write_generated(target / ".github" / "skills" / fm["name"] / "SKILL.md",
+                        build_skill(fm, body, root_ref))
 
     agent_files = sorted((stack / "agents").glob("*.md"))
     for f in agent_files:
@@ -185,7 +200,8 @@ def main() -> None:
     write_generated(target / ".github" / "copilot-instructions.md",
                     build_instructions(root_ref, names))
     write_generated(stack / "AGENTS.md", build_agents_md(skill_dirs))
-    print(f"done: {len(names)} prompts + {len(agent_files)} custom agents → {target / '.github'}")
+    print(f"done: {len(names)} prompts + {len(names)} native skills + "
+          f"{len(agent_files)} custom agents → {target / '.github'}")
 
 
 if __name__ == "__main__":

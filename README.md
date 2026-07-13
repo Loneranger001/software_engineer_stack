@@ -56,15 +56,25 @@ layer (never edit generated files — edit `skills/` and regenerate):
 python3 scripts/build_copilot.py --target /path/to/your/work-repo
 ```
 
-This writes `.github/prompts/<stage>.prompt.md` (invoke as `/intake`,
-`/implement`, … in Copilot Chat — enable prompt files in VS Code settings and
-prefer **agent mode**), `.github/agents/<name>.agent.md` (the three reviewers
-— scope-auditor, code-reviewer, doc-fact-checker — as native [Copilot custom
-agents](https://docs.github.com/en/copilot/reference/custom-agents-configuration),
-usable from VS Code, the Copilot CLI's `/agents`, and the coding agent), and
-`.github/copilot-instructions.md` (the shared rules: decision protocol, scope
-discipline, conventions, verification). Path references point back at this
-repo, so keep it checked out at a stable location.
+This writes four things into the work repo:
+
+- `.github/prompts/<stage>.prompt.md` — explicit invocation: `/intake`,
+  `/implement`, … in Copilot Chat (enable prompt files in VS Code settings;
+  prefer **agent mode**)
+- `.github/skills/<stage>/SKILL.md` — the same stages as native
+  [agent skills](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills),
+  which the Copilot CLI and coding agent discover automatically and load when
+  a request matches a stage's description (Copilot uses the same SKILL.md
+  convention as Claude Code — these copies just have the framework paths
+  pre-substituted)
+- `.github/agents/<name>.agent.md` — the three reviewers as
+  [Copilot custom agents](https://docs.github.com/en/copilot/reference/custom-agents-configuration)
+  (VS Code, Copilot CLI `/agents`, coding agent)
+- `.github/copilot-instructions.md` — the shared rules: decision protocol,
+  scope discipline, conventions, verification
+
+Path references point back at this repo, so keep it checked out at a stable
+location.
 
 A root `AGENTS.md` is also generated for any other AGENTS.md-aware tool
 (opencode, Copilot coding agent, etc.): it explains the lifecycle and how to
