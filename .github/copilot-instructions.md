@@ -24,6 +24,9 @@ Rules that apply to ALL work here:
    directory. Fallback static checks must be labelled as such.
 5. **Resumability**: the task workspace `STATUS.md` records stage state;
    read it before starting, update it after every stage transition.
-6. Copilot has no subagents: where a prompt says to run an agent procedure
-   from `./agents/`, execute that procedure yourself as a separate,
-   fresh review pass and hold yourself to its report format.
+6. The review procedures (scope-auditor, code-reviewer, doc-fact-checker)
+   are installed as Copilot custom agents in `.github/agents/` — where a
+   prompt says to run one, delegate to the matching custom agent (VS Code,
+   Copilot CLI `/agents`, or the coding agent). On a surface without
+   custom-agent support, execute the procedure from `./agents/`
+   yourself as a separate, fresh review pass held to its report format.

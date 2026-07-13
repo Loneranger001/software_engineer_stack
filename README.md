@@ -58,11 +58,13 @@ python3 scripts/build_copilot.py --target /path/to/your/work-repo
 
 This writes `.github/prompts/<stage>.prompt.md` (invoke as `/intake`,
 `/implement`, … in Copilot Chat — enable prompt files in VS Code settings and
-prefer **agent mode**) and `.github/copilot-instructions.md` (the shared
-rules: decision protocol, scope discipline, conventions, verification). Path
-references point back at this repo, so keep it checked out at a stable
-location. Copilot has no subagents — the review procedures in `agents/` run
-inline as separate fresh passes.
+prefer **agent mode**), `.github/agents/<name>.agent.md` (the three reviewers
+— scope-auditor, code-reviewer, doc-fact-checker — as native [Copilot custom
+agents](https://docs.github.com/en/copilot/reference/custom-agents-configuration),
+usable from VS Code, the Copilot CLI's `/agents`, and the coding agent), and
+`.github/copilot-instructions.md` (the shared rules: decision protocol, scope
+discipline, conventions, verification). Path references point back at this
+repo, so keep it checked out at a stable location.
 
 A root `AGENTS.md` is also generated for any other AGENTS.md-aware tool
 (opencode, Copilot coding agent, etc.): it explains the lifecycle and how to

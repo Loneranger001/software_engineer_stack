@@ -215,5 +215,6 @@ Analyze → draft from the matching template → fact-check pass → your format
 - **Check ASSUMPTIONS.md when a gate presents it** — that's where the agent
   shows you what it decided on its own authority.
 - **In Copilot** the flow is identical; the commands come from
-  `.github/prompts/` (generate once with
+  `.github/prompts/` and the three reviewers run as native custom agents from
+  `.github/agents/` (generate both once with
   `python3 scripts/build_copilot.py --target <your-repo>`).
