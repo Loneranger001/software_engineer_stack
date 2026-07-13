@@ -78,3 +78,19 @@ scripts/md2docx.sh examples/sample-brief.md          # needs pandoc; prints inst
 ```
 
 With a dev Oracle/Unix environment available, set `SES_DB_CONN` / `SES_KSH_HOST` / `SES_PY` and re-run `/verify-code` on the sample repo to exercise live mode.
+
+## 12. How does build_copilot.py work?
+
+It's a ~130-line compiler from the canonical framework to Copilot's file conventions ([source](../scripts/build_copilot.py)). Pipeline per run:
+
+1. **Resolve roots.** The stack root defaults to the script's parent repo; the target defaults to the stack root, or a work repo via `--target`. One decision follows: `root_ref` — how generated files will point back at the framework. Inside the stack repo it's `.` (relative paths); for an external work repo it's the stack checkout's absolute path.
+2. **Skills → prompt files.** Each `skills/*/SKILL.md` is parsed (frontmatter + body) and re-emitted as `<target>/.github/prompts/<name>.prompt.md`: Copilot frontmatter (`description` kept, `mode: agent` added, Claude-only keys dropped), every `${CLAUDE_PLUGIN_ROOT}` replaced with `root_ref`, and a header line pointing at the shared decision protocol.
+3. **Agents → custom agents.** Each `agents/*.md` becomes `<target>/.github/agents/<name>.agent.md` — a native Copilot custom agent. The `tools` restriction is deliberately omitted (Copilot tool names vary per surface; default is all tools); the read-only constraint is stated in the prompt body instead.
+4. **Shared context.** `<target>/.github/copilot-instructions.md` (the always-on rules: decision protocol, scope discipline, conventions precedence, verification, when to delegate to the custom agents) and `AGENTS.md` at the stack root (universal entry point for AGENTS.md-aware tools) are regenerated.
+5. **Safety.** Every generated file carries a marker comment; the script refuses to overwrite any existing file without the marker — your hand-written files can never be clobbered. Regeneration is idempotent (running twice produces byte-identical output).
+
+## 13. What are the prompt files for — do they access the SKILLs?
+
+No — nothing "calls into" `skills/` at runtime. A prompt file is a **compiled copy** of a skill: the same instructions, re-packaged for a different loader. `skills/intake/SKILL.md` and `.github/prompts/intake.prompt.md` differ only in frontmatter dialect and path resolution — Claude Code loads the SKILL.md natively and resolves `${CLAUDE_PLUGIN_ROOT}` itself at runtime; Copilot loads the prompt file into the chat context when you type `/intake`, with the framework paths already baked in at generation time. (The prompt file does *reference* the framework's data files — templates, checklists, the decision protocol — which the Copilot agent then reads from disk while executing; it just doesn't read SKILL.md.)
+
+Two practical consequences: **skills/ is the only place you edit** — after changing a skill, re-run `python3 scripts/build_copilot.py` (per target repo) or Copilot keeps executing the old instructions; and the marker protection means you can't accidentally fork behavior by editing a prompt file directly.
