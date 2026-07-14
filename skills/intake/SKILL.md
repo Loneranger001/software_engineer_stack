@@ -6,6 +6,10 @@ argument-hint: <path-to-brief-or-pasted-requirements> [task-id]
 
 # /intake — brief to approved scope contract
 
+> Path note: `${CLAUDE_PLUGIN_ROOT}` is this framework's root — the ancestor
+> directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
+> it automatically; other harnesses resolve it from this file's location.
+
 You are starting a new task in the software-engineer-stack lifecycle. Your output
 is a task workspace containing a requirements summary and a **scope contract**
 the user has explicitly approved. Nothing downstream may begin before that approval.

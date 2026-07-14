@@ -6,6 +6,10 @@ argument-hint: "[task-id]"
 
 # /impl-plan — executable implementation document
 
+> Path note: `${CLAUDE_PLUGIN_ROOT}` is this framework's root — the ancestor
+> directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
+> it automatically; other harnesses resolve it from this file's location.
+
 Produce `work/<id>/impl-doc.md` and get it user-approved. /implement will
 execute this document literally, so it must be executable by someone (or some
 session) with no memory of this conversation.

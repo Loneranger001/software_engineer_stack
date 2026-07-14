@@ -6,6 +6,10 @@ argument-hint: <change description or CR reference> [task-id]
 
 # /change-request — small change, full discipline
 
+> Path note: `${CLAUDE_PLUGIN_ROOT}` is this framework's root — the ancestor
+> directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
+> it automatically; other harnesses resolve it from this file's location.
+
 The compressed pipeline: `analyze → mini-contract → change → verify → deliver`.
 Small change does NOT mean lowered standards — it means fewer documents, same
 verification, same scope discipline.

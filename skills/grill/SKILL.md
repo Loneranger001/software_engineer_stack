@@ -6,6 +6,10 @@ argument-hint: "[task-id]"
 
 # /grill — the design survives the interview, or it changes
 
+> Path note: `${CLAUDE_PLUGIN_ROOT}` is this framework's root — the ancestor
+> directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
+> it automatically; other harnesses resolve it from this file's location.
+
 The tech-design gates prove the TDD's claims are TRUE (fact-checker) and that
 scope is covered (traceability). This stage attacks COMPLETENESS: the cases
 nobody wrote down. Its output is a design with fewer surprises, and a log

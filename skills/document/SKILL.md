@@ -6,6 +6,10 @@ argument-hint: <howto|kb-article|understanding-doc> <interface/component/topic>
 
 # /document — code-verified documentation
 
+> Path note: `${CLAUDE_PLUGIN_ROOT}` is this framework's root — the ancestor
+> directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
+> it automatically; other harnesses resolve it from this file's location.
+
 Pipeline: `analyze → draft → fact-check → deliver`. The defining rule: this
 skill documents what the code DOES, not what anyone believes it does.
 

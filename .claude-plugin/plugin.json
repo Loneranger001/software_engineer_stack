@@ -1,8 +1,11 @@
 {
   "name": "software-engineer-stack",
-  "version": "0.1.0",
-  "description": "End-to-end software engineering lifecycle framework: intake, research, technical design, implementation planning, coding with verification, delivery, change requests, and documentation — for PL/SQL, SQL, KSH, and Python codebases. Accurate (source-referenced docs, runnable verification), fault-tolerant (resumable stage gates), self-improving (retro lessons), and scope-disciplined (scope contracts).",
+  "version": "0.6.0",
+  "description": "End-to-end software engineering lifecycle framework: intake, research, technical design, grill (adversarial design interrogation), implementation planning, coding with verification, delivery, change requests, and documentation — for PL/SQL, SQL, KSH, and Python codebases. Accurate (source-referenced docs, runnable verification), fault-tolerant (resumable stage gates), self-improving (retro lessons, domain glossary), and scope-disciplined (scope contracts).",
   "author": {
     "name": "loneranger001"
-  }
+  },
+  "license": "MIT",
+  "repository": "https://github.com/Loneranger001/software_engineer_stack",
+  "keywords": ["sdlc", "lifecycle", "plsql", "sql", "ksh", "python", "tdd", "scope-contract", "code-review"]
 }

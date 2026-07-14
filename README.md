@@ -48,37 +48,47 @@ Then open Claude Code **inside the work repo** you're changing and run the comma
 
 ## Using with GitHub Copilot
 
-The canonical skills are harness-neutral; a generator produces the Copilot
-layer (never edit generated files — edit `skills/` and regenerate):
+Three tiers, by effort. Canonical content is always `skills/`/`agents/` —
+everything Copilot-facing is generated from it (never edit generated files).
+
+**Tier A — install as a plugin (recommended, zero setup).** The ready-made
+[`copilot/`](copilot/) folder is a self-contained Copilot-native
+[plugin](https://docs.github.com/en/copilot/concepts/agents/about-plugins):
+`plugin.json`, the 12 stages as skills, the 3 reviewers as `.agent.md` custom
+agents, and the bundled templates/checklists/protocol they use.
 
 ```sh
-# install the adapter into a work repo
+copilot plugin install ./copilot     # from a local checkout
+copilot plugin install <repo-url>    # or straight from the repository
+```
+
+No generator run needed. Components are cached — re-run the install after
+updating. For the Copilot coding agent, enable the plugin via the work repo's
+`.github/copilot/settings.json`. (Installing this repo's root also works:
+Copilot reads `.claude-plugin/plugin.json` for Claude Code compatibility and
+defaults skills to `skills/` — but only the `copilot/` folder carries the
+reviewers as custom agents, since plugin agents require `.agent.md` naming.)
+
+**Tier B — generate the adapter into a work repo** (adds VS Code Chat
+`/stage` commands and repo-scoped discovery):
+
+```sh
 python3 scripts/build_copilot.py --target /path/to/your/work-repo
 ```
 
-This writes four things into the work repo:
+This writes `.github/prompts/<stage>.prompt.md` (explicit `/intake`,
+`/implement`, … in Copilot Chat — enable prompt files, prefer agent mode),
+`.github/skills/<stage>/SKILL.md` (model-invoked
+[agent skills](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills)),
+`.github/agents/<name>.agent.md` (the reviewers as
+[custom agents](https://docs.github.com/en/copilot/reference/custom-agents-configuration)),
+and `.github/copilot-instructions.md` (shared rules). Path references point
+back at this repo — keep it checked out at a stable location and regenerate
+after skill edits.
 
-- `.github/prompts/<stage>.prompt.md` — explicit invocation: `/intake`,
-  `/implement`, … in Copilot Chat (enable prompt files in VS Code settings;
-  prefer **agent mode**)
-- `.github/skills/<stage>/SKILL.md` — the same stages as native
-  [agent skills](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills),
-  which the Copilot CLI and coding agent discover automatically and load when
-  a request matches a stage's description (Copilot uses the same SKILL.md
-  convention as Claude Code — these copies just have the framework paths
-  pre-substituted)
-- `.github/agents/<name>.agent.md` — the three reviewers as
-  [Copilot custom agents](https://docs.github.com/en/copilot/reference/custom-agents-configuration)
-  (VS Code, Copilot CLI `/agents`, coding agent)
-- `.github/copilot-instructions.md` — the shared rules: decision protocol,
-  scope discipline, conventions, verification
-
-Path references point back at this repo, so keep it checked out at a stable
-location.
-
-A root `AGENTS.md` is also generated for any other AGENTS.md-aware tool
-(opencode, Copilot coding agent, etc.): it explains the lifecycle and how to
-execute the stage instructions directly.
+**Tier C — any other tool**: the generated root `AGENTS.md` explains the
+lifecycle and how to execute the stage instructions directly (opencode and
+other AGENTS.md-aware tools).
 
 ## Task workspaces
 
