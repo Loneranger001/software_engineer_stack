@@ -48,11 +48,31 @@ Then open Claude Code **inside the work repo** you're changing and run the comma
 
 ## Using with GitHub Copilot
 
-The canonical skills are harness-neutral; a generator produces the Copilot
-layer (never edit generated files — edit `skills/` and regenerate):
+Three tiers, by effort. Canonical content is always `skills/`/`agents/` —
+everything Copilot-facing is generated from it (never edit generated files).
+
+**Tier A — install as a plugin (recommended, zero setup).** The ready-made
+[`copilot/`](copilot/) folder is a self-contained Copilot-native
+[plugin](https://docs.github.com/en/copilot/concepts/agents/about-plugins):
+`plugin.json`, the 12 stages as skills, the 3 reviewers as `.agent.md` custom
+agents, and the bundled templates/checklists/protocol they use.
 
 ```sh
-# install the adapter into a work repo
+copilot plugin install ./copilot     # from a local checkout
+copilot plugin install <repo-url>    # or straight from the repository
+```
+
+No generator run needed. Components are cached — re-run the install after
+updating. For the Copilot coding agent, enable the plugin via the work repo's
+`.github/copilot/settings.json`. (Installing this repo's root also works:
+Copilot reads `.claude-plugin/plugin.json` for Claude Code compatibility and
+defaults skills to `skills/` — but only the `copilot/` folder carries the
+reviewers as custom agents, since plugin agents require `.agent.md` naming.)
+
+**Tier B — generate the adapter into a work repo** (adds VS Code Chat
+`/stage` commands and repo-scoped discovery):
+
+```sh
 python3 scripts/build_copilot.py --target /path/to/your/work-repo
 ```
 

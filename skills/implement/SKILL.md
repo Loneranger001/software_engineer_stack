@@ -6,6 +6,10 @@ argument-hint: "[task-id]"
 
 # /implement — execute the impl doc, verifiably
 
+> Path note: `${CLAUDE_PLUGIN_ROOT}` is this framework's root — the ancestor
+> directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
+> it automatically; other harnesses resolve it from this file's location.
+
 Execute `work/<id>/impl-doc.md` exactly: one step at a time, verified and
 committed before the next begins.
 

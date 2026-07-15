@@ -6,6 +6,10 @@ argument-hint: "[task-id]"
 
 # /deliver — audited, packaged handover
 
+> Path note: `${CLAUDE_PLUGIN_ROOT}` is this framework's root — the ancestor
+> directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
+> it automatically; other harnesses resolve it from this file's location.
+
 Turn a finished implementation (or document task) into a delivered package:
 audited against scope, evidenced, and converted to the formats the user needs.
 

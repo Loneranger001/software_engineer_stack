@@ -6,6 +6,10 @@ argument-hint: "[repo-path]"
 
 # /repo-profile — learn the repo's own rules
 
+> Path note: `${CLAUDE_PLUGIN_ROOT}` is this framework's root — the ancestor
+> directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
+> it automatically; other harnesses resolve it from this file's location.
+
 Existing repos have their own conventions, and those ALWAYS beat the framework
 defaults in `${CLAUDE_PLUGIN_ROOT}/standards/`. This skill captures them once
 into `.conventions.md` at the repo root, so every other skill can honor them.

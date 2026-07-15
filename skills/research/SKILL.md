@@ -6,6 +6,10 @@ argument-hint: "[task-id]"
 
 # /research — source-referenced investigation
 
+> Path note: `${CLAUDE_PLUGIN_ROOT}` is this framework's root — the ancestor
+> directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
+> it automatically; other harnesses resolve it from this file's location.
+
 Produce `work/<id>/research-notes.md`: everything /tech-design needs to design
 confidently, with every finding traceable to a source.
 

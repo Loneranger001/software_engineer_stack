@@ -31,8 +31,8 @@ and documentation. Full docs: README.md.
 3. Instruction files reference framework paths as `${CLAUDE_PLUGIN_ROOT}` —
    that is this repository's root. Claude Code resolves it natively; other
    harnesses substitute the repo path (the Copilot adapter under
-   `.github/prompts/` is pre-substituted; regenerate with
-   `python3 scripts/build_copilot.py`).
+   `.github/prompts/` and the native-skill copies under `.github/skills/`
+   are pre-substituted; regenerate with `python3 scripts/build_copilot.py`).
 4. Task state lives in `work/<task-id>/` workspaces (`STATUS.md` = resume
    point, `scope-contract.md` = scope truth, `ASSUMPTIONS.md` = logged
    judgment calls, `evidence/` = verification outputs).

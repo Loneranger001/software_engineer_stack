@@ -6,6 +6,10 @@ argument-hint: "[task-id]"
 
 # /tech-design — traceable technical design document
 
+> Path note: `${CLAUDE_PLUGIN_ROOT}` is this framework's root — the ancestor
+> directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
+> it automatically; other harnesses resolve it from this file's location.
+
 Produce `work/<id>/tdd.md` and get it user-approved. The TDD is the contract
 for HOW the scope will be met.
 

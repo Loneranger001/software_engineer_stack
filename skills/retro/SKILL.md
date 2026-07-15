@@ -6,6 +6,10 @@ argument-hint: "[task-id]"
 
 # /retro — the framework learns from the task
 
+> Path note: `${CLAUDE_PLUGIN_ROOT}` is this framework's root — the ancestor
+> directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
+> it automatically; other harnesses resolve it from this file's location.
+
 Every delivered task teaches something. This skill turns that into durable
 memory (`knowledge/lessons.md`) and, when warranted, into edits to the
 framework itself.

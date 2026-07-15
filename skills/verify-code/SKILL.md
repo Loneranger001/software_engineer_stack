@@ -6,6 +6,10 @@ argument-hint: <file(s) or directory to verify> [--task <task-id>]
 
 # /verify-code — run it, don't trust it
 
+> Path note: `${CLAUDE_PLUGIN_ROOT}` is this framework's root — the ancestor
+> directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
+> it automatically; other harnesses resolve it from this file's location.
+
 Per-language verification recipes. Live mode proves the code works; static
 fallback proves it parses and conforms. Every run produces an evidence file
 (`${CLAUDE_PLUGIN_ROOT}/templates/test-evidence.md`) into the task's
