@@ -76,19 +76,19 @@ reviewers as custom agents, since plugin agents require `.agent.md` naming.)
 python3 scripts/build_copilot.py --target /path/to/your/work-repo
 ```
 
-This writes `.github/prompts/<stage>.prompt.md` (explicit `/intake`,
-`/implement`, … in Copilot Chat — enable prompt files, prefer agent mode),
-`.github/skills/<stage>/SKILL.md` (model-invoked
-[agent skills](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills)),
-`.github/agents/<name>.agent.md` (the reviewers as
-[custom agents](https://docs.github.com/en/copilot/reference/custom-agents-configuration)),
-and `.github/copilot-instructions.md` (shared rules). Path references point
-back at this repo — keep it checked out at a stable location and regenerate
-after skill edits.
+This writes `.github/prompts/<stage>.prompt.md` (invoke as `/intake`,
+`/implement`, … in Copilot Chat — enable prompt files in VS Code settings and
+prefer **agent mode**), `.github/agents/<name>.agent.md` (the three reviewers
+— scope-auditor, code-reviewer, doc-fact-checker — as native [Copilot custom
+agents](https://docs.github.com/en/copilot/reference/custom-agents-configuration),
+usable from VS Code, the Copilot CLI's `/agents`, and the coding agent), and
+`.github/copilot-instructions.md` (the shared rules: decision protocol, scope
+discipline, conventions, verification). Path references point back at this
+repo, so keep it checked out at a stable location.
 
-**Tier C — any other tool**: the generated root `AGENTS.md` explains the
-lifecycle and how to execute the stage instructions directly (opencode and
-other AGENTS.md-aware tools).
+A root `AGENTS.md` is also generated for any other AGENTS.md-aware tool
+(opencode, Copilot coding agent, etc.): it explains the lifecycle and how to
+execute the stage instructions directly.
 
 ## Task workspaces
 
