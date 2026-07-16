@@ -42,7 +42,11 @@ skill documents what the code DOES, not what anyone believes it does.
    - Build the **complete dependency map** both directions (upstream feeds,
      downstream consumers, associated packages/scripts, schedules, config) —
      with the grep/queries recorded so the map is reproducible. "Nothing
-     depends on this" requires showing the search that found nothing.
+     depends on this" requires showing the search that found nothing. Then
+     draw it as the §6 mermaid diagram (upstream / interface / downstream
+     subgraphs, labelled edges) — the diagram and the tables must agree in
+     both directions; the fact-checker treats a node without a table row (or
+     vice versa) as a finding.
 2. Where the environment is reachable, RUN things to confirm behaviour
    (queries, `--help`, dry-run modes) and capture outputs to `evidence/`.
    For a howto: execute each step yourself where safe; steps you could not

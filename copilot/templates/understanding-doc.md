@@ -54,6 +54,30 @@ flowchart TD
 <!-- Both directions, exhaustively. Record the grep/queries used so the map
      is reproducible. "None found" requires showing the search that found none. -->
 
+### Dependency map
+
+<!-- Drawn FROM the tables below — every node/edge here must have a table row,
+     and vice versa (the fact-checker verifies both directions). Group with
+     subgraphs; style the interface itself distinctly. -->
+```mermaid
+flowchart LR
+    subgraph upstream [Upstream]
+        U1[{feed file / source table}]
+        U2[{scheduler entry}]
+    end
+    subgraph iface [{THIS INTERFACE}]
+        M[{main package / script}]
+        A1[{associated pkg_x}]
+    end
+    subgraph downstream [Downstream]
+        D1[{consumer job / datamart}]
+    end
+    U2 -->|triggers| M
+    U1 -->|read by| M
+    M --> A1
+    M -->|produces {file/table}| D1
+```
+
 ### Upstream (what this interface depends on)
 
 | Dependency | Type | How used | Source |
