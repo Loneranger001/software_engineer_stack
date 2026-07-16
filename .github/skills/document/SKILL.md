@@ -33,6 +33,20 @@ skill documents what the code DOES, not what anyone believes it does.
 1. Read the target code completely: entry points, config, callers, data
    objects, error paths, logs. For an interface: trace one real flow
    end-to-end before writing anything.
+   - For an **understanding-doc**, classify the interface type first (batch
+     job, online/API, data pipeline, report/extract, library) — the template
+     defines which sections get depth per type, and the SAME type must always
+     get the SAME emphasis so your documents stay consistent. If the repo's
+     `.conventions.md` has a Documentation section recording a chosen format,
+     it wins; if you make a new format choice, record it there.
+   - Build the **complete dependency map** both directions (upstream feeds,
+     downstream consumers, associated packages/scripts, schedules, config) —
+     with the grep/queries recorded so the map is reproducible. "Nothing
+     depends on this" requires showing the search that found nothing. Then
+     draw it as the §6 mermaid diagram (upstream / interface / downstream
+     subgraphs, labelled edges) — the diagram and the tables must agree in
+     both directions; the fact-checker treats a node without a table row (or
+     vice versa) as a finding.
 2. Where the environment is reachable, RUN things to confirm behaviour
    (queries, `--help`, dry-run modes) and capture outputs to `evidence/`.
    For a howto: execute each step yourself where safe; steps you could not
