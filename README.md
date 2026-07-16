@@ -84,7 +84,12 @@ This writes `.github/prompts/<stage>.prompt.md` (explicit `/intake`,
 [custom agents](https://docs.github.com/en/copilot/reference/custom-agents-configuration)),
 and `.github/copilot-instructions.md` (shared rules). Path references point
 back at this repo — keep it checked out at a stable location and regenerate
-after skill edits.
+after skill edits. Add **`--self-contained`** to instead bundle the framework
+data (templates, checklists, protocol, standards, scripts, knowledge) into
+`.github/se-stack/` and point every reference there — the work repo then
+needs no framework checkout at all, and `/stage` commands still work in
+VS Code Chat. (The bundled `knowledge/` is a per-install copy — sync lessons
+back to this repo's canonical `knowledge/`.)
 
 **Tier C — any other tool**: the generated root `AGENTS.md` explains the
 lifecycle and how to execute the stage instructions directly (opencode and
