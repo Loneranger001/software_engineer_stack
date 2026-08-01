@@ -175,7 +175,7 @@ the work repo's `.github/copilot/settings.json`.
 
 ## Contents
 
-- `skills/` — the 12 lifecycle stages (model-invoked; describe what you want,
+- `skills/` — the {len(skill_dirs)} lifecycle stages (model-invoked; describe what you want,
   e.g. "start a new task from this brief", and the matching stage loads)
 - `agents/` — scope-auditor, code-reviewer, doc-fact-checker as custom agents
 - `templates/ checklists/ core/ standards/ scripts/` — the data the skills use
