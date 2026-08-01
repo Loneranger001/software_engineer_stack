@@ -7,7 +7,7 @@
 > `- [YYYY-MM-DD] [stage:<stage>] [lang:<plsql|sql|ksh|python|->] [repo:<name|->] <actionable lesson> (task <id>)`
 >
 > Tags: stage = intake|research|tech-design|impl-plan|implement|deliver|
-> change-request|document|verify|any. Use `-` when a tag doesn't apply.
+> change-request|document|understand|verify|any. Use `-` when a tag doesn't apply.
 > Curation (merging/pruning) only via /retro §4 with user approval.
 
 <!-- lessons below this line -->

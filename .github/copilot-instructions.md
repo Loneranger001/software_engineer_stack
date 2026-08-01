@@ -3,7 +3,7 @@
 
 This repository is worked on with the software-engineer-stack lifecycle
 framework rooted at `.`. The stages are available two ways with the
-same instructions: explicitly as prompt files in Copilot Chat (`/change-request`, `/deliver`, `/document`, `/grill`, `/impl-plan`, `/implement`, `/intake`, `/repo-profile`, `/research`, `/retro`, `/tech-design`, `/verify-code`) and as
+same instructions: explicitly as prompt files in Copilot Chat (`/change-request`, `/deliver`, `/document`, `/grill`, `/impl-plan`, `/implement`, `/intake`, `/meeting-minutes`, `/repo-profile`, `/research`, `/retro`, `/tech-design`, `/understand`, `/verify-code`) and as
 native agent skills in `.github/skills/` which the Copilot CLI and coding
 agent load automatically when a request matches a stage's description.
 
