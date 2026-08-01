@@ -16,6 +16,7 @@ flowchart LR
 
     CR[/change-request/] -.fast path.-> F
     DOC[/document/] -.standalone.-> F
+    UND[/understand/] -.standalone; feeds.-> DOC
 ```
 
 | Command | What it does | Gate |
@@ -28,6 +29,7 @@ flowchart LR
 | `/implement` | Execute the impl doc step by step on a branch, verifying each step | Code review + verification evidence |
 | `/deliver` | Scope audit, evidence bundle, release notes, Word/PDF/Confluence conversion | Scope auditor passes |
 | `/change-request <desc>` | Fast path for small changes: impact analysis → mini scope contract → change → verify → deliver | Inline approvals |
+| `/understand <interface>` | Build a code-verified working understanding of any existing interface or integration: trace it end-to-end, map dependencies both directions, explain it in layers, answer follow-ups from the code | — |
 | `/document <type> <target>` | Produce a how-to, KB article, or understanding document for an existing interface | Fact-checker passes |
 | `/repo-profile` | Scan a work repo: conventions into `.conventions.md`, core business entities seeded into `.domain-glossary.md` | — |
 | `/verify-code <files>` | Run per-language verification (live DB/host where available, static fallback) | — |
@@ -54,7 +56,7 @@ everything Copilot-facing is generated from it (never edit generated files).
 **Tier A — install as a plugin (recommended, zero setup).** The ready-made
 [`copilot/`](copilot/) folder is a self-contained Copilot-native
 [plugin](https://docs.github.com/en/copilot/concepts/agents/about-plugins):
-`plugin.json`, the 12 stages as skills, the 3 reviewers as `.agent.md` custom
+`plugin.json`, the 14 stages as skills, the 3 reviewers as `.agent.md` custom
 agents, and the bundled templates/checklists/protocol they use.
 
 ```sh

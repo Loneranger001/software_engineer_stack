@@ -3,7 +3,7 @@
 # Usage: new-task.sh <task-id> [workspace-root] [pipeline]
 #   task-id         e.g. PROJ-123 (no spaces)
 #   workspace-root  directory that holds work/ (default: current directory)
-#   pipeline        full | change-request | document  (default: full)
+#   pipeline        full | change-request | document | understand  (default: full)
 set -eu
 
 TASK_ID="${1:?usage: new-task.sh <task-id> [workspace-root] [pipeline]}"
@@ -47,7 +47,13 @@ retro: pending" ;;
 draft: pending
 fact-check: pending
 deliver: pending" ;;
-  *) echo "error: unknown pipeline '$PIPELINE' (full|change-request|document)" >&2; exit 1 ;;
+  understand)
+    NEXT="Run /understand with the interface or integration to investigate."
+    STAGES="classify: pending
+trace: pending
+map: pending
+explain: pending" ;;
+  *) echo "error: unknown pipeline '$PIPELINE' (full|change-request|document|understand)" >&2; exit 1 ;;
 esac
 
 cat > "$DIR/STATUS.md" <<EOF
