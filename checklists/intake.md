@@ -8,6 +8,7 @@ Run before presenting the scope contract for approval.
 - [ ] Every in-scope item has at least one acceptance criterion, and every criterion says HOW it will be verified
 - [ ] Out-of-scope section lists adjacent work a reader would otherwise assume included
 - [ ] Ambiguities are recorded as open questions, not resolved by silent assumption
+- [ ] Prose passes the core/writing-style.md gate: no filler openers or banned words, no sentence carrying more than one idea or hiding its actor, one name per object
 - [ ] Affected interfaces/objects listed reflect the brief plus a first scan of the repo
 - [ ] Applicable lessons from knowledge/lessons.md were loaded and considered
 - [ ] ASSUMPTIONS.md reviewed — every open entry presented for ratification at this gate (decision-protocol §4)

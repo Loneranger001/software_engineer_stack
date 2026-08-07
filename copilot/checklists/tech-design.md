@@ -13,6 +13,7 @@ Run before presenting the TDD for approval.
 - [ ] Non-functional section addresses performance, security, operability — or states why not applicable
 - [ ] At least one alternative was considered and its rejection justified
 - [ ] doc-fact-checker agent ran on the TDD and its findings were resolved
+- [ ] Prose passes the core/writing-style.md gate: no filler openers or banned words, no sentence carrying more than one idea or hiding its actor, one name per object
 - [ ] Open questions from research are resolved or explicitly carried as risks
 - [ ] ASSUMPTIONS.md reviewed — open entries presented for ratification; design-shaping ones promoted into the TDD (decision-protocol §4)
 - [ ] STATUS.md updated: tech-design → awaiting approval

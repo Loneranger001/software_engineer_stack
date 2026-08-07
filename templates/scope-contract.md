@@ -7,9 +7,16 @@
 - Approved by: {user} on {date}
 - Version: 1 (bump on any user-approved scope change; record the change in History)
 
+<!-- Prose follows core/writing-style.md: active voice with a named actor, one
+     idea per sentence, no filler openers, one name per object throughout.
+     The tables carry the facts; a paragraph beside one says only what it
+     cannot. -->
+
 ## Objective
 
-{One paragraph: the business/technical outcome this task must achieve.}
+{One paragraph: the business/technical outcome this task must achieve. Name who
+or what is affected and what becomes true once the task is done, in the
+requester's words. Do not restate the title.}
 
 ## In scope
 

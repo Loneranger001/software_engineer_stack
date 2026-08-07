@@ -8,5 +8,6 @@ Run before marking the grill stage done.
 - [ ] Zero `ask-user` items remain unanswered — each is answered (landed in the TDD) or explicitly deferred by the user (verbatim, in TDD §11 Risks and the grill log)
 - [ ] Terminology challenges resolved by the user, never by assumption; load-bearing resolutions recorded in the TDD
 - [ ] Checkable scenarios were checked against code/dev DB, not reasoned about (decision-protocol §1)
+- [ ] Text written into the TDD passes the core/writing-style.md gate: no filler openers or banned words, no sentence carrying more than one idea or hiding its actor, one name per object
 - [ ] If an approved TDD materially changed, the changed sections were re-presented and re-approved
 - [ ] STATUS.md updated: grill → done (or waived, with who/when), next action /impl-plan

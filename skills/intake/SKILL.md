@@ -23,6 +23,10 @@ the user has explicitly approved. Nothing downstream may begin before that appro
    checkable facts; proceed only on high-confidence, reversible, in-scope
    calls logged to the workspace ASSUMPTIONS.md; stop and ask for everything
    else.
+4. Prose follows `${CLAUDE_PLUGIN_ROOT}/core/writing-style.md` — active voice
+   with a named actor, one idea per sentence, one name per object. The scope
+   contract is re-read by every later stage, so a sentence a reader has to
+   parse twice here is paid for at every stage after it.
 
 ## 1. Create the workspace
 

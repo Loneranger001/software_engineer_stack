@@ -33,3 +33,11 @@
 ## Applied changes
 
 <!-- /retro appends: - [date] <change> — motivated by <lesson/task> -->
+- [2026-08-07] core/writing-style.md added as a shared prose contract, wired into
+  /intake, /tech-design, and /grill and gated by a checkbox in each stage's
+  checklist — motivated by generated scope contracts and TDDs reading like
+  machine output (overstuffed sentences, agentless passives, filler vocabulary)
+  with no style guidance existing anywhere in the framework. Placed in core/ for
+  the same reason as the decision protocol: one file, one line per adopter, and
+  it rides the generator's existing core/ copy into both adapters. The remaining
+  document stages adopt it at one preamble line plus one checkbox each.

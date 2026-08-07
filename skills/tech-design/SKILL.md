@@ -24,6 +24,8 @@ for HOW the scope will be met.
 4. Unknowns follow `${CLAUDE_PLUGIN_ROOT}/core/decision-protocol.md`: design
    judgment calls that pass §2 (high confidence, reversible, in-scope, no
    dangerous surface) go to ASSUMPTIONS.md; anything else stops and asks.
+5. Prose follows `${CLAUDE_PLUGIN_ROOT}/core/writing-style.md` — active voice
+   with a named actor, one idea per sentence, one name per object.
 
 ## 1. Design
 
@@ -55,6 +57,17 @@ for HOW the scope will be met.
   over from research-notes.md; add new ones for anything newly read).
 - Pseudocode/signatures must compile against reality: correct object names,
   parameter types from the actual specs.
+
+### Prose
+
+- An implementer and a reviewer read this document end to end. A sentence
+  either of them has to re-read is a design risk, not a style preference.
+- The narrative paragraphs in §1, §3, and §4 carry the load: say what the
+  diagram cannot — why this shape, which hop is fragile, what breaks if the
+  assumption fails. Never walk the diagram node by node.
+- Fix each object name and business term at first use (§1 Overview) and keep
+  the identical string in every later section: the fact-checker, the
+  traceability table, and /implement all match on exact names.
 
 ## 2. Quality gates
 

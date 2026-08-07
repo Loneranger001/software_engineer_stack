@@ -79,7 +79,9 @@ Take the `ask-user` list and interview the user until it is EMPTY:
   when testable, terminology recorded in the grill log (and the TDD overview
   if load-bearing). Resolved terms also update the repo's
   `.domain-glossary.md` marked `user-confirmed` — that's how the next task
-  skips this question.
+  skips this question. Text you write into the TDD is held to
+  `./core/writing-style.md` like the rest of it: an answer
+  pasted in as a run-on caveat undoes the tech-design gate it already passed.
 - The user may DEFER a question ("accept the risk", "later CR") — record the
   deferral verbatim in TDD §11 Risks with their ack, and in the grill log.
   Deferred is a user decision; unanswered is not a terminal state.

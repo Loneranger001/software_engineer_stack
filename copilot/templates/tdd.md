@@ -4,10 +4,16 @@
 - Inputs: scope-contract.md v{n}, research-notes.md
 - Author: Claude, reviewed by {user}
 
+<!-- Prose follows core/writing-style.md: active voice with a named actor, one
+     idea per sentence, no filler openers, one name per object throughout.
+     The tables and diagrams carry the facts; a paragraph beside one says only
+     what it cannot. -->
+
 ## 1. Overview
 
 {What is being built/changed and why — one or two paragraphs, understandable by
-someone who has not read the brief.}
+someone who has not read the brief. Open with a single sentence stating what
+changes: the sentence a maintainer would repeat from memory.}
 
 Business terms relied on (see the repo's `.domain-glossary.md`):
 {purchase order, approved, …} — the glossary entry is authoritative; this
@@ -34,7 +40,9 @@ flowchart TD
     {entry point} --> {component} --> {data object / file}
 ```
 
-{One paragraph walking the diagram; source: research-notes.md §call graph.}
+{One paragraph saying what the diagram cannot: where the data really comes
+from, which hop is fragile today, what a reader would get wrong from the boxes
+alone. Do not narrate the nodes in order. Source: research-notes.md §call graph.}
 
 ## 4. Proposed design
 

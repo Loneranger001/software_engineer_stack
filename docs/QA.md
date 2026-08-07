@@ -120,3 +120,13 @@ Yes — that's the generator's **default mode**: a thin adapter whose data refer
 ## 19. Where does the `work/` folder get created?
 
 At the **root of the repo you're working in** — the current directory of your session, never the framework checkout. `/intake` scaffolds `<your-work-repo>/work/<task-id>/` (STATUS.md, scope contract, ASSUMPTIONS.md, evidence/, deliverables/, PARKED.md), co-located with the code it concerns so resuming is trivial. Decide once per repo whether to commit `work/` (versioned task history) or add it to `.gitignore` (intake reminds you but won't edit `.gitignore` itself). If you want workspaces outside the repo entirely, give intake a different workspace root when it asks — the choice is recorded in STATUS.md and every later stage finds it.
+
+## 20. Why do the scope contract and TDD read the way they do?
+
+They are written to `core/writing-style.md`, a shared prose contract added because the generated documents were drifting toward machine register — sentences carrying three clauses, agentless passives, and vocabulary no engineer uses in a review ("leverage", "robust", "It is important to note that"). Nothing in the framework had ever specified *how* to write; the templates only specified length ("one or two paragraphs"), so register was left to chance.
+
+The contract fixes one register — a senior engineer explaining a change to the colleague who will maintain it — and states seven rules: one idea per sentence, name the actor, verbs over noun stacks, cut filler, one name per thing, no stacked hedges, and prose only where it says what a table cannot. It closes with a three-point gate.
+
+Enforcement is layered, because guidance stated once and never checked gets ignored: the contract lives in `core/` (one file, referenced not inlined) → `/intake`, `/tech-design`, and `/grill` reference it in their preamble → `templates/scope-contract.md` and `templates/tdd.md` carry it as an HTML comment that pandoc drops before delivery → `checklists/{intake,tech-design,grill}.md` each gate on it before the approval step.
+
+Only the two documents you personally approve are wired up so far. `/research`, `/impl-plan`, `/document`, `/understand`, and `/deliver` still write to their own habits; adopting the contract there costs one preamble line and one checkbox each, and `/research` is the obvious next one since its notes are carried into the TDD.

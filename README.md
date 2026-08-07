@@ -122,6 +122,7 @@ work/PROJ-123/
 - **Fault-tolerant** — stages are idempotent and resumable via `STATUS.md`; implementation happens on a branch with checkpoint commits; every impl doc has a rollback section.
 - **Self-improving** — `/retro` appends structured lessons to `knowledge/lessons.md`; every skill loads applicable lessons before starting. Retro can also propose edits to templates/checklists, applied only with your approval. Each work repo additionally accumulates a `.domain-glossary.md` — business terms ("purchase order", "approved") mapped to their system reality (tables, states, code paths, confirmed semantics) — so a term explained once is never re-asked.
 - **Scope-disciplined** — `/intake` produces a scope contract you approve; every later skill re-reads it. Anything discovered out of scope goes to `PARKED.md`, never into the change. The `scope-auditor` agent gates `/deliver`.
+- **Readable** — the two documents you approve, the scope contract and the TDD, are written to a shared prose contract ([writing-style.md](core/writing-style.md)): a senior engineer explaining a change to whoever will maintain it. Active voice with a named actor, one idea per sentence, one name per object, no filler. `/intake`, `/tech-design`, and `/grill` each gate on it before asking for your approval.
 
 ## When the agent doesn't know
 
@@ -165,6 +166,7 @@ skills/       one directory per lifecycle command (SKILL.md each)
 agents/       scope-auditor, code-reviewer, doc-fact-checker (read-only reviewers)
 templates/    canonical Markdown templates for every document type
 standards/    default coding standards per language (a repo's .conventions.md overrides them)
+core/         decision-protocol.md (what to do when unknown), writing-style.md (how documents read)
 checklists/   per-stage quality gates
 knowledge/    lessons.md (self-improvement memory), decisions.md (framework decision log)
 docs/         QA.md (design Q&A + testing guide), walkthrough.md (narrated example task)
