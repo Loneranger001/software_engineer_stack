@@ -18,11 +18,12 @@ verification, same scope discipline.
 
 1. Load lessons tagged `stage:change-request` from
    `${CLAUDE_PLUGIN_ROOT}/knowledge/lessons.md`.
-2. Resolve `<work-repo>` and `<workspace-root>` per
+2. Resolve `<work-repo>`, `<workspace-root>`, and the `<repo-set>` per
    `${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md` (cwd is not assumed to be
-   the repo), then create the workspace:
-   `${CLAUDE_PLUGIN_ROOT}/scripts/new-task.sh <task-id> <workspace-root> change-request <work-repo>`
-   (or resume from an existing STATUS.md, taking both paths from it).
+   the repo; sibling repos are in analysis scope by default), then create the
+   workspace:
+   `${CLAUDE_PLUGIN_ROOT}/scripts/new-task.sh <task-id> <workspace-root> change-request <work-repo> <repo-set>`
+   (or resume from an existing STATUS.md, taking all of them from it).
 3. Store the CR text as `work/<id>/brief.md`.
 4. Unknowns follow `${CLAUDE_PLUGIN_ROOT}/core/decision-protocol.md`:
    proceed-and-log only for high-confidence, reversible, in-scope calls
@@ -32,17 +33,25 @@ verification, same scope discipline.
 
 1. Read the target interface fully (spec and body / whole script, not just the
    lines to change).
-2. Find ALL callers and dependents: grep for object/proc/script names, check
-   imports, scheduler references, other repos' known touchpoints the user
-   mentions. Record the exact commands used.
+2. Find ALL callers and dependents **in every repo of `<repo-set>`** (from
+   STATUS.md, else enumerate with
+   `${CLAUDE_PLUGIN_ROOT}/scripts/list-repos.sh <repos-folder>` and record the
+   list): grep for object/proc/script names, check imports, scheduler
+   references, config and deployment manifests. Record the exact commands per
+   repo, including repos that returned nothing — "no other repo uses this" is
+   a claim, and on the fast path it is the claim most likely to be wrong,
+   because the change looks small precisely when nobody has looked outside the
+   obvious repo. Cite findings as `<repo>:<path>:<line>`.
 3. Read `<work-repo>/.conventions.md` (run /repo-profile if missing at that
    path).
 4. Write `work/<id>/analysis.md`: current behaviour (source-referenced),
    callers found, blast radius, and the proposed change sketch.
 
 **Escalation rule**: if the analysis shows >3 objects changing, an interface
-contract change affecting external callers, or data migration — tell the user
-this is not a small change and recommend the full pipeline (/intake). Let them
+contract change affecting external callers, data migration, or **changes
+landing in more than one repo** (coordinated branches and a deploy order are
+not a fast-path change) — tell the user this is not a small change and
+recommend the full pipeline (/intake). Let them
 decide; record the decision in STATUS.md. For borderline cases the user keeps
 on the fast path, recommend running /grill against analysis.md before coding.
 
@@ -60,9 +69,11 @@ Append to `analysis.md` and get explicit user approval before touching code
 ## 3. Change
 
 1. Branch per repo conventions; one commit per logical unit referencing the
-   task id.
+   task id. Only the repos the mini contract names are touched — a caller
+   found in another repo is reported, not quietly fixed.
 2. Surgical diff only. Anything else you itch to fix → PARKED.md.
-3. Match surrounding code style over the standards defaults.
+3. Match surrounding code style over the standards defaults — the conventions
+   of the repo the file lives in, which is not necessarily `<work-repo>`.
 
 ## 4. Verify
 

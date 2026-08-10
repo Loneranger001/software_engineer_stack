@@ -86,13 +86,22 @@ STATUS.md → `trace: done`.
 
 ## 3. Map the dependencies both directions
 
+Search **every repo in `<repo-set>`**, not just the one the interface lives
+in (STATUS.md `repos-analyzed:`, else
+`./scripts/list-repos.sh <repos-folder>`). Consumers in a
+sibling repo are the ones nobody remembers at change time — which is precisely
+why they belong on the map.
+
 1. **Upstream**: what feeds or triggers it — source tables/files, schedules,
    calling jobs/services, configuration it reads.
 2. **Downstream**: what consumes or depends on it — grep for its outputs,
    its package/proc names, its file names, its table writes.
 3. **Associated objects**: wrappers, shared packages, DDL, monitoring hooks.
-4. Record the exact greps/queries used so the map is reproducible — "nothing
-   depends on this" requires showing the search that found nothing.
+4. Record the exact greps/queries used **per repo** so the map is reproducible
+   — "nothing depends on this" requires showing the search that found nothing,
+   in each repo it was run against. Qualify nodes and references with their
+   repo (`<repo>:<path>:<line>`), and group the diagram's nodes by repo so a
+   cross-repo dependency is visible as one.
 5. Draw the mermaid dependency map in interface-map.md (upstream / interface /
    downstream subgraphs, labelled edges). Diagram and tables must agree in
    both directions — a node without a table row, or vice versa, is a gap.

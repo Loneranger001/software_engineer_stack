@@ -27,8 +27,9 @@ findings; never edit.
    connect strings in code, prod-affecting defaults.
 3. **Interface stability**: signature/contract changes vs the TDD's interface
    impact section — anything changed that the TDD said wouldn't be?
-4. **Conventions**: against `<work-repo>/.conventions.md` first (the repo
-   root recorded in the task's STATUS.md),
+4. **Conventions**: against the `.conventions.md` of the repo the reviewed
+   file belongs to (repo roots are recorded in the task's STATUS.md; in a
+   multi-repo change each repo is judged by its own rules) first,
    `${CLAUDE_PLUGIN_ROOT}/standards/<lang>.md` where the repo is silent, the
    surrounding file's local style above both. Don't flag pre-existing style in
    untouched lines.

@@ -67,7 +67,12 @@ flowchart TD
 ## 6. Interface impact
 
 {Callers affected, contract changes, backward compatibility. "None" must be
-justified with the call-graph evidence from research.}
+justified with the call-graph evidence from research — evidence covering every
+repo in the analysis scope, not only the repo being changed.}
+
+| Repo | Caller | Impact | Changes here? | How it keeps working |
+|---|---|---|---|---|
+| {repo-b} | {src/py/loader.py:88} | {new column in extract} | no | {ignores unknown columns — verified} |
 
 ## 7. Verification approach
 

@@ -18,10 +18,14 @@ the user has explicitly approved. Nothing downstream may begin before that appro
 
 1. Read `${CLAUDE_PLUGIN_ROOT}/knowledge/lessons.md` and note lessons tagged
    `stage:intake` or matching this repo/language mix. Apply them.
-2. Resolve `<work-repo>` and `<workspace-root>` per
+2. Resolve `<work-repo>`, `<workspace-root>`, and the `<repo-set>` per
    `${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md` — do NOT assume the current
    directory is the repo. If cwd is a parent folder holding several repos, ask
-   which one this task is about before creating anything.
+   which one this task is anchored in before creating anything, and enumerate
+   the rest with `${CLAUDE_PLUGIN_ROOT}/scripts/list-repos.sh <repos-folder>`:
+   they are all in ANALYSIS scope by default, because siblings in a workspace
+   usually call each other. Show the user the list and confirm it; a repo they
+   want excluded becomes an exclusion row, not a silent omission.
 3. Unknowns follow `${CLAUDE_PLUGIN_ROOT}/core/decision-protocol.md`: check
    checkable facts; proceed only on high-confidence, reversible, in-scope
    calls logged to the workspace ASSUMPTIONS.md; stop and ask for everything
@@ -30,7 +34,9 @@ the user has explicitly approved. Nothing downstream may begin before that appro
 ## 1. Create the workspace
 
 1. Ask for a task id if none was given (Jira key or short slug).
-2. Run `${CLAUDE_PLUGIN_ROOT}/scripts/new-task.sh <task-id> <workspace-root> full <work-repo>`.
+2. Run `${CLAUDE_PLUGIN_ROOT}/scripts/new-task.sh <task-id> <workspace-root> full <work-repo> <repo-set>`
+   (`<repo-set>` comma-separated — it lands in STATUS.md as the recorded
+   analysis scope every later stage searches).
    - Workspace root defaults to the work repo. If `work/` shouldn't be committed
      there, remind the user to gitignore it (don't edit .gitignore unasked).
    - Both paths land in STATUS.md absolutised; every later stage reads them
@@ -65,11 +71,17 @@ the user has explicitly approved. Nothing downstream may begin before that appro
   A term the brief uses DIFFERENTLY from its glossary entry is ALWAYS an open
   question — the brief may be wrong or the glossary stale; never silently
   pick a side.
-- Do a first scan of `<work-repo>` for the objects the brief names, to populate
-  the "interfaces & objects expected to change" table. If
-  `<work-repo>/.conventions.md` is missing, suggest running /repo-profile after
-  intake — and check the path, not the bare filename: under a multi-repo parent
-  folder a profiled repo looks unprofiled from cwd.
+- Do a first scan **across every repo in `<repo-set>`** for the objects the
+  brief names, to populate the "interfaces & objects expected to change" table
+  — each row carries its repo. A brief written against one repo routinely
+  implicates others; finding that at intake is cheap, finding it during
+  /implement is not.
+- Fill the contract's "Repos" section: which repos are analyzed, which are
+  expected to CHANGE (the write scope — everything else is read-only context),
+  and any repo excluded from analysis with the user's reason.
+- If `<work-repo>/.conventions.md` is missing, suggest running /repo-profile
+  after intake — and check the path, not the bare filename: under a multi-repo
+  parent folder a profiled repo looks unprofiled from cwd.
 
 ## 4. Draft the scope contract
 

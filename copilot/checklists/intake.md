@@ -8,7 +8,8 @@ Run before presenting the scope contract for approval.
 - [ ] Every in-scope item has at least one acceptance criterion, and every criterion says HOW it will be verified
 - [ ] Out-of-scope section lists adjacent work a reader would otherwise assume included
 - [ ] Ambiguities are recorded as open questions, not resolved by silent assumption
-- [ ] Affected interfaces/objects listed reflect the brief plus a first scan of the repo
+- [ ] Affected interfaces/objects listed reflect the brief plus a first scan of EVERY repo in the analysis scope, each row naming its repo
+- [ ] Contract's Repos section is filled: which repos are analyzed, which may change, and any repo excluded with the user's reason
 - [ ] Applicable lessons from knowledge/lessons.md were loaded and considered
 - [ ] ASSUMPTIONS.md reviewed — every open entry presented for ratification at this gate (decision-protocol §4)
 - [ ] STATUS.md updated: intake in-progress → awaiting approval

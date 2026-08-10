@@ -18,10 +18,10 @@ committed before the next begins.
 1. Load lessons tagged `stage:implement` and the languages involved from
    `${CLAUDE_PLUGIN_ROOT}/knowledge/lessons.md`.
 2. Locate the workspace; verify `impl-plan: approved`.
-3. Read scope-contract.md, tdd.md, impl-doc.md, and
-   `<work-repo>/.conventions.md` (`<work-repo>` from STATUS.md — see
+3. Read scope-contract.md, tdd.md, impl-doc.md, and the `.conventions.md` of
+   every repo the impl doc changes (paths from STATUS.md — see
    `${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md`; git operations and test
-   runs below execute with `<work-repo>` as their working directory).
+   runs execute with the step's own repo as their working directory).
    Also read ASSUMPTIONS.md — you are building on its ratified entries.
 4. Unknowns follow `${CLAUDE_PLUGIN_ROOT}/core/decision-protocol.md`. During
    implementation the "no dangerous surface" rule bites hardest: coding
@@ -35,16 +35,18 @@ committed before the next begins.
 
 ## 1. Branch setup (first run only)
 
-1. Ensure the work repo is clean; stash/ask if not.
-2. Create the branch named in the impl-doc from the repo's mainline.
-3. Record the branch in STATUS.md.
+1. Ensure each repo the impl-doc changes is clean; stash/ask if not.
+2. In each, create the branch named in the impl-doc from that repo's mainline.
+3. Record the branch per repo in STATUS.md.
+4. Repos in `<repo-set>` that the scope contract does NOT list as changing get
+   no branch and no commits — they were analysis scope, not write scope.
 
 ## 2. The step loop
 
 For each impl-doc step N, in order:
 
-1. **Code** the step. Match the surrounding code's conventions
-   (`<work-repo>/.conventions.md` overrides
+1. **Code** the step, in the repo the step names. Match the surrounding
+   code's conventions (that repo's `.conventions.md` overrides
    `${CLAUDE_PLUGIN_ROOT}/standards/`). Touch only the files the step
    names — if the step turns out to need another file, update the impl-doc row
    first (append a note, don't rewrite history).
@@ -56,15 +58,20 @@ For each impl-doc step N, in order:
 3. **On failure**: fix and re-verify. If the fix invalidates the design, STOP —
    report to the user, propose a TDD/impl-doc amendment, get approval before
    continuing. Never quietly diverge from the approved documents.
-4. **Checkpoint commit**: `git commit` the step with message
-   `<task-id> step <N>: <desc>`. Never batch multiple steps into one commit.
+4. **Checkpoint commit**: `git commit` the step **in the step's repo** with
+   message `<task-id> step <N>: <desc>`. Never batch multiple steps into one
+   commit, and never span repos in one step — a step belongs to exactly one
+   repo so that its rollback is a single revert.
 5. Update STATUS.md (current step, last evidence file) after every step —
    this is the resume point.
 
 ### Scope guard (continuous)
 
 Before each commit, check the diff against the scope contract: every changed
-file must map to an in-scope item via the impl-doc. Bugs or improvements you
+file must map to an in-scope item via the impl-doc, and its repo must be one
+the contract lists as changing. A change that turns out to be needed in
+another repo stops the loop and goes to the user as a scope amendment — not a
+quick fix in a repo nobody approved touching. Bugs or improvements you
 notice along the way go to PARKED.md — even one-line "harmless" fixes.
 
 ## 3. Test plan execution
@@ -76,13 +83,15 @@ criterion must reach PASS; failures loop back to the step loop.
 ## 4. Review gate
 
 1. Run the review procedure in `${CLAUDE_PLUGIN_ROOT}/agents/code-reviewer.md`
-   on the full branch diff — as a subagent where the harness supports it;
+   on the full branch diff of every changed repo (one pass per repo, each
+   judged against its own conventions) — as a subagent where the harness
+   supports it;
    otherwise execute the procedure yourself as a separate, fresh review pass,
    holding yourself to its report format. Resolve findings
    or record a conscious waiver (with the user for anything non-trivial).
 2. Self-check with `${CLAUDE_PLUGIN_ROOT}/checklists/implement.md`.
-3. Update STATUS.md: `implement: done` (branch + final commit recorded), next
-   action `/deliver`.
+3. Update STATUS.md: `implement: done` (branch + final commit recorded per
+   changed repo), next action `/deliver`.
 
 ## Fault tolerance
 

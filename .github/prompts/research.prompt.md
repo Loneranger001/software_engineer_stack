@@ -36,9 +36,16 @@ expand it:
 1. **Locate and read** every named object: PL/SQL packages (spec AND body),
    SQL scripts/DDL, KSH scripts, Python modules. Read them, don't skim
    signatures.
-2. **Build the call graph both directions**: who calls the affected objects
-   (grep for package.proc names, script invocations, imports) and what they
-   call. Record the exact grep/queries used so results are reproducible.
+2. **Build the call graph both directions, across every repo in
+   `<repo-set>`**: who calls the affected objects (grep for package.proc
+   names, script invocations, imports, scheduler entries, config references)
+   and what they call. Run each search in EVERY repo the analysis scope names
+   — a caller in a sibling repo is exactly what this stage exists to find, and
+   a search that never visited that repo reports the same "no callers" as a
+   search that did. Record per repo: the exact command and its result,
+   including the repos where it found nothing (`searched, no references`).
+   Reference every finding as `<repo>:<path>:<line>` — bare `file:line` is
+   ambiguous once two repos are in play.
 3. **Data model**: for each touched table/view, capture relevant columns,
    constraints, indexes, and (if the dev DB is reachable via `$SES_DB_CONN`)
    row volumes. Store queries + outputs in `evidence/research-*.txt`.

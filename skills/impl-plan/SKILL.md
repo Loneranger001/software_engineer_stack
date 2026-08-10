@@ -34,12 +34,20 @@ session) with no memory of this conversation.
      backward-compatible interface changes before caller updates).
    - Any step that leaves a temporary inconsistency says so and is immediately
      followed by the step that restores consistency.
-3. Every step row gets: files/objects touched, its OWN verification (what
-   /verify-code or which test proves it), and its OWN rollback note naming the
-   exact revert action.
-4. Name the task branch (follow the repo's branch conventions from
-   `<work-repo>/.conventions.md` — `<work-repo>` from STATUS.md, see
+   - **Across repos**: producer before consumer. When the change spans repos,
+     order the steps so each repo is deployable on its own, and state what the
+     window between deployments looks like — a consumer released before its
+     producer is an outage the plan must either avoid or declare acceptable.
+3. Every step row gets: **its repo**, files/objects touched, its OWN
+   verification (what /verify-code or which test proves it), and its OWN
+   rollback note naming the exact revert action. Rollback for a multi-repo
+   change is per repo AND in reverse dependency order.
+4. Name a task branch **per changed repo** (each following its own repo's
+   branch conventions from `<repo>/.conventions.md` — see
    `${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md` — e.g. `feature/<task-id>`).
+   Only repos the scope contract lists as changing get a branch; if planning
+   reveals another repo must change, that is a scope-contract amendment with
+   the user's approval, not a new branch.
 
 ## 2. Test plan
 

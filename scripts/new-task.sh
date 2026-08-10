@@ -8,12 +8,16 @@
 #                   (default: workspace-root). See core/repo-resolution.md —
 #                   with a parent folder as the session cwd these differ, and
 #                   both are recorded absolutised so later stages don't guess.
+#   repo-set        comma-separated repos in ANALYSIS scope, i.e. searched for
+#                   callers and dependents (default: work-repo only). Get the
+#                   list from list-repos.sh <repos-folder>.
 set -eu
 
-TASK_ID="${1:?usage: new-task.sh <task-id> [workspace-root] [pipeline] [work-repo]}"
+TASK_ID="${1:?usage: new-task.sh <task-id> [workspace-root] [pipeline] [work-repo] [repo-set]}"
 ROOT="${2:-.}"
 PIPELINE="${3:-full}"
 REPO="${4:-$ROOT}"
+REPO_SET="${5:-}"
 
 case "$TASK_ID" in
   *[!A-Za-z0-9._-]*) echo "error: task-id may only contain letters, digits, . _ -" >&2; exit 1 ;;
@@ -24,7 +28,26 @@ for d in "$ROOT" "$REPO"; do
 done
 ABS_ROOT=$(cd "$ROOT" && pwd)
 ABS_REPO=$(cd "$REPO" && pwd)
-[ -d "$ABS_REPO/.git" ] || echo "warning: $ABS_REPO has no .git — is that the work repo?" >&2
+[ -e "$ABS_REPO/.git" ] || echo "warning: $ABS_REPO has no .git — is that the work repo?" >&2
+
+# analysis scope: every repo searched for callers/dependents, absolutised so
+# the recorded scope is unambiguous when the analysis is audited later
+ANALYZED="$ABS_REPO"
+if [ -n "$REPO_SET" ]; then
+  ANALYZED=""
+  OIFS=$IFS; IFS=,
+  for r in $REPO_SET; do
+    IFS=$OIFS
+    [ -n "$r" ] || continue
+    [ -d "$r" ] || { echo "error: repo-set entry is not a directory: $r" >&2; exit 1; }
+    ANALYZED="$ANALYZED$(cd "$r" && pwd)
+"
+    IFS=,
+  done
+  IFS=$OIFS
+  ANALYZED=$(printf '%s' "$ANALYZED" | LC_ALL=C sort -u)
+fi
+REPO_LINES=$(printf '%s\n' "$ANALYZED" | sed 's/^/  - /')
 
 DIR="$ABS_ROOT/work/$TASK_ID"
 if [ -e "$DIR/STATUS.md" ]; then
@@ -76,7 +99,15 @@ cat > "$DIR/STATUS.md" <<EOF
 - created: $(date -u +%Y-%m-%dT%H:%M:%SZ)
 - work-repo: $ABS_REPO
 - workspace-root: $ABS_ROOT
-- branch: (set by /implement)
+- branch: (set by /implement — one line per changed repo)
+
+## Repos analyzed
+
+Analysis scope: every repo searched for callers and dependents. Impact
+analysis covers ALL of them; only repos the scope contract names may be
+changed (core/repo-resolution.md).
+
+$REPO_LINES
 
 ## Stage gates
 

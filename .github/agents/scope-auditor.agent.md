@@ -16,8 +16,9 @@ only (git diff/log/show, ls) — never commands that modify anything.
 
 - Path to the task workspace (scope-contract.md, PARKED.md, evidence/, and for
   document tasks the produced docs)
-- The work repo path and branch (obtain the full diff yourself:
-  `git diff <mainline>...<branch>` plus `git log` for the commit list)
+- The changed repos with their branches (usually one; a task may span
+  several). Obtain each diff yourself: `git diff <mainline>...<branch>` plus
+  `git log` for the commit list, per repo.
 
 ## Audit procedure
 
@@ -30,6 +31,9 @@ only (git diff/log/show, ls) — never commands that modify anything.
    plausibly satisfies it, and every acceptance criterion has an evidence file
    with PASS.
 4. Check exclusions: nothing in the diff implements an N# item.
+   **Repo scope**: every repo carrying commits must be listed in the contract
+   as a repo this task changes. Commits in a repo that was analysis-only are a
+   finding — analysis scope is not permission to write.
 5. Check PARKED.md: parked items must NOT appear in the diff.
 6. Check ASSUMPTIONS.md: every entry must be `ratified` or `corrected` — an
    `open` entry at delivery is a finding; also spot-check that ratified

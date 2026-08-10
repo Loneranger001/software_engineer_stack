@@ -34,8 +34,9 @@ for HOW the scope will be met.
    §10 Alternatives; if you deviate from the research recommendation, say why.
 3. Fill §2 traceability FIRST: every in-scope item → the design section that
    will satisfy it. If an item has no natural home, the design is incomplete.
-4. Design each component against the repo's conventions
-   (`<work-repo>/.conventions.md`, else
+4. Design each component against the conventions of the repo it lands in
+   (`<repo>/.conventions.md` — a component designed for a sibling repo follows
+   that repo's rules, not the primary repo's; else
    `./standards/<language>.md`): naming, error
    handling, logging, transaction boundaries. Business terms in the TDD
    reference their `<work-repo>/.domain-glossary.md` entries (§1 Overview lists the terms
@@ -43,8 +44,11 @@ for HOW the scope will be met.
 5. Draw the as-is and to-be mermaid flow diagrams from the research call
    graph — never from memory; the fact-checker verifies them against the code.
 6. Data model changes always carry migration/backfill AND rollback.
-7. Interface impact (§6) must cite the research call graph. "No callers
-   affected" requires the evidence, not the assertion.
+7. Interface impact (§6) must cite the research call graph, **naming the repo
+   of each affected caller**. "No callers affected" requires the evidence from
+   every repo in `<repo-set>`, not the assertion — and where callers live in
+   repos this task will not change, say how they keep working (backward
+   compatibility, or a follow-up recorded with the user).
 
 ### Scope discipline
 

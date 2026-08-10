@@ -18,10 +18,12 @@ audited against scope, evidenced, and converted to the formats the user needs.
 1. Load lessons tagged `stage:deliver` from
    `<plugin-root>/knowledge/lessons.md`.
 2. Locate the workspace; verify the prior stage is done (`implement: done`,
-   or the document pipeline's `fact-check: done`). Take `<work-repo>` and
-   `<workspace-root>` from STATUS.md
+   or the document pipeline's `fact-check: done`). Take `<work-repo>`,
+   `<workspace-root>`, and the changed repos with their branches from STATUS.md
    (`<plugin-root>/core/repo-resolution.md`) — handover paths and git
-   operations use them, not the session cwd.
+   operations use them, not the session cwd. A change spanning repos is
+   audited, released, and handed over as ONE delivery: per-repo branches and
+   diffs, a single release note stating the deploy ORDER across them.
 3. Unknowns follow `<plugin-root>/core/decision-protocol.md`; at this
    stage almost nothing qualifies for proceed-and-log — delivery questions
    (formats, handover targets) are cheap to ask, so ask.

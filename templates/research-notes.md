@@ -14,9 +14,19 @@
 
 ### Affected code
 
-| Object / file | Language | Role today | Key facts | Source |
-|---|---|---|---|---|
-| {src/plsql/pkg_x.pks} | PL/SQL | {…} | {…} | {pkg_x.pks:42-88} |
+| Repo | Object / file | Language | Role today | Key facts | Source |
+|---|---|---|---|---|---|
+| {repo-a} | {src/plsql/pkg_x.pks} | PL/SQL | {…} | {…} | {repo-a:pkg_x.pks:42-88} |
+
+### Cross-repo search record
+
+<!-- Every repo in the analysis scope, including those with no hits — a repo -->
+<!-- that was never searched and a repo with no callers look identical in a -->
+<!-- summary, and only this table tells them apart. -->
+| Repo | Search command | Result |
+|---|---|---|
+| {repo-a} | {grep -rn "PKG_X" .} | {4 references — see call graph} |
+| {repo-b} | {grep -rn "PKG_X" .} | {searched, no references found} |
 
 ### Data model
 
@@ -30,7 +40,7 @@ commands used to establish this, so the result is reproducible.}
 
 ### Repo conventions that apply
 
-{Relevant entries from .conventions.md / standards/, e.g. naming, error handling,
+{Relevant entries from each changed repo's <repo>/.conventions.md / standards/, e.g. naming, error handling,
 logging, deployment layout.}
 
 ## External research

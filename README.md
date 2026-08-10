@@ -122,6 +122,15 @@ Two paths every stage resolves before touching anything, per [core/repo-resoluti
 
 This matters when your editor workspace is a **parent folder containing several repos** — a supported layout, and the one case where the session's current directory is not a repo at all. There, each repo keeps its own `.conventions.md` (conventions are a property of a repo, not of the workspace), stages take repo-level paths as `<work-repo>/.conventions.md`, and a stage with no `STATUS.md` to read will ask which repo the task is about instead of guessing. See [Q&A #21](docs/QA.md).
 
+### Analysis spans every repo; writing doesn't
+
+Repos share a workspace because they talk to each other, so a task's **analysis** scope is wider than its **write** scope:
+
+- **`<repo-set>`** — every repo under the workspace folder (enumerated by `scripts/list-repos.sh`, recorded in `STATUS.md`). Impact analysis, caller/dependent searches, call graphs, and dependency maps run across ALL of them. A repo searched with no hits is reported as *searched, no references found*, with the command — because a repo nobody searched and a repo with no callers produce the same silence. References are qualified `<repo>:<path>:<line>`.
+- **`<changed-repos>`** — the subset the scope contract says may be modified. It starts as the primary repo and grows only with the user's approval at a gate. Each changed repo gets its own branch and follows its own conventions; the impl doc names a repo per step and states the cross-repo deploy order.
+
+Excluding a repo from analysis is a user decision recorded in the contract, never an inference from a repo looking unrelated. See [Q&A #22](docs/QA.md).
+
 ## The four guarantees
 
 - **Accurate** — every factual claim in a generated document must carry a source reference (`file:line`, doc section, or captured run output). Code is verified by running it (`/verify-code`), the `doc-fact-checker` agent re-verifies documents against the code before a stage closes, and `/grill` attacks the design's *completeness* — the edge cases nobody wrote down — before implementation is planned.
@@ -175,7 +184,7 @@ standards/    default coding standards per language (a repo's .conventions.md ov
 checklists/   per-stage quality gates
 knowledge/    lessons.md (self-improvement memory), decisions.md (framework decision log)
 docs/         QA.md (design Q&A + testing guide), walkthrough.md (narrated example task)
-scripts/      new-task.sh, md2docx.sh, md2pdf.sh, md2confluence.sh
+scripts/      new-task.sh, list-repos.sh (analysis scope), md2docx.sh, md2pdf.sh, md2confluence.sh
 examples/     sample work repo + a fully worked example task workspace
 ```
 

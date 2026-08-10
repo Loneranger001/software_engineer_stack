@@ -2,7 +2,7 @@
 
 - Status: draft | user-approved ({date})
 - Inputs: tdd.md (approved), scope-contract.md v{n}
-- Branch: {work-repo branch for this task}
+- Branches: {repo → branch, one line per repo this task changes}
 
 > /implement executes this document step by step. Each step must be small enough
 > to verify before moving on, and each has its own rollback note.
@@ -10,17 +10,24 @@
 ## 1. Preconditions
 
 - [ ] TDD approved
-- [ ] Work repo clean, branch created: `{branch}`
+- [ ] Every repo this task changes is clean, with its branch created: `{repo → branch}`
+- [ ] Repos changed here match the scope contract's "May change" column
 - [ ] Dev environment reachable ({SES_DB_CONN / SES_KSH_HOST as applicable}) — or static-fallback mode acknowledged
 - [ ] <work-repo>/.conventions.md present (run /repo-profile if not)
 
 ## 2. Implementation steps
 
-<!-- Ordered. One row per commit-sized unit of work. -->
-| # | Step | Files / objects | Verification (per step) | Rollback |
-|---|---|---|---|---|
-| 1 | {DDL: add column} | {src/sql/…} | {compile + query in dev, evidence/step1-*} | {drop column script} |
-| 2 | {modify package body} | {src/plsql/…} | {compile, utPLSQL test T1} | {git revert / redeploy previous version} |
+<!-- Ordered. One row per commit-sized unit of work; each step lives in -->
+<!-- exactly one repo. Producer repos before consumer repos. -->
+| # | Repo | Step | Files / objects | Verification (per step) | Rollback |
+|---|---|---|---|---|---|
+| 1 | {repo-a} | {DDL: add column} | {src/sql/…} | {compile + query in dev, evidence/step1-*} | {drop column script} |
+| 2 | {repo-a} | {modify package body} | {src/plsql/…} | {compile, utPLSQL test T1} | {git revert / redeploy previous version} |
+| 3 | {repo-b} | {update caller for new signature} | {src/py/…} | {pytest T2} | {git revert} |
+
+<!-- Multi-repo only: state the deploy order and the intermediate state. -->
+**Cross-repo order**: {repo-a before repo-b, because …; between the two
+deployments {what a caller sees} — {acceptable because … / mitigated by …}}
 
 ## 3. Test plan
 

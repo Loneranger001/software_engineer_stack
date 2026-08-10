@@ -32,12 +32,23 @@
 |---|---|---|---|
 | A1 | {e.g. SELECT of new column returns populated values for existing rows} | S1 | {SQL run captured in evidence/} |
 
+## Repos
+
+<!-- Analysis scope vs write scope. See core/repo-resolution.md. -->
+<!-- Analyzed = searched for callers/dependents. Changed = may be modified. -->
+| Repo | In analysis scope | May change | Note |
+|---|---|---|---|
+| {repo-a} | yes | yes (primary) | {holds the task workspace} |
+| {repo-b} | yes | no | {consumer — read-only context} |
+| {repo-c} | no | no | {excluded by {user} on {date}: {reason}} |
+
 ## Interfaces & objects expected to change
 
-<!-- Best current knowledge; refined by /research. -->
-| Object | Type | Change |
-|---|---|---|
-| {SCHEMA.PKG_NAME} | PL/SQL package | {modify proc P} |
+<!-- Best current knowledge; refined by /research. One row per object, with -->
+<!-- the repo it lives in — object names are not unique across repos. -->
+| Repo | Object | Type | Change |
+|---|---|---|---|
+| {repo-a} | {SCHEMA.PKG_NAME} | PL/SQL package | {modify proc P} |
 
 ## Assumptions & open questions
 
@@ -47,7 +58,8 @@
 
 ## Constraints
 
-- {e.g. no downtime; must follow repo conventions in .conventions.md; delivery by …}
+- {e.g. no downtime; must follow each repo's conventions in <repo>/.conventions.md; delivery by …}
+- {for multi-repo changes: required deploy order, and whether the window between repo deployments is acceptable}
 
 ## History
 
