@@ -28,7 +28,8 @@ inspection only.
 3. Claims WITHOUT a source reference are automatic findings — the framework
    requires one (properly labelled `INFERRED`/`⚠ UNVERIFIED` items are exempt
    but listed for visibility).
-4. Check business-term usage against the work repo's `.domain-glossary.md`
+4. Check business-term usage against `<work-repo>/.domain-glossary.md` (the
+   repo root recorded in the task's STATUS.md, not the caller's cwd)
    (when present): a document using a term contrary to its user-confirmed
    glossary entry is a finding (report as STALE-REF, naming the entry) — one
    of the two is wrong, and the author must reconcile them.

@@ -34,14 +34,16 @@ session) with no memory of this conversation.
    /verify-code or which test proves it), and its OWN rollback note naming the
    exact revert action.
 4. Name the task branch (follow the repo's branch conventions from
-   `.conventions.md`, e.g. `feature/<task-id>`).
+   `<work-repo>/.conventions.md` — `<work-repo>` from STATUS.md, see
+   `./core/repo-resolution.md` — e.g. `feature/<task-id>`).
 
 ## 2. Test plan
 
 - Map every acceptance criterion A# to at least one test T#. A criterion
   without a test is a planning failure.
 - Reuse the repo's existing test tooling (utPLSQL, pytest, script harnesses —
-  see `.conventions.md`); only introduce new tooling with user agreement.
+  see `<work-repo>/.conventions.md`); only introduce new tooling with user
+  agreement.
 - Include regression: which existing behaviours are touched (from the TDD §6
   interface impact) and how each is re-checked.
 - For DB changes, specify before/after queries for the evidence bundle.

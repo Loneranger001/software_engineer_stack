@@ -116,6 +116,12 @@ work/PROJ-123/
 
 `STATUS.md` is the resume point: if a session dies mid-stage, rerun the same command and the skill picks up from the recorded state. Add `work/` to the work repo's `.gitignore` if workspaces shouldn't be committed there.
 
+### Which repo is "the repo"
+
+Two paths every stage resolves before touching anything, per [core/repo-resolution.md](core/repo-resolution.md): **`<work-repo>`** (the directory holding `.git`, and with it `.conventions.md` and `.domain-glossary.md`) and **`<workspace-root>`** (the directory holding `work/`, defaulting to `<work-repo>`). Both are recorded absolutised in `STATUS.md` at scaffold time, and later stages read them from there rather than re-deriving from their own working directory.
+
+This matters when your editor workspace is a **parent folder containing several repos** — a supported layout, and the one case where the session's current directory is not a repo at all. There, each repo keeps its own `.conventions.md` (conventions are a property of a repo, not of the workspace), stages take repo-level paths as `<work-repo>/.conventions.md`, and a stage with no `STATUS.md` to read will ask which repo the task is about instead of guessing. See [Q&A #21](docs/QA.md).
+
 ## The four guarantees
 
 - **Accurate** — every factual claim in a generated document must carry a source reference (`file:line`, doc section, or captured run output). Code is verified by running it (`/verify-code`), the `doc-fact-checker` agent re-verifies documents against the code before a stage closes, and `/grill` attacks the design's *completeness* — the edge cases nobody wrote down — before implementation is planned.
@@ -164,6 +170,7 @@ If a variable is unset or the environment is unreachable, `/verify-code` falls b
 skills/       one directory per lifecycle command (SKILL.md each)
 agents/       scope-auditor, code-reviewer, doc-fact-checker (read-only reviewers)
 templates/    canonical Markdown templates for every document type
+core/         decision-protocol.md (what to do when unknown), repo-resolution.md (where the files are)
 standards/    default coding standards per language (a repo's .conventions.md overrides them)
 checklists/   per-stage quality gates
 knowledge/    lessons.md (self-improvement memory), decisions.md (framework decision log)

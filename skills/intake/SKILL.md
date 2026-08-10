@@ -18,7 +18,10 @@ the user has explicitly approved. Nothing downstream may begin before that appro
 
 1. Read `${CLAUDE_PLUGIN_ROOT}/knowledge/lessons.md` and note lessons tagged
    `stage:intake` or matching this repo/language mix. Apply them.
-2. Determine the work repo (current directory unless the user says otherwise).
+2. Resolve `<work-repo>` and `<workspace-root>` per
+   `${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md` — do NOT assume the current
+   directory is the repo. If cwd is a parent folder holding several repos, ask
+   which one this task is about before creating anything.
 3. Unknowns follow `${CLAUDE_PLUGIN_ROOT}/core/decision-protocol.md`: check
    checkable facts; proceed only on high-confidence, reversible, in-scope
    calls logged to the workspace ASSUMPTIONS.md; stop and ask for everything
@@ -27,9 +30,11 @@ the user has explicitly approved. Nothing downstream may begin before that appro
 ## 1. Create the workspace
 
 1. Ask for a task id if none was given (Jira key or short slug).
-2. Run `${CLAUDE_PLUGIN_ROOT}/scripts/new-task.sh <task-id> <workspace-root> full`.
+2. Run `${CLAUDE_PLUGIN_ROOT}/scripts/new-task.sh <task-id> <workspace-root> full <work-repo>`.
    - Workspace root defaults to the work repo. If `work/` shouldn't be committed
      there, remind the user to gitignore it (don't edit .gitignore unasked).
+   - Both paths land in STATUS.md absolutised; every later stage reads them
+     from there instead of re-deriving from its own cwd.
    - If the workspace already exists, read its STATUS.md and RESUME from the
      recorded state instead of starting over.
 
@@ -54,15 +59,17 @@ the user has explicitly approved. Nothing downstream may begin before that appro
 - Ambiguity is never resolved by assumption. Collect open questions and ask the
   user in one batch (use AskUserQuestion when available).
 - **Term inventory**: list every business/functional term the brief leans on
-  ("purchase order", "approved", "settlement"), then look each up in the work
-  repo's `.domain-glossary.md`. Known terms: link the entry in the scope
+  ("purchase order", "approved", "settlement"), then look each up in
+  `<work-repo>/.domain-glossary.md`. Known terms: link the entry in the scope
   contract instead of re-defining. Unknown terms: mark as research targets.
   A term the brief uses DIFFERENTLY from its glossary entry is ALWAYS an open
   question — the brief may be wrong or the glossary stale; never silently
   pick a side.
-- Do a first scan of the repo for the objects the brief names, to populate the
-  "interfaces & objects expected to change" table. If `.conventions.md` is
-  missing, suggest running /repo-profile after intake.
+- Do a first scan of `<work-repo>` for the objects the brief names, to populate
+  the "interfaces & objects expected to change" table. If
+  `<work-repo>/.conventions.md` is missing, suggest running /repo-profile after
+  intake — and check the path, not the bare filename: under a multi-repo parent
+  folder a profiled repo looks unprofiled from cwd.
 
 ## 4. Draft the scope contract
 

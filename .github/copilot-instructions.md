@@ -18,9 +18,13 @@ Rules that apply to ALL work here:
 2. **Scope discipline**: the task's `work/<id>/scope-contract.md` is the
    single source of scope truth. Out-of-scope findings go to `PARKED.md`,
    never into the change.
-3. **Conventions**: this repo's `.conventions.md` (generate with the
+3. **Conventions**: `<work-repo>/.conventions.md` (generate with the
    repo-profile prompt if missing) overrides the framework defaults in
    `./standards/`; the file being edited overrides both.
+   `<work-repo>` is the repo root resolved per
+   `./core/repo-resolution.md` and recorded in the task
+   `STATUS.md` — with a multi-repo workspace it is NOT your current
+   directory, and a bare `.conventions.md` lookup silently finds nothing.
 4. **Verification**: code claims require evidence — run it (see the
    verify-code prompt) and capture output to the workspace `evidence/`
    directory. Fallback static checks must be labelled as such.

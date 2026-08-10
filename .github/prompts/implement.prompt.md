@@ -18,7 +18,10 @@ committed before the next begins.
 1. Load lessons tagged `stage:implement` and the languages involved from
    `./knowledge/lessons.md`.
 2. Locate the workspace; verify `impl-plan: approved`.
-3. Read scope-contract.md, tdd.md, impl-doc.md, and `.conventions.md`.
+3. Read scope-contract.md, tdd.md, impl-doc.md, and
+   `<work-repo>/.conventions.md` (`<work-repo>` from STATUS.md — see
+   `./core/repo-resolution.md`; git operations and test
+   runs below execute with `<work-repo>` as their working directory).
    Also read ASSUMPTIONS.md — you are building on its ratified entries.
 4. Unknowns follow `./core/decision-protocol.md`. During
    implementation the "no dangerous surface" rule bites hardest: coding
@@ -40,8 +43,9 @@ committed before the next begins.
 
 For each impl-doc step N, in order:
 
-1. **Code** the step. Match the surrounding code's conventions (`.conventions.md`
-   overrides `./standards/`). Touch only the files the step
+1. **Code** the step. Match the surrounding code's conventions
+   (`<work-repo>/.conventions.md` overrides
+   `./standards/`). Touch only the files the step
    names — if the step turns out to need another file, update the impl-doc row
    first (append a note, don't rewrite history).
 2. **Verify** using the step's verification column — invoke the /verify-code

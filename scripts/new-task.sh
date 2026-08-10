@@ -1,20 +1,32 @@
 #!/bin/sh
 # new-task.sh — scaffold a task workspace with a STATUS.md resume point.
-# Usage: new-task.sh <task-id> [workspace-root] [pipeline]
+# Usage: new-task.sh <task-id> [workspace-root] [pipeline] [work-repo]
 #   task-id         e.g. PROJ-123 (no spaces)
 #   workspace-root  directory that holds work/ (default: current directory)
 #   pipeline        full | change-request | document | understand  (default: full)
+#   work-repo       repo whose code the task changes, holding .conventions.md
+#                   (default: workspace-root). See core/repo-resolution.md —
+#                   with a parent folder as the session cwd these differ, and
+#                   both are recorded absolutised so later stages don't guess.
 set -eu
 
-TASK_ID="${1:?usage: new-task.sh <task-id> [workspace-root] [pipeline]}"
+TASK_ID="${1:?usage: new-task.sh <task-id> [workspace-root] [pipeline] [work-repo]}"
 ROOT="${2:-.}"
 PIPELINE="${3:-full}"
+REPO="${4:-$ROOT}"
 
 case "$TASK_ID" in
   *[!A-Za-z0-9._-]*) echo "error: task-id may only contain letters, digits, . _ -" >&2; exit 1 ;;
 esac
 
-DIR="$ROOT/work/$TASK_ID"
+for d in "$ROOT" "$REPO"; do
+  [ -d "$d" ] || { echo "error: not a directory: $d" >&2; exit 1; }
+done
+ABS_ROOT=$(cd "$ROOT" && pwd)
+ABS_REPO=$(cd "$REPO" && pwd)
+[ -d "$ABS_REPO/.git" ] || echo "warning: $ABS_REPO has no .git — is that the work repo?" >&2
+
+DIR="$ABS_ROOT/work/$TASK_ID"
 if [ -e "$DIR/STATUS.md" ]; then
   echo "workspace already exists: $DIR (resume from its STATUS.md)" >&2
   exit 0
@@ -62,7 +74,8 @@ cat > "$DIR/STATUS.md" <<EOF
 - task-id: $TASK_ID
 - pipeline: $PIPELINE
 - created: $(date -u +%Y-%m-%dT%H:%M:%SZ)
-- work-repo: $(pwd)
+- work-repo: $ABS_REPO
+- workspace-root: $ABS_ROOT
 - branch: (set by /implement)
 
 ## Stage gates

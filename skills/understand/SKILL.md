@@ -23,8 +23,10 @@ what anyone (comments, wikis, the user, folklore) believes it does.
 
 1. Load lessons tagged `stage:understand` from
    `${CLAUDE_PLUGIN_ROOT}/knowledge/lessons.md`.
-2. Create the workspace:
-   `${CLAUDE_PLUGIN_ROOT}/scripts/new-task.sh <task-id> <root> understand`.
+2. Resolve `<work-repo>` and `<workspace-root>` per
+   `${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md` — with a parent folder as
+   cwd, ask which repo the interface lives in — then create the workspace:
+   `${CLAUDE_PLUGIN_ROOT}/scripts/new-task.sh <task-id> <workspace-root> understand <work-repo>`.
    If a previous run already mapped this interface (an existing
    `work/*/interface-map.md` naming it), offer to resume/refresh that map
    instead of starting over — check its recorded commit for staleness first.
@@ -33,9 +35,12 @@ what anyone (comments, wikis, the user, folklore) believes it does.
    question, or reconnaissance before a change. Record it in STATUS.md.
    A specific question focuses where to go deep; it does not skip the trace,
    because answers given without the surrounding flow are how folklore starts.
-4. Read the repo's `.domain-glossary.md` and `.conventions.md` if present —
-   they hold knowledge already confirmed in earlier tasks; never re-derive or
-   re-ask what is established there.
+4. Read `<work-repo>/.domain-glossary.md` and `<work-repo>/.conventions.md` if
+   present — they hold knowledge already confirmed in earlier tasks; never
+   re-derive or re-ask what is established there. Check those full paths: a
+   bare-filename check run from a parent folder reports "absent" for a repo
+   that is in fact profiled, and re-asking answered questions is exactly the
+   failure this stage exists to prevent.
 5. Unknowns follow `${CLAUDE_PLUGIN_ROOT}/core/decision-protocol.md`:
    anything the code or a reachable environment can answer gets checked, not
    guessed; what only people can answer goes to open questions.
@@ -130,8 +135,8 @@ of the exercise, not an interruption.
 - "What if" questions ("what happens if the feed is late", "what breaks if
   we rename this column") are answered by tracing the actual handling path;
   say clearly where the trace ends and reasoning beyond the evidence begins.
-- Business meanings confirmed along the way go into the repo's
-  `.domain-glossary.md` (marked `from-code`, template:
+- Business meanings confirmed along the way go into
+  `<work-repo>/.domain-glossary.md` (marked `from-code`, template:
   `${CLAUDE_PLUGIN_ROOT}/templates/domain-glossary.md`) so the next task
   doesn't re-derive them.
 - Findings that suggest work — bugs, dead code, risky patterns — go to

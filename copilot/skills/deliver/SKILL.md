@@ -18,7 +18,10 @@ audited against scope, evidenced, and converted to the formats the user needs.
 1. Load lessons tagged `stage:deliver` from
    `<plugin-root>/knowledge/lessons.md`.
 2. Locate the workspace; verify the prior stage is done (`implement: done`,
-   or the document pipeline's `fact-check: done`).
+   or the document pipeline's `fact-check: done`). Take `<work-repo>` and
+   `<workspace-root>` from STATUS.md
+   (`<plugin-root>/core/repo-resolution.md`) — handover paths and git
+   operations use them, not the session cwd.
 3. Unknowns follow `<plugin-root>/core/decision-protocol.md`; at this
    stage almost nothing qualifies for proceed-and-log — delivery questions
    (formats, handover targets) are cheap to ask, so ask.

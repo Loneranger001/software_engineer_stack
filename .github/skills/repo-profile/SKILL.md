@@ -10,6 +10,15 @@ Existing repos have their own conventions, and those ALWAYS beat the framework
 defaults in `./standards/`. This skill captures them once
 into `.conventions.md` at the repo root, so every other skill can honor them.
 
+## 0. Resolve the repo
+
+Resolve `<work-repo>` per `./core/repo-resolution.md`: the
+`[repo-path]` argument if given, else the enclosing git repo of the current
+directory. If cwd is a parent folder holding several repos, list them and ask
+which to profile (offer "all of them" — each gets its own `.conventions.md`,
+one per repo by design, since conventions are a property of a repo and not of
+the workspace). Profile one repo per run and state which repo you are in.
+
 ## 1. Scan
 
 Sample broadly, not exhaustively — read representative files per language
@@ -59,7 +68,7 @@ Rules:
 
 ## 3. Seed the domain glossary
 
-Alongside conventions, seed `<repo>/.domain-glossary.md` (template:
+Alongside conventions, seed `<work-repo>/.domain-glossary.md` (template:
 `./templates/domain-glossary.md`) with the repo's obvious
 core entities — the tables/packages that dominate the schema and job names —
 each entry marked `seeded — unconfirmed` with source refs for the mechanical
@@ -69,8 +78,10 @@ and upgrade entries to `user-confirmed` / `from-code`).
 
 ## 4. Cache & staleness
 
-- Write to `<repo>/.conventions.md`. Ask the user whether to commit it or
-  gitignore it (teams differ).
+- Write to `<work-repo>/.conventions.md` — the resolved repo root, never the
+  session cwd. Ask the user whether to commit it or gitignore it (teams
+  differ). Tell them the absolute path you wrote to; in a multi-repo workspace
+  that is the only way they can tell which repo got profiled.
 - Header records the commit profiled at. Other skills should suggest a refresh
   when the profile is older than ~3 months or the repo has visibly diverged.
 - Re-runs: re-profile and diff against the existing file, preserving any

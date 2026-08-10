@@ -18,7 +18,10 @@ confidently, with every finding traceable to a source.
 1. Load lessons tagged `stage:research` from `${CLAUDE_PLUGIN_ROOT}/knowledge/lessons.md`.
 2. Locate the workspace: the given task-id, else the single `work/*/STATUS.md`
    with next action /research, else ask. Verify `intake: approved` — if not,
-   stop and direct the user to /intake.
+   stop and direct the user to /intake. Read `work-repo:` and
+   `workspace-root:` from STATUS.md
+   (`${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md`): every repo-level path
+   below is relative to `<work-repo>`, never to your session's cwd.
 3. Read `scope-contract.md`. It bounds the investigation: research serves the
    in-scope items; interesting adjacent findings go to PARKED.md.
 4. Unknowns follow `${CLAUDE_PLUGIN_ROOT}/core/decision-protocol.md` —
@@ -39,14 +42,15 @@ expand it:
 3. **Data model**: for each touched table/view, capture relevant columns,
    constraints, indexes, and (if the dev DB is reachable via `$SES_DB_CONN`)
    row volumes. Store queries + outputs in `evidence/research-*.txt`.
-4. **Conventions**: read `.conventions.md` (run /repo-profile first if missing)
-   and note which conventions bind this change.
+4. **Conventions**: read `<work-repo>/.conventions.md` (run /repo-profile first
+   if genuinely missing at that path) and note which conventions bind this
+   change.
 5. **Term grounding**: for every business term intake marked as a research
    target (and any new ones you meet), establish what it IS in this system —
    tables + key columns, state values, the code paths that implement its verbs
    ("approved" = which proc sets which status), entry points — each with
-   evidence. Write/refresh the term's entry in the repo's
-   `.domain-glossary.md` (template:
+   evidence. Write/refresh the term's entry in
+   `<work-repo>/.domain-glossary.md` (template:
    `${CLAUDE_PLUGIN_ROOT}/templates/domain-glossary.md`), marked `from-code`;
    pure business semantics the code can't prove stay open questions for the
    user.

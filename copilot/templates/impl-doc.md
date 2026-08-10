@@ -12,7 +12,7 @@
 - [ ] TDD approved
 - [ ] Work repo clean, branch created: `{branch}`
 - [ ] Dev environment reachable ({SES_DB_CONN / SES_KSH_HOST as applicable}) — or static-fallback mode acknowledged
-- [ ] .conventions.md present (run /repo-profile if not)
+- [ ] <work-repo>/.conventions.md present (run /repo-profile if not)
 
 ## 2. Implementation steps
 

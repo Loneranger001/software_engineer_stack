@@ -22,9 +22,11 @@ skill documents what the code DOES, not what anyone believes it does.
    - **kb-article** — answers a recurring question/problem (template: kb-article.md)
    - **understanding-doc** — explains how an interface/component works
      (template: understanding-doc.md)
-3. Create the workspace:
-   `<plugin-root>/scripts/new-task.sh <task-id> <root> document`
-   (or resume). Record doc type + target in STATUS.md.
+3. Resolve `<work-repo>` and `<workspace-root>` per
+   `<plugin-root>/core/repo-resolution.md`, then create the workspace:
+   `<plugin-root>/scripts/new-task.sh <task-id> <workspace-root> document <work-repo>`
+   (or resume, taking both paths from STATUS.md). Record doc type + target in
+   STATUS.md.
 4. Agree the scope with the user in two sentences (which component, which
    aspects, intended audience) and record it in STATUS.md — even docs tasks
    get scope discipline.
@@ -43,9 +45,9 @@ skill documents what the code DOES, not what anyone believes it does.
    - For an **understanding-doc**, classify the interface type first (batch
      job, online/API, data pipeline, report/extract, library) — the template
      defines which sections get depth per type, and the SAME type must always
-     get the SAME emphasis so your documents stay consistent. If the repo's
-     `.conventions.md` has a Documentation section recording a chosen format,
-     it wins; if you make a new format choice, record it there.
+     get the SAME emphasis so your documents stay consistent. If
+     `<work-repo>/.conventions.md` has a Documentation section recording a
+     chosen format, it wins; if you make a new format choice, record it there.
    - Build the **complete dependency map** both directions (upstream feeds,
      downstream consumers, associated packages/scripts, schedules, config) —
      with the grep/queries recorded so the map is reproducible. "Nothing

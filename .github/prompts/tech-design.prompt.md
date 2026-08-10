@@ -19,7 +19,9 @@ for HOW the scope will be met.
    `./knowledge/lessons.md`.
 2. Locate the workspace; verify STATUS.md shows `research: done`. If research
    is missing or stale (scope contract version newer than the notes), send the
-   user back to /research.
+   user back to /research. Take `<work-repo>` from STATUS.md
+   (`./core/repo-resolution.md`) — repo-level files below
+   hang off it, not off your cwd.
 3. Read scope-contract.md AND research-notes.md fully.
 4. Unknowns follow `./core/decision-protocol.md`: design
    judgment calls that pass §2 (high confidence, reversible, in-scope, no
@@ -32,10 +34,11 @@ for HOW the scope will be met.
    §10 Alternatives; if you deviate from the research recommendation, say why.
 3. Fill §2 traceability FIRST: every in-scope item → the design section that
    will satisfy it. If an item has no natural home, the design is incomplete.
-4. Design each component against the repo's conventions (`.conventions.md`,
-   else `./standards/<language>.md`): naming, error
+4. Design each component against the repo's conventions
+   (`<work-repo>/.conventions.md`, else
+   `./standards/<language>.md`): naming, error
    handling, logging, transaction boundaries. Business terms in the TDD
-   reference their `.domain-glossary.md` entries (§1 Overview lists the terms
+   reference their `<work-repo>/.domain-glossary.md` entries (§1 Overview lists the terms
    relied on) rather than re-defining them.
 5. Draw the as-is and to-be mermaid flow diagrams from the research call
    graph — never from memory; the fact-checker verifies them against the code.

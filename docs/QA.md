@@ -119,7 +119,7 @@ Yes — that's the generator's **default mode**: a thin adapter whose data refer
 
 ## 19. Where does the `work/` folder get created?
 
-At the **root of the repo you're working in** — the current directory of your session, never the framework checkout. `/intake` scaffolds `<your-work-repo>/work/<task-id>/` (STATUS.md, scope contract, ASSUMPTIONS.md, evidence/, deliverables/, PARKED.md), co-located with the code it concerns so resuming is trivial. Decide once per repo whether to commit `work/` (versioned task history) or add it to `.gitignore` (intake reminds you but won't edit `.gitignore` itself). If you want workspaces outside the repo entirely, give intake a different workspace root when it asks — the choice is recorded in STATUS.md and every later stage finds it.
+At the **root of the repo you're working in** — resolved per [repo-resolution](../core/repo-resolution.md), never the framework checkout, and not blindly the session's current directory (see #21 for the multi-repo case). `/intake` scaffolds `<your-work-repo>/work/<task-id>/` (STATUS.md, scope contract, ASSUMPTIONS.md, evidence/, deliverables/, PARKED.md), co-located with the code it concerns so resuming is trivial. Decide once per repo whether to commit `work/` (versioned task history) or add it to `.gitignore` (intake reminds you but won't edit `.gitignore` itself). If you want workspaces outside the repo entirely, give intake a different workspace root when it asks — the choice is recorded in STATUS.md and every later stage finds it.
 
 ## 20. Should each stage run in its own session, or all of them in one?
 
@@ -130,3 +130,22 @@ Either works — the framework is session-agnostic by construction (#16), and no
 **A workable grouping:** `/repo-profile` once per repo, own session; `/intake` → `/research` together (research targets come straight out of the intake Q&A); `/tech-design` either way; `/grill` **fresh**; `/impl-plan` **fresh**; `/implement` in its own session (long and context-heavy, resumable mid-way from checkpoint commits); `/deliver` → `/retro` together. `/clear` mid-session gives the same fresh-context effect as a new session.
 
 One caveat: the audit value only exists if you honor the gates. If you approve a scope contract without reading it, a fresh session downstream just re-asks the same questions and the benefit turns into friction.
+
+## 21. My VS Code workspace root is a parent folder holding several repos — is that supported? And why does each repo get its own `.conventions.md`?
+
+Supported, and the four `.conventions.md` files are correct. That file is a **per-repo** cache of that repo's own rules — layout, naming, error handling, git and deployment conventions — which override the framework defaults in `standards/`. Four repos have four different sets, so one shared file would be wrong; `.domain-glossary.md` is per-repo for the same reason. Repo-level memory belongs to the repo, not to the editor workspace.
+
+What that layout *does* change is which directory counts as "the repo":
+
+```
+workspace-root-folder/        ← session cwd, NOT a repo
+├── repo-a/  .git  .conventions.md  work/
+├── repo-b/  .git  .conventions.md
+└── …
+```
+
+The rule is [core/repo-resolution.md](../core/repo-resolution.md): `<work-repo>` is the directory containing `.git` (`git rev-parse --show-toplevel`, or — when cwd sits above the repos — the single child repo, else **ask** which one), `<workspace-root>` is the directory holding `work/`, and both are written to `STATUS.md` absolutised by `new-task.sh` so later stages read them instead of re-deriving from their own cwd. Every skill prefixes repo-level paths accordingly: `<work-repo>/.conventions.md`, never a bare `.conventions.md`.
+
+Before that rule existed, the two halves disagreed in exactly the way you'd notice: `work/` landed correctly inside the child repo (intake resolves the repo explicitly and passes it to `new-task.sh`), while `.conventions.md` lookups resolved against the parent folder, found nothing, and reported a profiled repo as unprofiled. The tell is a stage offering to run `/repo-profile` on a repo you already profiled, or re-asking a term that is sitting in its `.domain-glossary.md`. `new-task.sh` also recorded `work-repo:` as `$(pwd)` — the caller's directory rather than the repo it scaffolded into — so the wrong path propagated to every downstream stage that trusted STATUS.md.
+
+Practical guidance either way: opening the specific repo as the window root is still the smoothest path, since every tool in the session then agrees on where the repo is. If you prefer the parent-folder workspace, it works — expect a "which repo is this task about?" question when a stage has no STATUS.md to read it from, and pass the repo explicitly when you know it (`/repo-profile <repo-path>`).

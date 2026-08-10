@@ -9,7 +9,11 @@ and documentation. Full docs: README.md.
 ## How any agent should use this repo
 
 1. Read `core/decision-protocol.md` first — it governs every unknown
-   (check facts; proceed-and-log only narrow, reversible calls; otherwise ask).
+   (check facts; proceed-and-log only narrow, reversible calls; otherwise ask)
+   — and `core/repo-resolution.md`, which fixes where files are read and
+   written (`<work-repo>` = the repo holding `.git` and `.conventions.md`,
+   `<workspace-root>` = the directory holding `work/`; both recorded in
+   `STATUS.md`, neither assumed to be the current directory).
 2. Each lifecycle stage is a self-contained instruction file. Execute the one
    matching the task:
 

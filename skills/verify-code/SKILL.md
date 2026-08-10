@@ -17,6 +17,12 @@ fallback proves it parses and conforms. Every run produces an evidence file
 
 ## Environment resolution (all recipes)
 
+Resolve `<work-repo>` first, per
+`${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md` (STATUS.md's `work-repo:` when
+invoked inside a task, else the enclosing git repo of the current directory).
+Run every recipe with `<work-repo>` as the working directory — a test runner
+launched from a parent folder picks up the wrong config, or none.
+
 | Variable | Purpose |
 |---|---|
 | `SES_DB_CONN` | SQL*Plus/SQLcl connect string for the dev schema |
@@ -48,7 +54,7 @@ fallback proves it parses and conforms. Every run produces an evidence file
    queries/anonymous blocks.
 
 **Static fallback**: careful read-through against `standards/plsql.md` +
-`.conventions.md`: balanced blocks, exception handling present, no implicit
+`<work-repo>/.conventions.md`: balanced blocks, exception handling present, no implicit
 commits in unexpected places, object/parameter naming. State clearly this did
 not compile anything.
 
@@ -84,7 +90,7 @@ through pipes, cleanup traps.
 
 **Live**:
 1. Interpreter: `$SES_PY` else the repo's venv else `python3`.
-2. Repo tooling first (from `.conventions.md`): its pytest config, ruff/flake8,
+2. Repo tooling first (from `<work-repo>/.conventions.md`): its pytest config, ruff/flake8,
    mypy. Run the narrowest test selection covering the change, then the
    broader suite if fast.
 3. No repo tooling: `python -m py_compile <files>`, `ruff check` if available,

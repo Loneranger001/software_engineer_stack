@@ -18,9 +18,11 @@ verification, same scope discipline.
 
 1. Load lessons tagged `stage:change-request` from
    `${CLAUDE_PLUGIN_ROOT}/knowledge/lessons.md`.
-2. Create the workspace:
-   `${CLAUDE_PLUGIN_ROOT}/scripts/new-task.sh <task-id> <root> change-request`
-   (or resume from an existing STATUS.md).
+2. Resolve `<work-repo>` and `<workspace-root>` per
+   `${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md` (cwd is not assumed to be
+   the repo), then create the workspace:
+   `${CLAUDE_PLUGIN_ROOT}/scripts/new-task.sh <task-id> <workspace-root> change-request <work-repo>`
+   (or resume from an existing STATUS.md, taking both paths from it).
 3. Store the CR text as `work/<id>/brief.md`.
 4. Unknowns follow `${CLAUDE_PLUGIN_ROOT}/core/decision-protocol.md`:
    proceed-and-log only for high-confidence, reversible, in-scope calls
@@ -33,7 +35,8 @@ verification, same scope discipline.
 2. Find ALL callers and dependents: grep for object/proc/script names, check
    imports, scheduler references, other repos' known touchpoints the user
    mentions. Record the exact commands used.
-3. Read `.conventions.md` (run /repo-profile if missing).
+3. Read `<work-repo>/.conventions.md` (run /repo-profile if missing at that
+   path).
 4. Write `work/<id>/analysis.md`: current behaviour (source-referenced),
    callers found, blast radius, and the proposed change sketch.
 

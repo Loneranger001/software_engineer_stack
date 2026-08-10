@@ -44,10 +44,12 @@ Rules:
 - Append-only; never rewrite or delete existing lessons here (pruning happens
   in §4 curation with the user).
 - Tag precisely — the tags are how other skills filter for relevance.
-- Repo-specific lessons that are really CONVENTIONS belong in that repo's
-  `.conventions.md` instead; put them there and note the move.
+- Repo-specific lessons that are really CONVENTIONS belong in
+  `<work-repo>/.conventions.md` instead (`<work-repo>` from STATUS.md — see
+  `${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md`); put them there and note
+  the move.
 - Term resolutions that only made it into the grill log or conversation get
-  promoted to the repo's `.domain-glossary.md` now (marked `user-confirmed`
+  promoted to `<work-repo>/.domain-glossary.md` now (marked `user-confirmed`
   with this task id) — glossary memory is the cheapest self-improvement there is.
 
 ## 3. Propose framework improvements (user-gated)
