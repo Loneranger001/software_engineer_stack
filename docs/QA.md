@@ -130,3 +130,11 @@ Either works — the framework is session-agnostic by construction (#16), and no
 **A workable grouping:** `/repo-profile` once per repo, own session; `/intake` → `/research` together (research targets come straight out of the intake Q&A); `/tech-design` either way; `/grill` **fresh**; `/impl-plan` **fresh**; `/implement` in its own session (long and context-heavy, resumable mid-way from checkpoint commits); `/deliver` → `/retro` together. `/clear` mid-session gives the same fresh-context effect as a new session.
 
 One caveat: the audit value only exists if you honor the gates. If you approve a scope contract without reading it, a fresh session downstream just re-asks the same questions and the benefit turns into friction.
+
+## 21. Which model should I run each stage on?
+
+Not the same one for all of them — the stages differ enough that a single pick is either wasteful or risky depending on which you optimise for. [`docs/model-guide.md`](model-guide.md) gives a model and effort level per stage across the Anthropic, OpenAI and Google tiers, plus an open-weight appendix.
+
+The reasoning is short enough to restate here: **spend where the error is silent, save where a gate or a harness catches it.** Stages behind a human approval gate (`/intake`, `/tech-design`, `/impl-plan`) or an automated one (`/implement` → per-step verification + `code-reviewer`; `/document` → `doc-fact-checker`; `/deliver` → `scope-auditor`) tolerate a cheaper model, because the mistake surfaces before it propagates. Stages with neither — `/grill`, where a case that was never raised is never missed; `/research`, where a fabricated source reference looks exactly like a real one; `code-reviewer`, where a bug it doesn't report ships — are the four or five places frontier spend actually earns its multiplier.
+
+The framework deliberately doesn't pin models anywhere (no `model:` frontmatter, no generator field), so the guide stays advisory while prices move. Selection is a harness action: Copilot's model picker, Claude Code's `/model`, or whatever your API client sets. Switch **at stage boundaries** — that's where `STATUS.md` makes it safe to stop and restart, and it's also where you're not throwing away a warm prompt cache mid-stage.

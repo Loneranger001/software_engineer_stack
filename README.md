@@ -35,6 +35,10 @@ flowchart LR
 | `/verify-code <files>` | Run per-language verification (live DB/host where available, static fallback) | — |
 | `/retro` | Capture lessons from a finished task into the framework's knowledge base | User approves framework edits |
 
+Stages differ enough in what they demand that one model is rarely right for all of them — the
+[model guide](docs/model-guide.md) recommends a model and effort level per stage across Anthropic,
+OpenAI and Google tiers.
+
 ## Installation
 
 Option A — install as a plugin (recommended):
@@ -167,7 +171,8 @@ templates/    canonical Markdown templates for every document type
 standards/    default coding standards per language (a repo's .conventions.md overrides them)
 checklists/   per-stage quality gates
 knowledge/    lessons.md (self-improvement memory), decisions.md (framework decision log)
-docs/         QA.md (design Q&A + testing guide), walkthrough.md (narrated example task)
+docs/         QA.md (design Q&A + testing guide), walkthrough.md (narrated example task),
+              model-guide.md (per-stage model + effort recommendations)
 scripts/      new-task.sh, md2docx.sh, md2pdf.sh, md2confluence.sh
 examples/     sample work repo + a fully worked example task workspace
 ```
