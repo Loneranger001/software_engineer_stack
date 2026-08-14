@@ -24,8 +24,9 @@ the work repo's `.github/copilot/settings.json`.
 - `agents/` — scope-auditor, code-reviewer, doc-fact-checker as custom agents
 - `templates/ checklists/ core/ standards/ scripts/` — the data the skills use
 - `knowledge/` — lessons + decisions memory (a per-install copy: /retro writes
-  lessons here; treat the canonical repo's `knowledge/` as the source of truth
-  and sync back anything worth keeping)
+  lessons here, and rebuilds merge them back on top of the canonical content
+  rather than replacing it, so entries survive regeneration; still sync
+  anything broadly useful back to the framework repo's `knowledge/`)
 
 ## Maintenance
 
