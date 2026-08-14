@@ -33,3 +33,5 @@
 ## Applied changes
 
 <!-- /retro appends: - [date] <change> — motivated by <lesson/task> -->
+- [2026-08-12] Added a mandatory cross-repository, refreshed-main research preflight and a missing-conventions profiling requirement in `research/SKILL.md` — motivated by MFCS-4684 missing RAIL_PRICE dependencies until /grill.
+- [2026-08-12] Added a `commit-msg` hook preflight to `implement/SKILL.md` — motivated by MFCS-4684's initial commit-message rejection.
