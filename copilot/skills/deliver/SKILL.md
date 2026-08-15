@@ -65,11 +65,59 @@ The documents must match what was actually built:
 3. Push the task branch (`git push -u origin <branch>`; retry with backoff on
    network failure). Do NOT open a PR / merge unless the user asks.
 
+## 3a. Publish back to Atlassian (opt-in)
+
+`md2confluence.sh` produces text for the user to paste. When the deliverable
+should actually land in Confluence, or the task's Jira issue should carry the
+outcome, the tool skills do it directly. Both are **outward-facing writes**, so
+decision-protocol §3 applies without exception: **ask before every one**, show
+what will be posted and where, and take silence as no. Nothing here is implied
+by "deliver" — if the user hasn't asked, the pasteable output is the delivery.
+
+**Confluence.** Convert the Markdown deliverable to Confluence storage format
+(HTML — `pandoc -f gfm -t html`), then publish:
+
+```bash
+# first publish
+python3 <plugin-root>/skills/confluence-ops/utils/confluence/write.py \
+    create --space <SPACE> --title "<title>" --body-file <deliverable>.html [--parent <page-id>]
+
+# re-delivery: update the page recorded in STATUS.md, never create a second one
+python3 <plugin-root>/skills/confluence-ops/utils/confluence/write.py \
+    update <page-id> --body-file <deliverable>.html
+```
+
+- Record the page id and URL in STATUS.md and in `work/<id>/deliverables/`.
+  That record is what makes re-running /deliver idempotent — without it, a
+  second run publishes a duplicate page instead of a new version.
+- Mermaid blocks in the deliverable are rendered to SVG and attached
+  automatically when `mmdc` is installed; without it they fall back to a code
+  block. Say which one happened rather than letting the user discover it.
+- Never use `move` as part of delivery — it is a copy-then-delete that loses
+  history, comments and attachments.
+
+**Jira.** When the task came from an issue (STATUS.md `brief-source`), report
+the outcome on it:
+
+```bash
+python3 <plugin-root>/skills/jira-ops/utils/jira/write.py \
+    comment PROJ-1234 --file work/<id>/deliverables/jira-comment.json
+```
+
+- The comment states what shipped, the branch, and links to the published
+  page — it is a handover note, not a paste of the whole release notes.
+- Draft it, show the user the exact text, post it only on approval.
+- **Transitioning the issue is a separate ask**, and the helper refuses to move
+  an issue assigned to someone else without `--force`. Do not pass `--force` on
+  the user's behalf: if the issue is someone else's, report that and stop.
+- A failed post is reported, never retried silently into a duplicate comment.
+
 ## 4. Close
 
 1. Self-check with `<plugin-root>/checklists/deliver.md`.
-2. Report to the user: what was delivered, where (branch, deliverables/),
-   evidence summary, PARKED.md follow-ups.
+2. Report to the user: what was delivered, where (branch, deliverables/,
+   plus any Confluence page or Jira issue written to in §3a), evidence
+   summary, PARKED.md follow-ups.
 3. Update STATUS.md: `deliver: done`, next action `/retro`.
 4. Prompt the user to run /retro while the task is fresh — it is how the
    framework improves.
@@ -79,3 +127,8 @@ The documents must match what was actually built:
 Every sub-step is idempotent (re-running conversions overwrites, re-pushing is
 safe, the audit can re-run). On resume, check which of §1–§4 already completed
 via STATUS.md log entries and artifact existence.
+
+The Atlassian writes in §3a are the exception that has to be made idempotent by
+hand: a second `create` makes a second page and a second `comment` makes a
+second comment. Read STATUS.md for an already-published page id and `update` it
+instead, and re-confirm with the user before re-posting a comment.

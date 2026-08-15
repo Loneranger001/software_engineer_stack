@@ -213,7 +213,14 @@ def cmd_review(session, args):
 
 
 def cmd_issue(session, args):
-    """Fetch details for specific issue keys."""
+    """Fetch details for specific issue keys.
+
+    The description is abridged to 500 characters for quick lookups. Pass
+    --full when the description IS the deliverable — /intake ingesting a
+    ticket as a brief, for instance, where a truncated read is worse than
+    no read at all.
+    """
+    full = getattr(args, "full", False)
     for key in args.keys:
         key = key.upper()
         issue = get_issue(session, key)
@@ -238,8 +245,8 @@ def cmd_issue(session, args):
         desc = f.get("description")
         if desc:
             desc_text = " ".join(extract_text(desc))
-            if len(desc_text) > 500:
-                desc_text = desc_text[:500] + "..."
+            if not full and len(desc_text) > 500:
+                desc_text = desc_text[:500] + "... (truncated — re-run with --full)"
             print(f"Description: {desc_text}")
         else:
             print("Description: (empty)")
@@ -521,6 +528,8 @@ def main():
 
     p = sub.add_parser("issue", help="Details for specific issues")
     p.add_argument("keys", nargs="+", help="Issue key(s)")
+    p.add_argument("--full", action="store_true",
+                   help="Print the whole description instead of the first 500 characters")
 
     p = sub.add_parser("users", help="Search users by name")
     p.add_argument("queries", nargs="+", help="Name(s) to search")

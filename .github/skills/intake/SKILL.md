@@ -44,11 +44,47 @@ the user has explicitly approved. Nothing downstream may begin before that appro
 
 1. Accept the brief as: a file path (md/txt), a docx/pdf (convert with
    `pandoc -t markdown` or extract text; if conversion fails, ask the user to
-   paste the content), or pasted text.
+   paste the content), pasted text, or an Atlassian reference (below).
 2. Store the original (or its converted markdown) as `work/<id>/brief.md` so the
    task is self-contained.
 3. Read the ENTIRE brief. Long documents: read in chunks; never summarize from
    the first section alone.
+
+### 2a. Briefs that live in Jira or Confluence
+
+The brief is often a ticket or a wiki page rather than a file. When the
+argument is a Jira issue key, a Jira URL, or a Confluence URL/page id — or the
+user gave only a task id that looks like a Jira key and no brief — offer to
+pull it with the tool skills rather than asking them to paste it:
+
+```bash
+# Jira issue → full description + comments (--full is REQUIRED here: without
+# it the description is abridged to 500 chars, which is not a brief)
+python3 ./skills/jira-ops/utils/jira/query.py issue PROJ-1234 --full
+
+# Confluence page (id, full URL, or /wiki/x/ short link) → markdown
+python3 ./skills/confluence-ops/utils/confluence/pull_confluence_page.py <page-id-or-url> work/<id>/brief.md
+```
+
+Rules, because a pulled brief is still a brief:
+
+- **Ingest, don't summarize.** Write what was fetched to `work/<id>/brief.md`
+  verbatim, with a provenance header naming the issue key or page id, the
+  source URL, and the fetch date. Every later stage cites `brief.md`, so the
+  fetched text has to be the thing on disk.
+- **A ticket is rarely the whole brief.** Jira descriptions routinely point at
+  a Confluence design page, and comments carry decisions the description never
+  got updated with. Follow linked pages and pull them too (append them to
+  `brief.md` under their own headed sections); ask before following a link
+  that leaves the tenant.
+- **Unreachable is not empty.** If the credentials are unset or the fetch
+  fails, say so and ask the user to paste the content — never proceed on a
+  partial pull, and never treat "couldn't fetch" as "nothing there".
+- **Read-only at intake.** Do not comment on, transition, or assign the issue
+  during intake. The ticket is an input here; `/deliver` is where the framework
+  writes back.
+- Record the source in STATUS.md (`brief-source: PROJ-1234` /
+  `confluence:<page-id>`) so `/deliver` knows where to report back to.
 
 ## 3. Extract requirements — accuracy rules
 

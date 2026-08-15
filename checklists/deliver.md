@@ -8,6 +8,7 @@ Run before declaring the task delivered.
 - [ ] Evidence bundle complete: every acceptance criterion → evidence file → PASS
 - [ ] All task documents are internally consistent (TDD ↔ impl-doc ↔ actual diff; stale sections updated)
 - [ ] Requested output formats produced (docx/pdf/Confluence) and files open/render correctly
+- [ ] Any Confluence publish or Jira comment/transition was explicitly approved by the user beforehand, and the resulting page id / issue key is recorded in STATUS.md so a re-run updates rather than duplicates
 - [ ] PARKED.md items summarized in release notes as follow-ups
 - [ ] Work branch pushed in every changed repo; commits reference the task id
 - [ ] Multi-repo changes: release notes state the deploy order across repos and the intermediate state between deployments
