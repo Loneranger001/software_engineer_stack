@@ -1,30 +1,40 @@
 ---
 name: jira-ops
-description: 'Use when: reading, referring to, fetching, searching, creating, updating, commenting on, transitioning, assigning, or managing Jira issues, Jira URLs, issue keys, tickets, stories, epics, backlogs, boards, sprints, JQL queries, or Atlassian issue references. Uses the Jira Cloud REST API v3 with Atlassian Document Format (ADF).'
-allowed-tools: read_file file_search grep_search apply_patch create_file list_dir run_in_terminal
-metadata:
-  version: "0.2.4"
-  supported_languages: "python, markdown"
-  supported_frameworks: "github-copilot-skills, jira-cloud-rest-api-v3"
-  supported_operating_systems: "macos, linux, windows"
-  categories: "tooling, devops"
-  tags: "jira, atlassian, backlog, issues, sprint, agile, project-management, bulk-operations"
-  input_format: "JQL queries, issue keys, user commands for Jira operations"
-  output_format: "Formatted tables, JSON responses, Jira issue updates via REST API"
+kind: tool
+description: "Read, search, create, update, comment on, transition, assign, and bulk-manage Jira issues — issue keys, tickets, stories, epics, backlogs, sprints, JQL queries, fix versions, components. Use when a request references a Jira issue, a Jira URL, or any Atlassian issue operation. Uses the Jira Cloud REST API v3 with Atlassian Document Format (ADF)."
+argument-hint: "<operation> [issue-key|JQL]"
 ---
 
 # Skill: Jira Operations
+
+> Path note: `${CLAUDE_PLUGIN_ROOT}` is this framework's root — the ancestor
+> directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
+> it automatically; other harnesses resolve it from this file's location.
+
+A **tool** skill, not a lifecycle stage: it has no workspace, no gate, and no
+`STATUS.md` of its own. Lifecycle stages call it (see `/intake` and `/deliver`).
 
 ## Description
 Comprehensive Jira operations — query backlogs, manage issues, add comments, transition statuses, create stories, assign work, manage fix versions, set components, check notifications, and execute bulk operations. Uses the Jira Cloud REST API v3 with Atlassian Document Format (ADF).
 
 ## Prerequisites
-- `JIRA_EMAIL` — your Atlassian email (e.g., you@lululemon.com)
-- `JIRA_TOKEN` — Atlassian API token (generate at https://id.atlassian.com/manage-profile/security/api-tokens)
-- `JIRA_ACCOUNT_ID` — your Jira account ID (find via `/rest/api/3/myself`)
-- `JIRA_URL` — Jira instance URL (e.g., https://lululemon.atlassian.net)
-- Python 3.10+ with `requests` library
-- Access to lululemon Jira Cloud (https://lululemon.atlassian.net)
+
+Connection details are **never stored in this framework** — they come from the
+environment of the machine running the agent, like `SES_DB_CONN` and friends
+(see the README's environment table). The helpers exit with this list if any
+required variable is unset.
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `JIRA_URL` | yes | Atlassian site, e.g. `https://your-org.atlassian.net` |
+| `JIRA_EMAIL` | yes | Your Atlassian account email |
+| `JIRA_TOKEN` | yes | API token — https://id.atlassian.com/manage-profile/security/api-tokens |
+| `JIRA_ACCOUNT_ID` | no | Your account id (else looked up via `/rest/api/3/myself`) |
+| `JIRA_PROJECT` | no | Default project key for commands that take `--project` |
+| `JIRA_NOTIFICATION_PROJECTS` | no | Comma-separated keys to scope mention scanning |
+
+Also required: Python 3.10+ with the `requests` package
+(`pip install requests`).
 
 ## Instructions
 
@@ -36,7 +46,7 @@ from requests.auth import HTTPBasicAuth
 session = requests.Session()
 session.auth = HTTPBasicAuth(os.environ['JIRA_EMAIL'], os.environ['JIRA_TOKEN'])
 session.headers.update({'Accept': 'application/json', 'Content-Type': 'application/json'})
-JIRA_URL = 'https://lululemon.atlassian.net'
+JIRA_URL = os.environ['JIRA_URL']
 ```
 
 ### Query Issues (JQL)
@@ -66,12 +76,12 @@ The `comment` subcommand accepts markdown text and auto-converts to ADF with ful
 - Bullet lists: `- item` (consecutive items grouped into one list)
 
 ```bash
-python3 .github/skills/jira-ops/utils/jira/write.py comment PROJ-1234 "## Heading\n**Bold** and \`code\` here\n- bullet one\n- bullet two"
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-ops/utils/jira/write.py comment PROJ-1234 "## Heading\n**Bold** and \`code\` here\n- bullet one\n- bullet two"
 ```
 
 For complex ADF (tables, panels, nested structures), use `--file` with a raw ADF JSON file:
 ```bash
-python3 .github/skills/jira-ops/utils/jira/write.py comment PROJ-1234 --file /path/to/comment.json
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-ops/utils/jira/write.py comment PROJ-1234 --file /path/to/comment.json
 ```
 
 ### Transition Issue
@@ -114,9 +124,9 @@ r = session.put(JIRA_URL + '/rest/api/3/issue/KEY', json={"fields": {"components
 
 ### Inspect Create Metadata
 ```bash
-python3 .github/skills/jira-ops/utils/jira/query.py create-meta --project PROJ
-python3 .github/skills/jira-ops/utils/jira/query.py create-meta --project PROJ --issue-type "Sub-task"
-python3 .github/skills/jira-ops/utils/jira/query.py create-meta --project PROJ --issue-type Story --verbose
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-ops/utils/jira/query.py create-meta --project PROJ
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-ops/utils/jira/query.py create-meta --project PROJ --issue-type "Sub-task"
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-ops/utils/jira/query.py create-meta --project PROJ --issue-type Story --verbose
 ```
 
 Use this before issue creation when you are not certain about:
@@ -145,7 +155,7 @@ r = session.post(JIRA_URL + '/rest/api/3/issue', json={'fields': fields})
 
 Story under Epic:
 ```bash
-python3 .github/skills/jira-ops/utils/jira/write.py create \
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-ops/utils/jira/write.py create \
     --project PROJ \
     --issue-type Story \
     --parent PROJ-1000 \
@@ -156,7 +166,7 @@ python3 .github/skills/jira-ops/utils/jira/write.py create \
 
 Validation without creating the issue:
 ```bash
-python3 .github/skills/jira-ops/utils/jira/write.py create \
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-ops/utils/jira/write.py create \
     --project PROJ \
     --issue-type Story \
     --epic PROJ-1000 \
@@ -167,7 +177,7 @@ python3 .github/skills/jira-ops/utils/jira/write.py create \
 
 Equivalent alias using `--epic`:
 ```bash
-python3 .github/skills/jira-ops/utils/jira/write.py create \
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-ops/utils/jira/write.py create \
     --project PROJ \
     --issue-type Story \
     --epic PROJ-1000 \
@@ -177,7 +187,7 @@ python3 .github/skills/jira-ops/utils/jira/write.py create \
 
 Sub-task under Story/Task:
 ```bash
-python3 .github/skills/jira-ops/utils/jira/write.py create \
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-ops/utils/jira/write.py create \
     --project PROJ \
     --issue-type "Sub-task" \
     --parent PROJ-1234 \
@@ -204,22 +214,22 @@ Use the review-file workflow utility when stories are generated into a markdown 
 
 Validate the file contract and selection logic:
 ```bash
-python3 .github/skills/jira-ops/utils/jira/story_workflow.py validate docs/jira-stories/jira-stories-alt-chnl-prebuy-pricing.md
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-ops/utils/jira/story_workflow.py validate docs/jira-stories/jira-stories-alt-chnl-prebuy-pricing.md
 ```
 
 Dry-run publish without creating Jira issues or modifying the source markdown:
 ```bash
-python3 .github/skills/jira-ops/utils/jira/story_workflow.py publish \
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-ops/utils/jira/story_workflow.py publish \
     docs/jira-stories/jira-stories-alt-chnl-prebuy-pricing.md \
-    --epic RMS-23236 \
+    --epic PROJ-1000 \
     --dry-run
 ```
 
 Real publish of reviewed stories only:
 ```bash
-python3 .github/skills/jira-ops/utils/jira/story_workflow.py publish \
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-ops/utils/jira/story_workflow.py publish \
     docs/jira-stories/jira-stories-alt-chnl-prebuy-pricing.md \
-    --epic RMS-23236
+    --epic PROJ-1000
 ```
 
 Review-file rules enforced by the workflow utility:
@@ -259,9 +269,9 @@ def extract_text(node):
 Approximates the Jira notification inbox using JQL queries. Shows recent activity on your issues — new comments by others, status changes, newly assigned work.
 
 ```bash
-python3 .github/skills/jira-ops/utils/jira/query.py notifications              # Last 24 hours (default)
-python3 .github/skills/jira-ops/utils/jira/query.py notifications --days 3      # Last 3 days
-python3 .github/skills/jira-ops/utils/jira/query.py notifications --days 7      # Last week
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-ops/utils/jira/query.py notifications              # Last 24 hours (default)
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-ops/utils/jira/query.py notifications --days 3      # Last 3 days
+python3 ${CLAUDE_PLUGIN_ROOT}/skills/jira-ops/utils/jira/query.py notifications --days 7      # Last week
 ```
 
 Optional scoping:

@@ -34,6 +34,15 @@ and documentation. Full docs: README.md.
 | `/understand` | Build a code-verified working understanding of any existing interface or integration - what it does, how it is triggered, what data it moves, everything upstream and downstream, and how it fails and recovers - explained in layers with source references, then interrogated in Q&A until the user's mental model matches the code. | `skills/understand/SKILL.md` |
 | `/verify-code` | Verify PL/SQL, SQL, KSH, or Python code by running it against live dev environments where available (Oracle via SQL*Plus/SQLcl, Unix host for KSH, project Python), with documented static fallbacks. | `skills/verify-code/SKILL.md` |
 
+**Tool skills** are not lifecycle stages: they have no workspace, no approval
+gate, and no `STATUS.md`. They wrap an external system so any stage — or you
+directly — can reach it.
+
+| Command | Purpose | Instructions |
+|---|---|---|
+| `/confluence-ops` | Read, search, create, update, and move Confluence pages — wiki pages, TDD and design pages, Confluence URLs and short links, page ids, spaces, CQL searches. | `skills/confluence-ops/SKILL.md` |
+| `/jira-ops` | Read, search, create, update, comment on, transition, assign, and bulk-manage Jira issues — issue keys, tickets, stories, epics, backlogs, sprints, JQL queries, fix versions, components. | `skills/jira-ops/SKILL.md` |
+
 3. Instruction files reference framework paths as `${CLAUDE_PLUGIN_ROOT}` —
    that is this repository's root. Claude Code resolves it natively; other
    harnesses substitute the repo path (the Copilot adapter under

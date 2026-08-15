@@ -35,6 +35,17 @@ flowchart LR
 | `/verify-code <files>` | Run per-language verification (live DB/host where available, static fallback) | — |
 | `/retro` | Capture lessons from a finished task into the framework's knowledge base | User approves framework edits |
 
+### Tool skills
+
+Not lifecycle stages — no workspace, no gate, no `STATUS.md`. They wrap an
+external system so the stages (and you) can reach it. Both need Atlassian
+credentials in the environment (see below) and Python's `requests`.
+
+| Command | What it does |
+|---|---|
+| `/jira-ops` | Read, search, create, comment on, transition, assign and bulk-manage Jira issues (REST v3 / ADF). Transitions on issues assigned to someone else are blocked without `--force`. |
+| `/confluence-ops` | Read pages as Markdown, search by CQL, create/update pages, publish mermaid diagrams as rendered SVG attachments. |
+
 ## Installation
 
 Option A — install as a plugin (recommended):
@@ -171,12 +182,24 @@ Connection details are **never stored in this framework**. Verification recipes 
 | `SES_KSH_HOST` | Optional ssh host for running KSH scripts | `devuser@unixdev01` |
 | `SES_PY` | Python interpreter for the work repo | `~/.venvs/proj/bin/python` |
 
+The Atlassian tool skills read their own set the same way — nothing is stored
+in the framework, and the helpers exit with the full list if anything required
+is missing:
+
+| Variable | Used for | Example |
+|---|---|---|
+| `JIRA_URL` | Atlassian site for `/jira-ops` (and `/confluence-ops`, at `<site>/wiki`) | `https://your-org.atlassian.net` |
+| `JIRA_EMAIL` | Atlassian account email | `you@your-org.example` |
+| `JIRA_TOKEN` | Atlassian API token — works for Jira and Confluence | from id.atlassian.com |
+| `CONFLUENCE_URL` | Only if Confluence is not at `<JIRA_URL>/wiki` | `https://wiki.your-org.com` |
+| `JIRA_PROJECT`, `JIRA_NOTIFICATION_PROJECTS`, `CONFLUENCE_SPACES` | Optional defaults | `PROJ`, `PROJ1,PROJ2`, `TEAM,ARCH` |
+
 If a variable is unset or the environment is unreachable, `/verify-code` falls back to static checks and says so in the evidence file.
 
 ## Repository layout
 
 ```
-skills/       one directory per lifecycle command (SKILL.md each)
+skills/       one directory per command (SKILL.md each; tool skills also ship utils/)
 agents/       scope-auditor, code-reviewer, doc-fact-checker (read-only reviewers)
 templates/    canonical Markdown templates for every document type
 core/         decision-protocol.md (what to do when unknown), repo-resolution.md (where the files are)
