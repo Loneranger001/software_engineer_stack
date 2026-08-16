@@ -32,6 +32,7 @@ flowchart LR
 | `/understand <interface>` | Build a code-verified working understanding of any existing interface or integration: trace it end-to-end, map dependencies both directions, explain it in layers, answer follow-ups from the code | — |
 | `/document <type> <target>` | Produce a how-to, KB article, or understanding document for an existing interface | Fact-checker passes |
 | `/repo-profile` | Scan a work repo: conventions into `.conventions.md`, core business entities seeded into `.domain-glossary.md` | — |
+| `/estate-profile` | Scan the repo set for the integration mechanisms actually in production, confirm status and constraints with you, into `.platform-capabilities.md` — so a design can never propose technology the estate doesn't have | — |
 | `/verify-code <files>` | Run per-language verification (live DB/host where available, static fallback) | — |
 | `/retro` | Capture lessons from a finished task into the framework's knowledge base | User approves framework edits |
 
@@ -131,11 +132,23 @@ Repos share a workspace because they talk to each other, so a task's **analysis*
 
 Excluding a repo from analysis is a user decision recorded in the contract, never an inference from a repo looking unrelated. See [Q&A #22](docs/QA.md).
 
+### What the estate can build with
+
+Conventions are a property of a repo; **integration technology is a property of the estate** — one scheduler, one file-transfer host, one (or no) message broker serve every repo. So `/estate-profile` writes a third memory file, one level up: **`<estate-root>/.platform-capabilities.md`**, sibling to the per-repo `.conventions.md` and `.domain-glossary.md`.
+
+It works scan-first: `scripts/scan-integrations.sh` greps every repo in the analysis scope for the mechanisms in use — file transfer, schedulers, DB links, messaging, APIs, ETL tools, object stores, containers, notification, secret stores, monitoring — and reports each hit as `<repo>:<file>:<line>` with credentials redacted, plus an explicit *no matches* result per category. You then confirm one batch of questions the code cannot answer, and only those answers become status.
+
+That split is the whole point:
+
+- **A scan proves a mechanism is present. It can never prove new use is permitted.** `in-use` rows come from evidence; `available`, `deprecated`, `requires-approval`, `forbidden` and `absent` are all user statements carrying a name and a date.
+- **The closed-world rule** — a mechanism not listed `in-use` or `available` must not appear in a proposed design. It may appear only under Alternatives, marked `REQUIRES NEW PLATFORM CAPABILITY`, with the approval path and lead time from the file's procurement section. So "use Kafka" cannot be proposed to a team with no broker; it can only be offered as a costed trade-off against the file-handoff design that ships on what already exists.
+- **The negative list is a first-class section** — what is forbidden or effectively impossible (no new middleware, no outbound network, no new schemas) is the guardrail that stops plausible-but-unbuildable designs, and it is asked for directly rather than inferred.
+
 ## The four guarantees
 
 - **Accurate** — every factual claim in a generated document must carry a source reference (`file:line`, doc section, or captured run output). Code is verified by running it (`/verify-code`), the `doc-fact-checker` agent re-verifies documents against the code before a stage closes, and `/grill` attacks the design's *completeness* — the edge cases nobody wrote down — before implementation is planned.
 - **Fault-tolerant** — stages are idempotent and resumable via `STATUS.md`; implementation happens on a branch with checkpoint commits; every impl doc has a rollback section.
-- **Self-improving** — `/retro` appends structured lessons to `knowledge/lessons.md`; every skill loads applicable lessons before starting. Retro can also propose edits to templates/checklists, applied only with your approval. Each work repo additionally accumulates a `.domain-glossary.md` — business terms ("purchase order", "approved") mapped to their system reality (tables, states, code paths, confirmed semantics) — so a term explained once is never re-asked.
+- **Self-improving** — `/retro` appends structured lessons to `knowledge/lessons.md`; every skill loads applicable lessons before starting. Retro can also propose edits to templates/checklists, applied only with your approval. Each work repo additionally accumulates a `.domain-glossary.md` — business terms ("purchase order", "approved") mapped to their system reality (tables, states, code paths, confirmed semantics) — so a term explained once is never re-asked. The estate accumulates `.platform-capabilities.md` the same way, so a platform fact confirmed once ("no broker", "DB links frozen", "new middleware needs board approval") constrains every later design without being re-asked.
 - **Scope-disciplined** — `/intake` produces a scope contract you approve; every later skill re-reads it. Anything discovered out of scope goes to `PARKED.md`, never into the change. The `scope-auditor` agent gates `/deliver`.
 
 ## When the agent doesn't know
@@ -184,7 +197,7 @@ standards/    default coding standards per language (a repo's .conventions.md ov
 checklists/   per-stage quality gates
 knowledge/    lessons.md (self-improvement memory), decisions.md (framework decision log)
 docs/         QA.md (design Q&A + testing guide), walkthrough.md (narrated example task)
-scripts/      new-task.sh, list-repos.sh (analysis scope), md2docx.sh, md2pdf.sh, md2confluence.sh
+scripts/      new-task.sh, list-repos.sh (analysis scope), scan-integrations.sh (platform evidence), md2docx.sh, md2pdf.sh, md2confluence.sh
 examples/     sample work repo + a fully worked example task workspace
 ```
 

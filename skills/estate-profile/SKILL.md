@@ -1,0 +1,181 @@
+---
+name: estate-profile
+description: Scan the repo set for the integration mechanisms actually in production, then confirm status and constraints with the user, into a cached .platform-capabilities.md that architecture and design stages check every proposed integration against. Use before designing any integration, or when no platform capability inventory exists yet.
+argument-hint: "[repos-folder]"
+---
+
+# /estate-profile — what this estate can actually build with
+
+> Path note: `${CLAUDE_PLUGIN_ROOT}` is this framework's root — the ancestor
+> directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
+> it automatically; other harnesses resolve it from this file's location.
+
+A design that proposes a message broker to a team that has no broker is worse
+than no design: it reads as authoritative and cannot be built. This skill
+captures what the estate ACTUALLY has, once, into
+`<estate-root>/.platform-capabilities.md`, so `/architecture` and
+`/tech-design` can be held to it.
+
+`/repo-profile` does this for a repo's coding conventions; this is its
+estate-level counterpart, because integration technology is a property of the
+estate, not of any one repository.
+
+**Method: scan first, ask second.** The user's time is the scarce resource.
+Everything a grep can establish is drafted from evidence before any question is
+asked, so the confirmation step is *correcting a populated table*, not
+authoring a document from a blank page.
+
+## 0. Preamble
+
+1. Load lessons tagged `stage:estate-profile` (and any tagged `platform` or
+   `integration`) from `${CLAUDE_PLUGIN_ROOT}/knowledge/lessons.md`.
+2. Resolve `<repo-set>` and `<estate-root>` per
+   `${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md`. The scan covers EVERY repo
+   in the analysis scope — a capability used by one sibling repo is a
+   capability the estate has, and scanning only the primary repo produces a
+   false `absent`.
+3. Unknowns follow `${CLAUDE_PLUGIN_ROOT}/core/decision-protocol.md`. Note the
+   asymmetry that governs this whole skill: **presence is a checkable fact;
+   permission never is.** Recording a capability as usable because the scan
+   found it is exactly the §1 violation this framework exists to prevent.
+
+## 1. Establish the scan scope
+
+1. Enumerate repos with
+   `${CLAUDE_PLUGIN_ROOT}/scripts/list-repos.sh <repos-folder>` (the
+   `[repos-folder]` argument if given, else per repo-resolution). Show the user
+   the list and confirm it before scanning — a repo excluded from the scan is
+   a recorded decision, never a silent omission.
+2. If a task workspace exists, take `repos-analyzed:` from its STATUS.md rather
+   than re-deriving.
+3. Tell the user which `<estate-root>` you will write to, as an absolute path.
+   Under a multi-repo parent folder that is the folder itself; for a single
+   repo it is the repo root.
+
+## 2. Scan for evidence
+
+1. Run
+   `${CLAUDE_PLUGIN_ROOT}/scripts/scan-integrations.sh <repo> [<repo>…]`
+   over the confirmed set. It reports, per integration category: every hit as
+   `<repo>:<file>:<line>` with the match redacted for credentials, the exact
+   pattern used, and — for categories with no hits anywhere — an explicit
+   no-matches line. Keep the output; §1 and §8 rows cite it.
+2. Read what the scan cannot pattern-match, across the repo set:
+   - deployment/install scripts and CI config — how things reach environments
+   - `README`/`CONTRIBUTING`/`docs/` sections describing interfaces or feeds
+   - job definitions, crontabs, scheduler exports
+   - config and connection files — for the MECHANISM and the host role only;
+     never read a secret into the transcript or the file
+3. Sample the biggest hits to distinguish real use from a stray mention: a
+   `curl` in a one-off developer script is not "the estate has an API
+   integration capability". Cite the line you judged from.
+
+### Accuracy rules for the scan pass
+
+- Every `in-use` row cites at least one `<repo>:<file>:<line>`. No reference →
+  the row does not go in the inventory as `in-use`; it becomes an open question.
+- A category with zero hits is recorded as *searched, no references found*,
+  with the pattern — never omitted, and never yet asserted as `absent`
+  (step 4 confirms that; the estate may use a mechanism none of these repos
+  touch).
+- Qualify every reference with its repo. Bare `file:line` is ambiguous the
+  moment two repos are in play.
+- Never copy credentials, connect strings, or secret values into the file.
+  Name the secret store; not the secret.
+
+## 3. Draft the inventory
+
+1. Copy `${CLAUDE_PLUGIN_ROOT}/templates/platform-capabilities.md` →
+   `<estate-root>/.platform-capabilities.md`. If it already exists, MERGE:
+   re-scan, update evidence references, and preserve every user-owned status,
+   note, and hand-edit (they win — this file is user-ownable). Never overwrite.
+2. Fill from evidence ONLY what evidence supports:
+   - §1 rows for every category with hits → status `in-use`, with references.
+   - §2 systems you can identify from the code (extract targets, feed sources,
+     schemas reached) — owning team and "can we change it?" stay blank.
+   - §3 reference patterns: for each recurring integration shape, name the
+     clearest working example. This section is the one designs will lean on
+     hardest, so pick examples that are current and complete, not the oldest.
+   - §4 runtime facts that are IN the repos (interpreter shebangs, pinned
+     versions, DB version in DDL or connect scripts).
+3. Everything else stays as template placeholders — visibly unanswered. Do not
+   fill §5–§8 by inference. A plausible guess about a batch window or an
+   approval path is indistinguishable, to a later reader, from a fact.
+
+## 4. Confirm with the user — the one batch of questions
+
+Present the drafted file, then ask ONE batch (decision-protocol §3 asking
+discipline: this is a stage boundary, so questions batch rather than
+interrupt). Lead with what the scan could not answer, in this order:
+
+1. **Status upgrades.** For each `in-use` row: is it sanctioned for NEW use, or
+   deprecated/frozen? This is the question that most often changes a design,
+   and code cannot answer it.
+2. **The negative list (§8).** What is forbidden or effectively impossible —
+   no new middleware, no outbound network, no cloud, no new schemas? Ask
+   directly; it is the guardrail that stops the plausible-but-unbuildable
+   design.
+3. **Absences (§1).** For each category the scan found nothing in: does the
+   estate have it anywhere, or is it genuinely `absent`?
+4. **Procurement reality (§7).** How hard is new software, who approves, how
+   long? Record it — it converts "cannot" into a costed trade-off, which is a
+   legitimate thing for a design to offer.
+5. **Runtime bounds (§4).** Interpreter versions actually on the servers, DB
+   version, whether new schemas/hosts are obtainable, outbound network.
+6. **Ownership (§2).** For the recurring systems: owning team, and which ones
+   the team may change versus must integrate around.
+7. **House NFRs (§6)** and **environments (§5)**.
+
+Rules for this step:
+
+- Offer the draft's rows as the default answer ("scan says Control-M is in use
+  — sanctioned for new jobs?"), so most answers are a yes/no.
+- Record every answer with `{who}, {date}` in the row's source column, and
+  append the batch to §10.
+- Unanswered questions go to §9 with what they block — never resolved by
+  assumption, and never left implicit. A capability whose status is unknown is
+  treated as NOT available by the closed-world rule, and the user should know
+  that is the effect of not answering.
+- Nothing in §2–§8 may be recorded as confirmed without a stated source. This
+  is the file's whole value: a later design cites it instead of re-asking, so a
+  wrong line here propagates silently into every design that follows.
+
+## 5. Write & cache
+
+1. Write `<estate-root>/.platform-capabilities.md` (absolute path — never a
+   bare relative name; under a multi-repo folder the bare form silently
+   resolves to nothing). Tell the user the exact path written.
+2. Ask whether to commit it or gitignore it — teams differ, and this file
+   describes infrastructure.
+3. Record the path in the task STATUS.md as `platform-capabilities:` if a
+   workspace exists, so later stages read it back instead of re-deriving.
+4. Header records the profile date and the repos scanned. Suggest a refresh
+   when it is older than ~6 months, when a new system enters the estate, or
+   when a status changes.
+
+## 6. Quality gate
+
+1. Self-check with `${CLAUDE_PLUGIN_ROOT}/checklists/estate-profile.md`.
+2. Report to the user: the capability count by status, the §8 negative list,
+   and every open question in §9 — stating plainly which designs those open
+   questions would block.
+
+## How later stages use this file
+
+`/architecture` and `/tech-design` resolve EVERY integration in a proposed
+design to a §1 row with status `in-use` or `available`. A mechanism that
+resolves to no row, or to `deprecated`/`forbidden`/`absent`/`requires-approval`,
+may not carry the proposed design — it belongs in Alternatives, marked
+`REQUIRES NEW PLATFORM CAPABILITY` with the §7 approval path and lead time
+attached, and the choice goes to the user. Introducing a new platform component
+is scope-affecting and high-blast-radius, so it is always decision-protocol §3
+(stop and ask), never a logged assumption, regardless of confidence.
+
+## Fault tolerance
+
+The scan is idempotent — re-running re-derives evidence rows and leaves
+user-confirmed statuses untouched. If interrupted, re-run: an existing file is
+merged (step 3.1), so a partial profile resumes rather than restarting. If the
+scan script is unavailable, run the equivalent greps by hand and record the
+commands in the file — a capability claim whose search is not written down
+cannot be audited later.

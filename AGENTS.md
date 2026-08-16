@@ -20,12 +20,15 @@ and documentation. Full docs: README.md.
 | Command | Purpose | Instructions |
 |---|---|---|
 | `/change-request` | Fast path for a small change to an existing interface - impact analysis, mini scope contract, surgical change, verification, delivery. | `skills/change-request/SKILL.md` |
+| `/confluence-ops` | Use when: reading, referring to, fetching, searching, creating, updating, or managing Confluence pages, wiki pages, Atlassian docs, TDD pages, design pages, Confluence URLs, short links such as /wiki/x/..., page IDs, page references, spaces, or CQL searches. | `skills/confluence-ops/SKILL.md` |
 | `/deliver` | Package a finished task - scope audit, evidence bundle, release notes, document conversion to Word/PDF/Confluence, branch push. | `skills/deliver/SKILL.md` |
 | `/document` | Produce a how-to guide, knowledge-base article, or understanding document for an existing interface or component - fully verified against the code, fact-checked, and converted to the needed formats. | `skills/document/SKILL.md` |
+| `/estate-profile` | Scan the repo set for the integration mechanisms actually in production, then confirm status and constraints with the user, into a cached .platform-capabilities.md that architecture and design stages check every proposed integration against. | `skills/estate-profile/SKILL.md` |
 | `/grill` | Adversarial interrogation of the technical design before the implementation document is written - stress-test the TDD with concrete edge-case scenarios, fix the gaps the evidence can answer, and grill the user for the answers it cannot. | `skills/grill/SKILL.md` |
 | `/impl-plan` | Produce an implementation document from the approved TDD - ordered commit-sized steps with per-step verification and rollback, a test plan covering every acceptance criterion, and deployment steps. | `skills/impl-plan/SKILL.md` |
 | `/implement` | Execute the approved implementation document step by step on a task branch - code, verify each step against the live environment where available, capture evidence, checkpoint-commit, and pass code review. | `skills/implement/SKILL.md` |
 | `/intake` | Start a new engineering task from a solution design document or requirement brief. | `skills/intake/SKILL.md` |
+| `/jira-ops` | Use when: reading, referring to, fetching, searching, creating, updating, commenting on, transitioning, assigning, or managing Jira issues, Jira URLs, issue keys, tickets, stories, epics, backlogs, boards, sprints, JQL queries, or Atlassian issue references. | `skills/jira-ops/SKILL.md` |
 | `/meeting-minutes` | Create accurate, structured minutes of meeting from raw notes, transcripts, recordings converted to text, or an existing draft. | `skills/meeting-minutes/SKILL.md` |
 | `/repo-profile` | Scan a work repository and infer its conventions and standards into a cached .conventions.md that all other stack skills consult. | `skills/repo-profile/SKILL.md` |
 | `/research` | Investigate the codebase and external sources for the current task and produce source-referenced research notes. | `skills/research/SKILL.md` |

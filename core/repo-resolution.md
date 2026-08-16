@@ -3,11 +3,14 @@
 The shared rule for every stack skill, resolved BEFORE reading or writing
 anything. Analysis and writing have DIFFERENT scopes: analysis spans every repo
 in the workspace, writing is confined to the repos the scope contract names.
-Four things to resolve, and none of them is "the current directory":
+Five things to resolve, and none of them is "the current directory":
 
 - **`<work-repo>`** — the repository whose code the task changes: the directory
   containing its `.git`. Repo-level memory lives at its root —
   `.conventions.md` (from /repo-profile) and `.domain-glossary.md`.
+- **`<estate-root>`** — where ESTATE-level memory lives:
+  `.platform-capabilities.md` (from /estate-profile), the inventory of
+  integration mechanisms the estate actually has. Resolution order below.
 - **`<workspace-root>`** — the directory holding `work/<task-id>/`. Defaults to
   `<work-repo>`; the user may point it elsewhere (e.g. workspaces kept outside
   the repo).
@@ -65,7 +68,12 @@ below and neither is guessed.
    `<work-repo>` when they are siblings, else ask). Show the user the list and
    confirm it before analysis — including any repo they want excluded, which
    is recorded as an exclusion rather than silently dropped.
-4. Record all of it in `STATUS.md` as soon as the workspace exists —
+4. **The estate root** (platform memory): `platform-capabilities:` from
+   STATUS.md if recorded; else `<repos-folder>` when the repos are siblings
+   under one folder; else `<work-repo>`. /estate-profile states the absolute
+   path it wrote to and records it back into STATUS.md, so later stages read it
+   rather than re-deriving.
+5. Record all of it in `STATUS.md` as soon as the workspace exists —
    `scripts/new-task.sh <task-id> <workspace-root> <pipeline> <work-repo> <repo-set>`
    writes the paths absolutised. Later stages read them back per step 1.
 
@@ -75,6 +83,11 @@ below and neither is guessed.
   `<work-repo>/.conventions.md`, `<work-repo>/.domain-glossary.md`. Never bare
   relative — the bare form is only correct when cwd happens to be the repo,
   which is exactly the assumption that breaks.
+- Estate-level artifacts take the estate prefix:
+  `<estate-root>/.platform-capabilities.md`. Conventions are a property of a
+  repo; integration technology is a property of the ESTATE — one broker, one
+  scheduler, one file-transfer host serve every repo — so this file is shared
+  by the whole repo set rather than duplicated per repo.
 - Task artifacts are always `<workspace-root>/work/<task-id>/…`.
 - Shell/tool calls that must run inside the repo (git, test runners, grep over
   the codebase) run with `<work-repo>` as their working directory, not the
