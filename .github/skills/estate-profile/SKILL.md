@@ -159,8 +159,9 @@ Rules for this step:
 ## How later stages use this file
 
 `/architecture` and `/tech-design` resolve EVERY integration in a proposed
-design to a §1 row with status `in-use` or `available`. A mechanism that
-resolves to no row, or to `deprecated`/`forbidden`/`absent`/`requires-approval`,
+design to a §1 row with status `in-use` or `available` (/tech-design also
+accepts a mechanism the changed interface already uses, evidenced in its
+research call graph). A mechanism that resolves to no row, or to `deprecated`/`forbidden`/`absent`/`requires-approval`,
 may not carry the proposed design — it belongs in Alternatives, marked
 `REQUIRES NEW PLATFORM CAPABILITY` with the §7 approval path and lead time
 attached, and the choice goes to the user. Introducing a new platform component

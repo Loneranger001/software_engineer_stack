@@ -22,6 +22,10 @@ for HOW the scope will be met.
 4. Unknowns follow `./core/decision-protocol.md`: design
    judgment calls that pass §2 (high confidence, reversible, in-scope, no
    dangerous surface) go to ASSUMPTIONS.md; anything else stops and asks.
+5. Read the platform inventory `<estate-root>/.platform-capabilities.md`
+   (STATUS.md `platform-capabilities:`, else per repo-resolution) and, if
+   STATUS.md records `architecture:`, the approved architecture document this
+   task is a work package of. Both constrain the design (§1 steps 8–9).
 
 ## 1. Design
 
@@ -45,6 +49,28 @@ for HOW the scope will be met.
    every repo in `<repo-set>`, not the assertion — and where callers live in
    repos this task will not change, say how they keep working (backward
    compatibility, or a follow-up recorded with the user).
+8. **Platform grounding — the closed-world rule.** Every integration mechanism
+   in the to-be design (file transfer, scheduler, DB link, queue, API, ETL
+   tool, …) is listed in §4 Platform grounding and resolves to either:
+   - a mechanism the affected interface ALREADY uses, evidenced in the
+     research call graph — in use by evidence; or
+   - a platform inventory §1 row with status `in-use` or `available`.
+
+   Anything else — a mechanism the interface doesn't use today and the
+   inventory doesn't list as usable, or one listed `deprecated` /
+   `requires-approval` / `forbidden` / `absent` — may not carry the design. It
+   goes in §10 Alternatives marked `REQUIRES NEW PLATFORM CAPABILITY` with the
+   inventory's §7 approval path and lead time, and the choice stops for the
+   user (decision-protocol §3: high blast radius, scope-affecting). If the
+   design needs a new mechanism and no inventory exists, stop and recommend
+   /estate-profile; never assume a mechanism is available because it is
+   common.
+9. **Conformance to the architecture** (when STATUS.md records one): same
+   systems, same mechanisms per integration, same data ownership as the
+   approved architecture's §3/§5/§6. A deviation is stated in §4 with its
+   reason and goes back to the architecture for re-approval — never absorbed
+   quietly into the TDD. The architecture's §13 items for this work package
+   are where this TDD's detail belongs; each is answered here.
 
 ### Scope discipline
 

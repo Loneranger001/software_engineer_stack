@@ -3,7 +3,8 @@
 # Usage: new-task.sh <task-id> [workspace-root] [pipeline] [work-repo]
 #   task-id         e.g. PROJ-123 (no spaces)
 #   workspace-root  directory that holds work/ (default: current directory)
-#   pipeline        full | change-request | document | understand  (default: full)
+#   pipeline        full | change-request | document | understand | architecture
+#                   (default: full)
 #   work-repo       repo whose code the task changes, holding .conventions.md
 #                   (default: workspace-root). See core/repo-resolution.md —
 #                   with a parent folder as the session cwd these differ, and
@@ -88,7 +89,13 @@ deliver: pending" ;;
 trace: pending
 map: pending
 explain: pending" ;;
-  *) echo "error: unknown pipeline '$PIPELINE' (full|change-request|document|understand)" >&2; exit 1 ;;
+  architecture)
+    NEXT="Run /architecture with the brief or a description of the initiative."
+    STAGES="frame: pending
+draft: pending
+stress: pending
+approve: pending" ;;
+  *) echo "error: unknown pipeline '$PIPELINE' (full|change-request|document|understand|architecture)" >&2; exit 1 ;;
 esac
 
 cat > "$DIR/STATUS.md" <<EOF

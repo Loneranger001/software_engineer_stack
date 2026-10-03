@@ -49,6 +49,21 @@ flowchart TD
 
 {One paragraph: what differs from as-is, and why.}
 
+### Platform grounding
+
+<!-- Every integration mechanism the to-be design relies on. Basis is either
+     the research call graph (the interface already uses it) or a platform
+     inventory row (<estate-root>/.platform-capabilities.md §1) with status
+     in-use or available. Anything else belongs in §10 marked REQUIRES NEW
+     PLATFORM CAPABILITY. -->
+| Mechanism | Used for | Basis | Status |
+|---|---|---|---|
+| {SFTP to feedhost01} | {extract delivery} | {research call graph: run_extract.ksh:23} | in-use |
+
+Architecture conformance: {n/a — no architecture for this task | conforms to
+{architecture path} §5 rows I1, I3 | deviates: {what, why — re-approval
+requested {date}}}
+
 ### 4.1 {Component / object 1}
 
 - Object: {SCHEMA.PKG_NAME or path}
@@ -100,6 +115,9 @@ repo in the analysis scope, not only the repo being changed.}
 
 ## 10. Alternatives considered
 
+<!-- An alternative needing a mechanism outside the platform grounding basis is
+     marked REQUIRES NEW PLATFORM CAPABILITY with the approval path and lead
+     time from the platform inventory §7 — a costed option, never the design. -->
 | Alternative | Why rejected |
 |---|---|
 

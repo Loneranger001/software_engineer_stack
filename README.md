@@ -6,13 +6,17 @@ A Claude Code skill framework covering the full software engineering lifecycle f
 
 ```mermaid
 flowchart LR
+    AR[/architecture/] -.->|optional kickoff, then one intake per work package| A
     A[/intake/] -->|scope contract approved| B[/research/]
     B --> C[/tech-design/]
     C -->|TDD approved| G[/grill/]
     G -->|design survived interrogation| D[/impl-plan/]
     D -->|impl doc approved| E[/implement/]
     E --> F[/deliver/]
-    F --> G[/retro/]
+    F --> R[/retro/]
+
+    EP[/estate-profile/] -.grounds.-> AR
+    EP -.grounds.-> C
 
     CR[/change-request/] -.fast path.-> F
     DOC[/document/] -.standalone.-> F
@@ -21,6 +25,7 @@ flowchart LR
 
 | Command | What it does | Gate |
 |---|---|---|
+| `/architecture <brief>` | Optional kickoff stage for initiatives spanning systems: systems in play, every integration (what moves, mechanism, sync/async, failure posture, owner), end-to-end flow, data ownership, key decisions — at system altitude only, grounded in the platform inventory, stress-tested, and split into work packages | User approves architecture |
 | `/intake <brief>` | Parse a solution design / requirement brief into a requirements summary and a **scope contract** | User approves scope contract |
 | `/research` | Investigate the codebase and external sources; every finding carries a source reference | Checklist |
 | `/tech-design` | Produce a technical design document traceable to requirements and research | User approves TDD |
@@ -57,7 +62,7 @@ everything Copilot-facing is generated from it (never edit generated files).
 **Tier A — install as a plugin (recommended, zero setup).** The ready-made
 [`copilot/`](copilot/) folder is a self-contained Copilot-native
 [plugin](https://docs.github.com/en/copilot/concepts/agents/about-plugins):
-`plugin.json`, the 14 stages as skills, the 3 reviewers as `.agent.md` custom
+`plugin.json`, every stage as a skill, the 3 reviewers as `.agent.md` custom
 agents, and the bundled templates/checklists/protocol they use.
 
 ```sh
@@ -142,7 +147,19 @@ That split is the whole point:
 
 - **A scan proves a mechanism is present. It can never prove new use is permitted.** `in-use` rows come from evidence; `available`, `deprecated`, `requires-approval`, `forbidden` and `absent` are all user statements carrying a name and a date.
 - **The closed-world rule** — a mechanism not listed `in-use` or `available` must not appear in a proposed design. It may appear only under Alternatives, marked `REQUIRES NEW PLATFORM CAPABILITY`, with the approval path and lead time from the file's procurement section. So "use Kafka" cannot be proposed to a team with no broker; it can only be offered as a costed trade-off against the file-handoff design that ships on what already exists.
+- **Two stages enforce it.** `/architecture` must resolve every integration in its inventory to a usable capability row, and `/tech-design` must do the same for every mechanism in its to-be design (a mechanism the changed interface already uses, evidenced in research, also counts). The `doc-fact-checker` reports anything else as `UNGROUNDED`.
 - **The negative list is a first-class section** — what is forbidden or effectively impossible (no new middleware, no outbound network, no new schemas) is the guardrail that stops plausible-but-unbuildable designs, and it is asked for directly rather than inferred.
+
+### From kickoff architecture to tasks
+
+At the start of an initiative that spans systems, scope doesn't exist yet — the architecture is how you find it. `/architecture` runs in its own workspace (pipeline `architecture`: frame → draft → stress → approve) and produces `architecture.md`:
+
+- **System altitude, enforced.** Systems, the data moving between them, the mechanism, and ownership — no tables, columns, signatures or pseudocode. Detail a decision seems to need is recorded in a *deliberately left to design* section instead, so silence is never mistaken for a decision. The fact-checker reports violations as `ALTITUDE`.
+- **The integration inventory is the backbone.** One row per arrow: what moves, mechanism, the capability row that permits it, sync/async, trigger, volume, failure & recovery posture, owner. Diagrams are drawn *from* it, and the fact-checker cross-checks both directions.
+- **Mechanism choice has a fixed order**: a reference pattern from the platform inventory, else any `in-use`/`available` mechanism meeting the house NFRs, else **stop and ask** — relax the requirement, accept a limitation, or acquire a capability at its stated cost.
+- **Claims are typed** `VERIFIED` (existing, cited), `PROPOSED` (the design), or `EXTERNAL` (another team's system, with who said so) — so a document about a system that doesn't exist yet can still be fact-checked where it touches reality.
+- **A stress pass** runs grill-style scenarios per integration (duplicates, replays, outages, cut-offs, boundary crossings) at system level.
+- **Work packages** split it into tasks: each goes through `/intake` with the architecture as part of its brief, STATUS.md records `architecture:`, and that task's `/tech-design` must conform — a deviation goes back to the architecture for re-approval rather than being absorbed quietly.
 
 ## The four guarantees
 

@@ -19,6 +19,7 @@ and documentation. Full docs: README.md.
 
 | Command | Purpose | Instructions |
 |---|---|---|
+| `/architecture` | Produce a high-level architecture at project kickoff - systems in play, every integration between them, the end-to-end flow, data ownership, and key decisions - grounded in the platform inventory so it only proposes mechanisms the estate actually has. | `skills/architecture/SKILL.md` |
 | `/change-request` | Fast path for a small change to an existing interface - impact analysis, mini scope contract, surgical change, verification, delivery. | `skills/change-request/SKILL.md` |
 | `/confluence-ops` | Use when: reading, referring to, fetching, searching, creating, updating, or managing Confluence pages, wiki pages, Atlassian docs, TDD pages, design pages, Confluence URLs, short links such as /wiki/x/..., page IDs, page references, spaces, or CQL searches. | `skills/confluence-ops/SKILL.md` |
 | `/deliver` | Package a finished task - scope audit, evidence bundle, release notes, document conversion to Word/PDF/Confluence, branch push. | `skills/deliver/SKILL.md` |

@@ -53,6 +53,14 @@ the user has explicitly approved. Nothing downstream may begin before that appro
    task is self-contained.
 3. Read the ENTIRE brief. Long documents: read in chunks; never summarize from
    the first section alone.
+4. **Work package of an approved architecture?** If the brief is (or
+   accompanies) an approved `architecture.md` from /architecture, record its
+   absolute path in STATUS.md as `architecture:` and name the work package.
+   That package's §14 row and the §5 integrations it covers bound the scope:
+   each in-scope item traces to one of those rows, and the architecture's §13
+   items for the package go into the scope contract's open-questions table
+   (citing the architecture §13 line) — that is where /research picks them up. An architecture that is
+   still a draft is not a brief — finish its approval first.
 
 ## 3. Extract requirements — accuracy rules
 
