@@ -4,6 +4,22 @@
 - Inputs: scope-contract.md v{n}, research-notes.md
 - Author: Claude, reviewed by {user}
 
+<!-- handoff:start -->
+## Handoff summary
+<!-- Written last, at this stage's gate, and updated in the same edit as any
+     amendment. Later stages read ONLY this block unless they need a section's
+     detail. One line per ID; max 40 lines. Check: scripts/handoff.py check <file>. -->
+- Contract version: {n}
+- Approach: {two lines at most}
+- Components: §4.1 {repo}:{object} — {change}; §4.2 …
+- Traceability: S1 → §4.1, §5
+- Data changes: {object — DDL one-liner, backfill yes/no} (§5)
+- Interface impact: {repo}:{caller} — {impact, one line} (§6)
+- Verification: A1 → {unit|integration|regression} (§7)
+- Operational: {deploy/runtime one-liner} (§8)
+- Top risks: {one line each} (§11)
+<!-- handoff:end -->
+
 ## 1. Overview
 
 {What is being built/changed and why — one or two paragraphs, understandable by

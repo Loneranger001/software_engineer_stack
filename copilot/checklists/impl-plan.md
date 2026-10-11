@@ -13,3 +13,4 @@ Run before presenting the implementation document for approval.
 - [ ] No step implements anything outside the scope contract
 - [ ] ASSUMPTIONS.md reviewed — every open entry presented for ratification at this gate (decision-protocol §4)
 - [ ] STATUS.md updated: impl-plan → awaiting approval
+- [ ] Handoff summary written last and `scripts/handoff.py check` passes (every ID in the body is in the summary; contract version current)

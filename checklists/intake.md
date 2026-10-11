@@ -13,3 +13,4 @@ Run before presenting the scope contract for approval.
 - [ ] Applicable lessons from knowledge/lessons.md were loaded and considered
 - [ ] ASSUMPTIONS.md reviewed — every open entry presented for ratification at this gate (decision-protocol §4)
 - [ ] STATUS.md updated: intake in-progress → awaiting approval
+- [ ] Handoff summary written last and `scripts/handoff.py check` passes (every ID in the body is in the summary; contract version current)

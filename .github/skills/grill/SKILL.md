@@ -20,8 +20,11 @@ proving which scenarios were confronted.
    (`<ws>` = `<workspace-root>/work/<id>`). Grilling an unapproved draft is
    fine if the user asks — record it:
    `status.py log <ws> "grilling unapproved TDD at user request"`.
-3. Read scope-contract.md, research-notes.md, tdd.md, ASSUMPTIONS.md, the
-   repo rules research recorded (`<work-repo>` from STATUS.md — see
+3. Read tdd.md and ASSUMPTIONS.md fully — they are what you attack. Read the
+   contract and research handoff summaries
+   (`python3 ./scripts/handoff.py show <ws>/<doc>`), opening a full section
+   when a scenario needs its detail. Also read the repo rules research
+   recorded (`<work-repo>` from STATUS.md — see
    `./core/repo-resolution.md`), and the affected code.
 4. Unknowns follow `./core/decision-protocol.md`. In this
    skill the bias flips: the whole point is to ASK — proceed-and-log is
@@ -91,7 +94,9 @@ Take the `ask-user` list and interview the user until it is EMPTY:
 
 1. Self-check with `./checklists/grill.md`.
 2. If the grill materially changed an already-approved TDD, re-present the
-   changed sections for approval (never silently edit an approved document).
+   changed sections for approval (never silently edit an approved document),
+   update the TDD's handoff summary in the same edit, and re-run
+   `handoff.py check <ws>/tdd.md`.
 3. Record:
    `python3 ./scripts/status.py set <ws> grill=done --next "Run /impl-plan."`
    — or, if the user explicitly skipped it,

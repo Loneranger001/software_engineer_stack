@@ -24,7 +24,12 @@ for HOW the scope will be met.
    user back to /research. Take `<work-repo>` from STATUS.md
    (`${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md`) — repo-level files below
    hang off it, not off your cwd.
-3. Read scope-contract.md AND research-notes.md fully.
+3. Read scope-contract.md fully — traceability must cover every S# and A#.
+   For research, read its handoff summary
+   (`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/handoff.py show <ws>/research-notes.md`) and open a
+   research section only when designing the component it concerns.
+   `handoff.py check <ws>/research-notes.md` reporting an older contract
+   version means research is stale: send the user back to /research.
 4. Unknowns follow `${CLAUDE_PLUGIN_ROOT}/core/decision-protocol.md`: design
    judgment calls that pass §2 (high confidence, reversible, in-scope, no
    dangerous surface) go to ASSUMPTIONS.md; anything else stops and asks.
@@ -67,7 +72,9 @@ for HOW the scope will be met.
 
 ## 2. Quality gates
 
-1. Self-check with `${CLAUDE_PLUGIN_ROOT}/checklists/tech-design.md`.
+1. Self-check with `${CLAUDE_PLUGIN_ROOT}/checklists/tech-design.md`. Write the
+   TDD's **handoff summary** block last and run
+   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/handoff.py check <ws>/tdd.md` — it must pass.
 2. Run the fact-check procedure in
    `${CLAUDE_PLUGIN_ROOT}/agents/doc-fact-checker.md` on tdd.md (it verifies
    every claim against the code) — as a subagent where the harness supports

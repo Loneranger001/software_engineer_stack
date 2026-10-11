@@ -21,7 +21,10 @@ committed before the next begins.
 2. Locate the workspace and gate:
    `python3 ./scripts/status.py require <ws> impl-plan=approved`
    (`<ws>` = `<workspace-root>/work/<id>`) — non-zero exit = stop.
-3. Read scope-contract.md, tdd.md, impl-doc.md, and the rules files of
+3. Read the contract and impl-doc handoff summaries
+   (`python3 ./scripts/handoff.py show <ws>/<doc>`) — not the whole documents.
+   For each step, read only its row in impl-doc §2 and the TDD sections it
+   cites. Also read the rules files of
    every repo the impl doc changes (`./scripts/repo-rules.sh <repo>
    <files>`; paths from STATUS.md — see
    `./core/repo-resolution.md`; git operations and test
@@ -66,7 +69,8 @@ For each impl-doc step N, in order:
    the file wins), then the surrounding code's style, then
    `./standards/`. Touch only the files the step
    names — if the step turns out to need another file, update the impl-doc row
-   first (append a note, don't rewrite history).
+   first (append a note, don't rewrite history) and its `step <N>:` summary
+   line.
 2. **Verify** using the step's verification column — invoke the /verify-code
    recipes for each changed file (live mode via `$SES_DB_CONN`/`$SES_KSH_HOST`/
    `$SES_PY` when reachable; static fallback otherwise, recorded as such).
@@ -87,8 +91,9 @@ For each impl-doc step N, in order:
 
 ### Scope guard (continuous)
 
-Before each commit, check the diff against the scope contract: every changed
-file must map to an in-scope item via the impl-doc, and its repo must be one
+Before each commit, check the diff against the scope contract's handoff
+summary (S# items, repos allowed to change): every changed file must map to
+an in-scope item via the impl-doc, and its repo must be one
 the contract lists as changing. A change that turns out to be needed in
 another repo stops the loop and goes to the user as a scope amendment — not a
 quick fix in a repo nobody approved touching. Bugs or improvements you

@@ -7,6 +7,22 @@
 - Approved by: {user} on {date}
 - Version: 1 (bump on any user-approved scope change; record the change in History)
 
+<!-- handoff:start -->
+## Handoff summary
+<!-- Written last, at this stage's gate, and updated in the same edit as any
+     amendment. Later stages read ONLY this block unless they need a section's
+     detail. One line per ID; max 40 lines. Check: scripts/handoff.py check <file>. -->
+- Contract version: 1
+- Objective: {one line}
+- In scope: S1 {one-line item}
+- Out of scope: N1 {one-line item}
+- Acceptance: A1 → S1 {how verified, one line}
+- Repos: change {repo-a}; analysis-only {repo-b}; excluded {repo-c — reason}
+- Expected to change: {repo-a}:{SCHEMA.PKG_NAME} ({change})
+- Open questions: Q1 {open|answered — one line}
+- Constraints: {one line each, only the binding ones}
+<!-- handoff:end -->
+
 ## Objective
 
 {One paragraph: the business/technical outcome this task must achieve.}
