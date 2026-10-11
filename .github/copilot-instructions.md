@@ -3,7 +3,7 @@
 
 This repository is worked on with the software-engineer-stack lifecycle
 framework rooted at `.`. The stages are available two ways with the
-same instructions: explicitly as prompt files in Copilot Chat (`/change-request`, `/deliver`, `/document`, `/grill`, `/impl-plan`, `/implement`, `/intake`, `/meeting-minutes`, `/repo-profile`, `/research`, `/retro`, `/tech-design`, `/understand`, `/verify-code`) and as
+same instructions: explicitly as prompt files in Copilot Chat (`/change-request`, `/confluence-ops`, `/deliver`, `/document`, `/grill`, `/impl-plan`, `/implement`, `/intake`, `/jira-ops`, `/meeting-minutes`, `/repo-profile`, `/research`, `/retro`, `/tech-design`, `/understand`, `/verify-code`) and as
 native agent skills in `.github/skills/` which the Copilot CLI and coding
 agent load automatically when a request matches a stage's description.
 
@@ -28,8 +28,10 @@ Rules that apply to ALL work here:
 4. **Verification**: code claims require evidence — run it (see the
    verify-code prompt) and capture output to the workspace `evidence/`
    directory. Fallback static checks must be labelled as such.
-5. **Resumability**: the task workspace `STATUS.md` records stage state;
-   read it before starting, update it after every stage transition.
+5. **Resumability**: the task workspace `STATUS.md` records stage state.
+   Read and write it only through `./scripts/status.py`: gate with
+   `status.py require <ws> <stage>=<state>` (non-zero exit = stop) before
+   starting a stage, and record every transition with `status.py set`.
 6. The review procedures (scope-auditor, code-reviewer, doc-fact-checker)
    are installed as Copilot custom agents in `.github/agents/` — where a
    prompt says to run one, delegate to the matching custom agent (VS Code,

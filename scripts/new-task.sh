@@ -1,6 +1,6 @@
 #!/bin/sh
 # new-task.sh — scaffold a task workspace with a STATUS.md resume point.
-# Usage: new-task.sh <task-id> [workspace-root] [pipeline] [work-repo]
+# Usage: new-task.sh <task-id> [workspace-root] [pipeline] [work-repo] [repo-set]
 #   task-id         e.g. PROJ-123 (no spaces)
 #   workspace-root  directory that holds work/ (default: current directory)
 #   pipeline        full | change-request | document | understand  (default: full)
@@ -99,7 +99,7 @@ cat > "$DIR/STATUS.md" <<EOF
 - created: $(date -u +%Y-%m-%dT%H:%M:%SZ)
 - work-repo: $ABS_REPO
 - workspace-root: $ABS_ROOT
-- branch: (set by /implement — one line per changed repo)
+- branch: (set by /implement as branch.<repo> lines — scripts/status.py field)
 
 ## Repos analyzed
 
@@ -111,7 +111,8 @@ $REPO_LINES
 
 ## Stage gates
 
-Legend: pending | in-progress | done | approved (user sign-off)
+Legend: pending | in-progress | done | approved (user sign-off) | waived (user, with reason)
+Read and update with scripts/status.py — never edit gate lines by hand.
 
 $STAGES
 

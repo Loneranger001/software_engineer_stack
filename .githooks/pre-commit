@@ -1,0 +1,10 @@
+#!/bin/sh
+# Framework pre-commit checks. Enable once per clone:
+#   git config core.hooksPath .githooks
+# Same checks as .github/workflows/framework-checks.yml, minus the matrix.
+set -e
+cd "$(git rev-parse --show-toplevel)"
+python3 scripts/build_copilot.py --check
+python3 scripts/check_knowledge.py
+for f in scripts/*.sh; do sh -n "$f"; done
+python3 -m unittest discover -s tests -q

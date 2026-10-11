@@ -20,8 +20,11 @@ proving which scenarios were confronted.
 1. Load lessons tagged `stage:grill` from
    `./knowledge/lessons.md` — prior corrected assumptions
    and missed edge cases are exactly the scenarios to re-run.
-2. Locate the workspace; verify `tech-design: approved` (grilling an
-   unapproved draft is fine too if the user asks — note it in STATUS.md).
+2. Locate the workspace and gate:
+   `python3 ./scripts/status.py require <ws> tech-design=approved`
+   (`<ws>` = `<workspace-root>/work/<id>`). Grilling an unapproved draft is
+   fine if the user asks — record it:
+   `status.py log <ws> "grilling unapproved TDD at user request"`.
 3. Read scope-contract.md, research-notes.md, tdd.md, ASSUMPTIONS.md,
    `<work-repo>/.conventions.md` (`<work-repo>` from STATUS.md — see
    `./core/repo-resolution.md`), and the affected code.
@@ -94,8 +97,10 @@ Take the `ask-user` list and interview the user until it is EMPTY:
 1. Self-check with `./checklists/grill.md`.
 2. If the grill materially changed an already-approved TDD, re-present the
    changed sections for approval (never silently edit an approved document).
-3. Update STATUS.md: `grill: done` (or `grill: waived by user` if the user
-   explicitly skipped it — record who/when), next action `/impl-plan`.
+3. Record:
+   `python3 ./scripts/status.py set <ws> grill=done --next "Run /impl-plan."`
+   — or, if the user explicitly skipped it,
+   `grill="waived by <who> <date>: <reason>"`.
 
 ## Use on change requests
 

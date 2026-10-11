@@ -13,7 +13,9 @@ committed before the next begins.
 
 1. Load lessons tagged `stage:implement` and the languages involved from
    `./knowledge/lessons.md`.
-2. Locate the workspace; verify `impl-plan: approved`.
+2. Locate the workspace and gate:
+   `python3 ./scripts/status.py require <ws> impl-plan=approved`
+   (`<ws>` = `<workspace-root>/work/<id>`) — non-zero exit = stop.
 3. Read scope-contract.md, tdd.md, impl-doc.md, and the `.conventions.md` of
    every repo the impl doc changes (paths from STATUS.md — see
    `./core/repo-resolution.md`; git operations and test
@@ -24,17 +26,29 @@ committed before the next begins.
    judgment calls passing §2 → ASSUMPTIONS.md; any uncertainty about a
    data-changing statement, an external contract, or the approved design
    stops and asks — regardless of confidence.
-5. Check STATUS.md for a recorded branch/step — if present, this is a RESUME:
+5. `status.py show <ws>` — a recorded `branch.<repo>` or `current-step` means
+   this is a RESUME:
    `git log` the branch, find the last completed step (checkpoint commits are
    named `<task-id> step <N>: <desc>`), verify its evidence exists, continue
-   from step N+1.
+   from step N+1. The commit log is the truth: if it disagrees with
+   `current-step`, trust the commits and re-record the field.
 
 ## 1. Branch setup (first run only)
 
 1. Ensure each repo the impl-doc changes is clean; stash/ask if not.
 2. In each, create the branch named in the impl-doc from that repo's mainline.
-3. Record the branch per repo in STATUS.md.
-4. Repos in `<repo-set>` that the scope contract does NOT list as changing get
+3. Record the branch per repo:
+   `status.py field <ws> branch.<repo-name> <branch> --log "branch created in <repo-name>"`,
+   then `status.py set <ws> implement=in-progress`.
+4. **Commit-message preflight**, before the first checkpoint commit in each
+   repo: inspect its `commit-msg` hook (`git -C <repo> config core.hooksPath`,
+   else `.git/hooks/commit-msg`; also a `commit-msg` stage in
+   `.pre-commit-config.yaml`) and adopt its exact format. Recent history and
+   framework examples are not enough — the hook is what rejects the commit.
+   Fit the checkpoint message into that format keeping the
+   `<task-id> step <N>` token intact (resume greps for it), and record it:
+   `status.py field <ws> commit-format.<repo-name> "<format>"`.
+5. Repos in `<repo-set>` that the scope contract does NOT list as changing get
    no branch and no commits — they were analysis scope, not write scope.
 
 ## 2. The step loop
@@ -55,11 +69,12 @@ For each impl-doc step N, in order:
    report to the user, propose a TDD/impl-doc amendment, get approval before
    continuing. Never quietly diverge from the approved documents.
 4. **Checkpoint commit**: `git commit` the step **in the step's repo** with
-   message `<task-id> step <N>: <desc>`. Never batch multiple steps into one
-   commit, and never span repos in one step — a step belongs to exactly one
-   repo so that its rollback is a single revert.
-5. Update STATUS.md (current step, last evidence file) after every step —
-   this is the resume point.
+   message `<task-id> step <N>: <desc>` (inside the hook format from §1).
+   Never batch multiple steps into one commit, and never span repos in one
+   step — a step belongs to exactly one repo so that its rollback is a single
+   revert.
+5. Record after every step — this is the resume point:
+   `status.py field <ws> current-step <N> --log "step <N> committed <sha>; evidence/step<N>-<desc>.txt"`.
 
 ### Scope guard (continuous)
 
@@ -86,8 +101,9 @@ criterion must reach PASS; failures loop back to the step loop.
    holding yourself to its report format. Resolve findings
    or record a conscious waiver (with the user for anything non-trivial).
 2. Self-check with `./checklists/implement.md`.
-3. Update STATUS.md: `implement: done` (branch + final commit recorded per
-   changed repo), next action `/deliver`.
+3. Record the final commit per changed repo
+   (`status.py field <ws> final-commit.<repo-name> <sha>`), then
+   `status.py set <ws> implement=done --next "Run /deliver."`.
 
 ## Fault tolerance
 
@@ -96,4 +112,4 @@ criterion must reach PASS; failures loop back to the step loop.
 - A crashed session resumes losslessly: worst case, one step's work is redone.
 - If the environment becomes unreachable mid-task, continue in static-fallback
   mode, mark affected evidence `mode: static-fallback`, and list the pending
-  live verifications in STATUS.md under next action.
+  live verifications as the next action (`status.py next <ws> "..."`).

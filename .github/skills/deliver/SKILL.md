@@ -13,8 +13,11 @@ audited against scope, evidenced, and converted to the formats the user needs.
 
 1. Load lessons tagged `stage:deliver` from
    `./knowledge/lessons.md`.
-2. Locate the workspace; verify the prior stage is done (`implement: done`,
-   or the document pipeline's `fact-check: done`). Take `<work-repo>`,
+2. Locate the workspace and gate on the prior stage:
+   `python3 ./scripts/status.py require <ws> implement=done`
+   (`<ws>` = `<workspace-root>/work/<id>`); for the document pipeline
+   (`status.py get <ws> pipeline`) gate on `fact-check=done` instead.
+   Non-zero exit = stop. Take `<work-repo>`,
    `<workspace-root>`, and the changed repos with their branches from STATUS.md
    (`./core/repo-resolution.md`) — handover paths and git
    operations use them, not the session cwd. A change spanning repos is
@@ -66,7 +69,7 @@ The documents must match what was actually built:
 1. Self-check with `./checklists/deliver.md`.
 2. Report to the user: what was delivered, where (branch, deliverables/),
    evidence summary, PARKED.md follow-ups.
-3. Update STATUS.md: `deliver: done`, next action `/retro`.
+3. Record: `status.py set <ws> deliver=done --next "Run /retro."`
 4. Prompt the user to run /retro while the task is fresh — it is how the
    framework improves.
 

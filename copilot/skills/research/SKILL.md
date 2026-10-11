@@ -17,9 +17,11 @@ confidently, with every finding traceable to a source.
 
 1. Load lessons tagged `stage:research` from `<plugin-root>/knowledge/lessons.md`.
 2. Locate the workspace: the given task-id, else the single `work/*/STATUS.md`
-   with next action /research, else ask. Verify `intake: approved` — if not,
-   stop and direct the user to /intake. Read `work-repo:` and
-   `workspace-root:` from STATUS.md
+   with next action /research, else ask. Gate:
+   `python3 <plugin-root>/scripts/status.py require <ws> intake=approved`
+   (`<ws>` = `<workspace-root>/work/<id>`) — a non-zero exit means stop and
+   direct the user to /intake; never overrule it by reading the file yourself. Take `work-repo`,
+   `workspace-root`, and `repos-analyzed` from `status.py show <ws>`
    (`<plugin-root>/core/repo-resolution.md`): every repo-level path
    below is relative to `<work-repo>`, never to your session's cwd.
 3. Read `scope-contract.md`. It bounds the investigation: research serves the
@@ -27,6 +29,17 @@ confidently, with every finding traceable to a source.
 4. Unknowns follow `<plugin-root>/core/decision-protocol.md` —
    research is the "check checkable facts" stage par excellence: read/run
    before assuming; judgment calls that pass §2 go to ASSUMPTIONS.md.
+5. **Cross-repo preflight (mandatory, before §1).** For EVERY repo in
+   `<repo-set>` — not only the repo the contract nominates:
+   - Refresh and search the mainline, not just the checkout:
+     `git -C <repo> fetch origin <mainline>` then search `origin/<mainline>`
+     (`git -C <repo> grep -n <term> origin/<mainline> --`) as well as the
+     working tree. A nominated repo, a stale clone, or a feature branch can
+     omit the tables, views, and consumers that mainline has. Record per repo
+     the ref and SHA searched; a failed fetch is recorded as "searched a
+     possibly-stale local ref", never silently skipped.
+   - A repo without `.conventions.md` is profiled (/repo-profile) before
+     design, or the user explicitly waives it — recorded in research notes.
 
 ## 1. Codebase investigation
 
@@ -90,7 +103,8 @@ platform (note the Oracle/ksh/Python versions if discoverable).
 2. Log out-of-scope findings to PARKED.md (never act on them).
 3. Batch remaining open questions to the user; blocking ones must be answered
    before /tech-design.
-4. Update STATUS.md: `research: done`, next action `/tech-design`.
+4. Record:
+   `python3 <plugin-root>/scripts/status.py set <ws> research=done --next "Run /tech-design."`
 
 ## Fault tolerance
 

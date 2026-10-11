@@ -1,0 +1,28 @@
+name: framework-checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.9", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # check_knowledge.py reads history to prove recorded edits exist
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Generated adapters are up to date
+        run: python3 scripts/build_copilot.py --check
+      - name: Knowledge log matches the framework
+        run: python3 scripts/check_knowledge.py
+      - name: Shell scripts parse
+        run: for f in scripts/*.sh; do sh -n "$f" || exit 1; done
+      - name: Tests
+        run: python3 -m unittest discover -s tests -v
