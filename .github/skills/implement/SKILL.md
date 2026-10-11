@@ -32,11 +32,20 @@ committed before the next begins.
    data-changing statement, an external contract, or the approved design
    stops and asks — regardless of confidence.
 5. `status.py show <ws>` — a recorded `branch.<repo>` or `current-step` means
-   this is a RESUME:
-   `git log` the branch, find the last completed step (checkpoint commits are
-   named `<task-id> step <N>: <desc>`), verify its evidence exists, continue
-   from step N+1. The commit log is the truth: if it disagrees with
-   `current-step`, trust the commits and re-record the field.
+   this is a RESUME. Run `python3 ./scripts/checkpoint.py resume <ws>`: it
+   finds the last `<task-id> step <N>` checkpoint commit per repo, compares it
+   with `current-step`, checks each repo is on its recorded branch, and lists
+   every uncommitted file — as the next step's own files (a half-done step)
+   or UNEXPECTED.
+   - Exit 0 (CLEAN) → run `checkpoint.py verify <ws>`, then continue from
+     step N+1.
+   - Exit 3 (NEEDS DECISION) → stop and show the user its report and the
+     uncommitted changes (`git status`, `git diff`, untracked files'
+     contents). Ask: keep the half-done work and finish step N+1, or discard
+     it and redo the step. Never fold uncommitted work into a commit, stash
+     it, or discard it without that answer — it may be the user's own edit.
+   - The commit log is the truth: if it disagrees with `current-step`, trust
+     the commits and re-record the field.
 
 ## 1. Branch setup (first run only)
 
@@ -78,7 +87,12 @@ For each impl-doc step N, in order:
    report to the user, propose a TDD/impl-doc amendment, get approval before
    continuing. Never quietly diverge from the approved documents.
 4. **Checkpoint commit**: `git commit` the step **in the step's repo** with
-   message `<task-id> step <N>: <desc>` (inside the hook format from §1).
+   message `<task-id> step <N>: <desc>` (inside the hook format from §1),
+   ending with the evidence hashes as their own paragraph —
+   `python3 ./scripts/checkpoint.py trailer <ws> evidence/step<N>-<desc>.txt
+   evidence/raw/<its logs>` prints them (`git commit -m "<subject>" -m
+   "<trailer lines>"`). `work/` may live outside every repo; these lines put
+   proof of the evidence into git.
    Never batch multiple steps into one commit, and never span repos in one
    step — a step belongs to exactly one repo so that its rollback is a single
    revert.
@@ -120,7 +134,12 @@ loop.
 
 - The branch + checkpoint commits + STATUS.md + evidence/ ARE the recovery
   state; keep all four current after every step.
-- A crashed session resumes losslessly: worst case, one step's work is redone.
+- A crashed session resumes losslessly: `checkpoint.py resume` shows exactly
+  what was committed and what was left half-done; worst case, one step's work
+  is redone — by the user's choice, never silently.
+- Evidence is hashed into each checkpoint commit; `checkpoint.py verify`
+  proves the evidence/ files a delivery cites are the ones that were
+  recorded. A lost or edited evidence file is a finding, not a formality.
 - If the environment becomes unreachable mid-task, continue in static-fallback
   mode, mark affected evidence `mode: static-fallback`, and list the pending
   live verifications as the next action (`status.py next <ws> "..."`).

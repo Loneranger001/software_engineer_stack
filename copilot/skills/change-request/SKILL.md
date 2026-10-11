@@ -111,4 +111,8 @@ On approval: `status.py set <ws> mini-contract=approved --log "mini contract app
 ## Fault tolerance
 
 Same recovery model as /implement: STATUS.md + branch commits + evidence/ let
-any session resume mid-CR without redoing the analysis.
+any session resume mid-CR without redoing the analysis. On resume run
+`python3 <plugin-root>/scripts/checkpoint.py resume <ws>`; exit 3
+means uncommitted work — show it and ask keep-or-discard, never fold it in
+silently. Each commit ends with the evidence hash lines from
+`checkpoint.py trailer <ws> <evidence files>`; /deliver's audit verifies them.

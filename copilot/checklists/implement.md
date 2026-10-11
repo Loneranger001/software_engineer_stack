@@ -15,3 +15,5 @@ Run before marking the implement stage done.
 - [ ] No secrets, connect strings, or environment-specific paths hardcoded
 - [ ] New assumptions made while coding are in ASSUMPTIONS.md (not just in commit messages or memory)
 - [ ] STATUS.md updated: implement → done, with branch and last commit recorded
+- [ ] Every checkpoint commit ends with its `Evidence-SHA256` lines (`scripts/checkpoint.py trailer`), and `scripts/checkpoint.py verify` passes
+- [ ] Any resume ran `scripts/checkpoint.py resume`; uncommitted work found there was kept or discarded by the user's explicit choice
