@@ -17,3 +17,4 @@ Run before presenting the TDD for approval.
 - [ ] Open questions from research are resolved or explicitly carried as risks
 - [ ] ASSUMPTIONS.md reviewed — open entries presented for ratification; design-shaping ones promoted into the TDD (decision-protocol §4)
 - [ ] STATUS.md updated: tech-design → awaiting approval
+- [ ] Handoff summary written last and `scripts/handoff.py check` passes (every ID in the body is in the summary; contract version current)

@@ -14,7 +14,9 @@ findings; never edit.
 ## Inputs
 
 - Work repo path, branch, mainline ref (take the diff yourself)
-- Task workspace path (scope-contract.md, tdd.md, impl-doc.md for intent;
+- Task workspace path (the handoff summaries of scope-contract.md, tdd.md,
+  impl-doc.md for intent — `scripts/handoff.py show <doc>`; open the TDD
+  section or impl-doc step row for the code under review;
   evidence/ for what verification already ran — read the summary files;
   open `evidence/raw/` logs only to check a specific claim)
 

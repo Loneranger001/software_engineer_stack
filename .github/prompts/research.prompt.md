@@ -26,8 +26,11 @@ confidently, with every finding traceable to a source.
    `workspace-root`, and `repos-analyzed` from `status.py show <ws>`
    (`./core/repo-resolution.md`): every repo-level path
    below is relative to `<work-repo>`, never to your session's cwd.
-3. Read `scope-contract.md`. It bounds the investigation: research serves the
-   in-scope items; interesting adjacent findings go to PARKED.md.
+3. Read the contract's handoff summary
+   (`python3 ./scripts/handoff.py show <ws>/scope-contract.md`), plus its full
+   "Interfaces & objects expected to change" table — the one you expand. It
+   bounds the investigation: research serves the in-scope items; interesting
+   adjacent findings go to PARKED.md.
 4. Unknowns follow `./core/decision-protocol.md` —
    research is the "check checkable facts" stage par excellence: read/run
    before assuming; judgment calls that pass §2 go to ASSUMPTIONS.md.
@@ -103,10 +106,12 @@ platform (note the Oracle/ksh/Python versions if discoverable).
 
 1. Fill `./templates/research-notes.md` →
    `work/<id>/research-notes.md`.
-2. Log out-of-scope findings to PARKED.md (never act on them).
-3. Batch remaining open questions to the user; blocking ones must be answered
+2. Write the **handoff summary** block last and run
+   `python3 ./scripts/handoff.py check <ws>/research-notes.md` — it must pass.
+3. Log out-of-scope findings to PARKED.md (never act on them).
+4. Batch remaining open questions to the user; blocking ones must be answered
    before /tech-design.
-4. Record:
+5. Record:
    `python3 ./scripts/status.py set <ws> research=done --next "Run /tech-design."`
 
 ## Fault tolerance

@@ -7,6 +7,21 @@
 > /implement executes this document step by step. Each step must be small enough
 > to verify before moving on, and each has its own rollback note.
 
+<!-- handoff:start -->
+## Handoff summary
+<!-- Written last, at this stage's gate, and updated in the same edit as any
+     amendment. Later stages read ONLY this block unless they need a section's
+     detail. One line per ID; max 40 lines. Check: scripts/handoff.py check <file>. -->
+- Contract version: {n}
+- Branches: {repo-a} → {branch}; {repo-b} → {branch}
+- step 1: {repo-a} {files} — verify {how}
+- step 2: {repo-a} {files} — verify {how}
+- step 3: {repo-b} {files} — verify {how}
+- Tests: T1 → A1 ({tool})
+- Deploy order: {repo-a before repo-b — one line}
+- Whole-change rollback: {one line} (§5)
+<!-- handoff:end -->
+
 ## 1. Preconditions
 
 - [ ] TDD approved

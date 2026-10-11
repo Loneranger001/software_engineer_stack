@@ -99,15 +99,22 @@ the user has explicitly approved. Nothing downstream may begin before that appro
 2. Each in-scope item must be checkable; each must have at least one acceptance
    criterion stating HOW it will be verified (query, test, run).
 3. Run `./checklists/intake.md` against your draft; fix gaps.
+4. Write the **handoff summary** block last (one line per S#/N#/A#/Q#, the
+   repos, the objects expected to change) and run
+   `python3 ./scripts/handoff.py check <ws>/scope-contract.md` — it must pass. Every
+   later stage reads this block instead of the whole contract.
 
 ## 5. Approval gate
 
-1. Present the scope contract to the user: objective, in-scope list, exclusions,
-   acceptance criteria, open questions — plus any open ASSUMPTIONS.md entries
+1. Present the scope contract to the user, starting from its handoff summary
+   (later stages work from it, so the user approves it too): objective,
+   in-scope list, exclusions, acceptance criteria, open questions — plus any open ASSUMPTIONS.md entries
    for ratification (decision-protocol §4). Ask explicitly: "Approve this scope
    contract? Work will be limited to exactly this."
 2. Incorporate feedback and re-present until approved. Record approver and date
-   in the contract, set version 1.
+   in the contract, set version 1. Any later scope change bumps the version
+   and updates the summary in the same edit (`handoff.py check` flags every
+   downstream summary still on the old version).
 3. Only after approval:
    `status.py set <ws> intake=approved --next "Run /research." --log "scope contract v1 approved by <who>"`.
 

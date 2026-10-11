@@ -6,6 +6,22 @@
 - Scope contract: ./scope-contract.md (version {n})
 - Researched by: Claude on {date}
 
+<!-- handoff:start -->
+## Handoff summary
+<!-- Written last, at this stage's gate, and updated in the same edit as any
+     amendment. Later stages read ONLY this block unless they need a section's
+     detail. One line per ID; max 40 lines. Check: scripts/handoff.py check <file>. -->
+- Contract version: {n}
+- Recommended option: {one line} (decision lands in /tech-design)
+- Affected: {repo}:{path} — {role, one line}
+- Callers: {repo-a}: {n} ({where}); {repo-b}: none (searched, command in §Cross-repo search record)
+- Data: {table} — {volume / key constraint}
+- Repo rules binding this change: {repo}: {file — the rule}
+- Risks: {one line each}
+- Blocking questions: {none | Q# one line}
+- Evidence: evidence/research-*.txt
+<!-- handoff:end -->
+
 ## Summary of findings
 
 {3–8 bullets: the load-bearing facts that will shape the design.}

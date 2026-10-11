@@ -125,6 +125,8 @@ scripts/status.py show    work/PROJ-123                      # header + gates + 
 scripts/status.py validate work/PROJ-123                     # structure + skipped-gate check
 ```
 
+**Handoff summaries.** The scope contract, research notes, TDD and impl doc each open with a bounded summary (≤ 40 lines, one line per ID) between `<!-- handoff:start -->` / `<!-- handoff:end -->`, written last at that stage's gate. Later stages read the summary (`scripts/handoff.py show <doc>`) and open full sections only when they need the detail — except where judging the whole document is the job: `/tech-design` on the contract, `/grill` and `/impl-plan` on the TDD, the scope auditor on everything. `scripts/handoff.py check <ws>` fails a summary that is missing an ID the body defines (S#, N#, A#, Q#, T#, numbered steps), runs over length, or names an older contract version than `scope-contract.md` — so a summary can't drift silently, and stale research is caught by a script rather than by eye.
+
 States are `pending | in-progress | done | approved | waived` (a waiver carries who/when/why as free text after the state).
 
 ### Which repo is "the repo"
@@ -204,6 +206,7 @@ knowledge/    lessons.md (self-improvement memory), decisions.md (framework deci
 docs/         QA.md (design Q&A + testing guide), walkthrough.md (narrated example task)
 scripts/      new-task.sh, status.py (gate checks + transitions), list-repos.sh (analysis scope),
               workspace-root.sh (where work/ goes), repo-rules.sh (a repo's rules files + tooling),
+              handoff.py (read/check the handoff summary atop each stage document),
               lessons.sh (stage-filtered lessons), capture.sh (bounded evidence capture, raw logs on disk),
               md2docx.sh, md2pdf.sh, md2confluence.sh; build_copilot.py + check_knowledge.py (maintenance)
 tests/        unittest suite for the scripts (run by CI and the pre-commit hook)

@@ -26,7 +26,9 @@ session) with no memory of this conversation.
    the grill at this point is recorded first
    (`status.py set <ws> grill="waived by <who> <date>: <reason>"`), never
    assumed.
-3. Read scope-contract.md and the approved tdd.md.
+3. Read the approved tdd.md fully (you decompose all of it) and the
+   contract's handoff summary
+   (`python3 ./scripts/handoff.py show <ws>/scope-contract.md`).
 4. Unknowns follow `./core/decision-protocol.md`:
    planning calls passing §2 → ASSUMPTIONS.md; anything touching data,
    external contracts, or scope stops and asks.
@@ -74,7 +76,10 @@ session) with no memory of this conversation.
 
 ## 4. Gate
 
-1. Self-check with `./checklists/impl-plan.md`.
+1. Self-check with `./checklists/impl-plan.md`. Write the
+   impl doc's **handoff summary** last — a `step <N>:` line per step, the
+   branches, tests, deploy order — and run
+   `python3 ./scripts/handoff.py check <ws>` (all documents so far) — it must pass.
 2. Present to the user: step table, test-to-criterion mapping, rollback
    summary — plus open ASSUMPTIONS.md entries for ratification
    (decision-protocol §4). Iterate until approved; record approval in the
