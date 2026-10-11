@@ -14,9 +14,14 @@ session) with no memory of this conversation.
 
 1. Load lessons tagged `stage:impl-plan` from
    `./knowledge/lessons.md`.
-2. Locate the workspace; verify `tech-design: approved` AND `grill: done`
-   (or an explicit user waiver recorded in STATUS.md) — the impl doc plans a
-   design that has survived the interrogation, not a first draft.
+2. Locate the workspace and gate:
+   `python3 ./scripts/status.py require <ws> tech-design=approved grill=done,waived`
+   (`<ws>` = `<workspace-root>/work/<id>`) — non-zero exit = stop. The impl
+   doc plans a design that has survived the interrogation, not a first
+   draft. A user who skips
+   the grill at this point is recorded first
+   (`status.py set <ws> grill="waived by <who> <date>: <reason>"`), never
+   assumed.
 3. Read scope-contract.md and the approved tdd.md.
 4. Unknowns follow `./core/decision-protocol.md`:
    planning calls passing §2 → ASSUMPTIONS.md; anything touching data,
@@ -70,7 +75,8 @@ session) with no memory of this conversation.
    summary — plus open ASSUMPTIONS.md entries for ratification
    (decision-protocol §4). Iterate until approved; record approval in the
    header.
-3. Update STATUS.md: `impl-plan: approved`, next action `/implement`.
+3. Record:
+   `python3 ./scripts/status.py set <ws> impl-plan=approved --next "Run /implement."`
 
 ## Fault tolerance
 

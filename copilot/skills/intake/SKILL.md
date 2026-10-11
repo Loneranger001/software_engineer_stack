@@ -41,8 +41,13 @@ the user has explicitly approved. Nothing downstream may begin before that appro
      there, remind the user to gitignore it (don't edit .gitignore unasked).
    - Both paths land in STATUS.md absolutised; every later stage reads them
      from there instead of re-deriving from its own cwd.
-   - If the workspace already exists, read its STATUS.md and RESUME from the
-     recorded state instead of starting over.
+   - If the workspace already exists, read it with
+     `python3 <plugin-root>/scripts/status.py show <ws>`
+     (`<ws>` = `<workspace-root>/work/<id>`) and RESUME from the recorded
+     state instead of starting over.
+   - Run `status.py validate <ws>`; a workspace that fails validation (e.g.
+     one scaffolded by an older version, missing `workspace-root`) is fixed
+     before anything else is written into it.
 
 ## 2. Ingest the brief
 
@@ -99,8 +104,8 @@ the user has explicitly approved. Nothing downstream may begin before that appro
    contract? Work will be limited to exactly this."
 2. Incorporate feedback and re-present until approved. Record approver and date
    in the contract, set version 1.
-3. Only after approval: update STATUS.md (`intake: approved`), append to its log,
-   set next action to `/research`.
+3. Only after approval:
+   `status.py set <ws> intake=approved --next "Run /research." --log "scope contract v1 approved by <who>"`.
 
 ## Fault tolerance
 

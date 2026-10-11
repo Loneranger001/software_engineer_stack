@@ -59,8 +59,33 @@ Where a lesson generalizes, propose the concrete edit — the actual diff, not
 - A standards/ rule adjusted
 
 Present proposals with the lesson that motivated each. Apply ONLY what the
-user approves; record applied changes in `knowledge/decisions.md` with the
-motivating task id.
+user approves — and apply it where it lasts:
+
+1. **Edit the canonical framework repo, never an install copy.** If
+   `./.generated` exists you are running from a GENERATED
+   copy (the `copilot/` plugin, or a work repo's `.github/se-stack/`) and any
+   skill/template/checklist edit there is overwritten by the next
+   `build_copilot.py` run. Ask the user for the software-engineer-stack
+   checkout and edit `skills/`, `agents/`, `templates/`, `checklists/`,
+   `core/`, `standards/`, or `scripts/` there. No checkout available → write
+   the approved diff to `work/<id>/deliverables/framework-edits.patch` and
+   record the entry as pending (step 3), not applied.
+2. **Commit, regenerate, check** in the framework repo: commit the edit, run
+   `python3 scripts/build_copilot.py`, then
+   `python3 scripts/check_knowledge.py` — it must pass.
+3. **Record** under "Applied changes" in the framework repo's
+   `knowledge/decisions.md`, naming every edited file by its repo-root path
+   in backticks:
+   `- [YYYY-MM-DD] <change> in `skills/<x>/SKILL.md` — motivated by <lesson> (task <id>)`
+   check_knowledge.py fails an entry whose named files have no commit on or
+   after its date: an "applied" entry the framework doesn't contain is worse
+   than none, because it tells the next retro the problem is solved. A
+   change that is approved but not yet in the framework repo is recorded as
+   `- [YYYY-MM-DD] [pending-upstream] <change> — <where the patch is>`.
+
+Lessons are the exception to rule 1: a lesson appended to an install copy's
+`knowledge/lessons.md` survives rebuilds (they merge it back). Still tell the
+user to upstream lessons that apply beyond this install.
 
 ## 4. Curation (when lessons.md grows)
 
@@ -71,5 +96,5 @@ checklists/templates (then retire the entry), archive stale ones to
 
 ## 5. Close
 
-Update STATUS.md: `retro: done`. Summarize for the user: lessons recorded,
+`python3 ./scripts/status.py set <ws> retro=done` (`<ws>` = `<workspace-root>/work/<id>`). Summarize for the user: lessons recorded,
 framework edits applied/declined.

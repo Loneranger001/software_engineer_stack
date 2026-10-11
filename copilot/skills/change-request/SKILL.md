@@ -23,7 +23,9 @@ verification, same scope discipline.
    the repo; sibling repos are in analysis scope by default), then create the
    workspace:
    `<plugin-root>/scripts/new-task.sh <task-id> <workspace-root> change-request <work-repo> <repo-set>`
-   (or resume from an existing STATUS.md, taking all of them from it).
+   (or resume from an existing workspace, taking all of them from
+   `python3 <plugin-root>/scripts/status.py show <ws>`, where `<ws>` =
+   `<workspace-root>/work/<id>`).
 3. Store the CR text as `work/<id>/brief.md`.
 4. Unknowns follow `<plugin-root>/core/decision-protocol.md`:
    proceed-and-log only for high-confidence, reversible, in-scope calls
@@ -45,15 +47,16 @@ verification, same scope discipline.
 3. Read `<work-repo>/.conventions.md` (run /repo-profile if missing at that
    path).
 4. Write `work/<id>/analysis.md`: current behaviour (source-referenced),
-   callers found, blast radius, and the proposed change sketch.
+   callers found, blast radius, and the proposed change sketch. Then
+   `status.py set <ws> analyze=done`.
 
 **Escalation rule**: if the analysis shows >3 objects changing, an interface
 contract change affecting external callers, data migration, or **changes
 landing in more than one repo** (coordinated branches and a deploy order are
 not a fast-path change) — tell the user this is not a small change and
 recommend the full pipeline (/intake). Let them
-decide; record the decision in STATUS.md. For borderline cases the user keeps
-on the fast path, recommend running /grill against analysis.md before coding.
+decide; record the decision with `status.py log <ws> "..."`. For borderline
+cases the user keeps on the fast path, recommend running /grill against analysis.md before coding.
 
 ## 2. Mini scope contract (approval gate)
 
@@ -66,14 +69,19 @@ Append to `analysis.md` and get explicit user approval before touching code
   regression check per impacted caller)
 - **Rollback**: the exact revert/redeploy step
 
+On approval: `status.py set <ws> mini-contract=approved --log "mini contract approved by <who>"`.
+
 ## 3. Change
 
+0. Gate: `status.py require <ws> mini-contract=approved` — non-zero exit = stop.
 1. Branch per repo conventions; one commit per logical unit referencing the
    task id. Only the repos the mini contract names are touched — a caller
    found in another repo is reported, not quietly fixed.
 2. Surgical diff only. Anything else you itch to fix → PARKED.md.
 3. Match surrounding code style over the standards defaults — the conventions
    of the repo the file lives in, which is not necessarily `<work-repo>`.
+4. Record the branch (`status.py field <ws> branch.<repo-name> <branch>`) and
+   `status.py set <ws> change=done`.
 
 ## 4. Verify
 
@@ -83,6 +91,7 @@ Append to `analysis.md` and get explicit user approval before touching code
    isn't verified until its callers still work.
 3. Capture everything to `evidence/` with
    `<plugin-root>/templates/test-evidence.md`.
+4. All PASS → `status.py set <ws> verify=done`.
 
 ## 5. Deliver
 
@@ -92,7 +101,7 @@ Append to `analysis.md` and get explicit user approval before touching code
    (subagent where supported, otherwise a separate fresh pass).
 2. Short release note (template: release-notes.md, trimmed): change, deploy
    step, rollback step, evidence table.
-3. Push the branch; report to the user; STATUS.md → `deliver: done`; offer
+3. Push the branch; report to the user; `status.py set <ws> deliver=done`; offer
    /retro (a one-lesson retro is fine for CRs).
 
 ## Fault tolerance

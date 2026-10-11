@@ -13,8 +13,10 @@ for HOW the scope will be met.
 
 1. Load lessons tagged `stage:tech-design` from
    `./knowledge/lessons.md`.
-2. Locate the workspace; verify STATUS.md shows `research: done`. If research
-   is missing or stale (scope contract version newer than the notes), send the
+2. Locate the workspace and gate:
+   `python3 ./scripts/status.py require <ws> research=done`
+   (`<ws>` = `<workspace-root>/work/<id>`) — non-zero exit = stop. If research
+   is stale (scope contract version newer than the notes), send the
    user back to /research. Take `<work-repo>` from STATUS.md
    (`./core/repo-resolution.md`) — repo-level files below
    hang off it, not off your cwd.
@@ -71,7 +73,9 @@ for HOW the scope will be met.
    traceability table, risks — plus open ASSUMPTIONS.md entries for
    ratification (decision-protocol §4); promote design-shaping ones into the
    TDD. Iterate until approved; record approval + date in the TDD header.
-4. Update STATUS.md: `tech-design: approved`, next action `/grill` (the
+4. Record:
+   `python3 ./scripts/status.py set <ws> tech-design=approved --next "Run /grill."`
+   (the
    adversarial completeness interrogation runs before any implementation
    planning).
 

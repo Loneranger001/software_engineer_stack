@@ -116,6 +116,18 @@ work/PROJ-123/
 
 `STATUS.md` is the resume point: if a session dies mid-stage, rerun the same command and the skill picks up from the recorded state. Add `work/` to the work repo's `.gitignore` if workspaces shouldn't be committed there.
 
+Skills never judge a gate by reading `STATUS.md` themselves — they call `scripts/status.py`, which exits non-zero when a gate isn't met and rewrites the file atomically on every transition:
+
+```sh
+scripts/status.py require work/PROJ-123 impl-plan=approved   # exit 3 = gate not met, stop
+scripts/status.py set     work/PROJ-123 implement=done --next "Run /deliver."
+scripts/status.py field   work/PROJ-123 branch.repo-a feature/PROJ-123
+scripts/status.py show    work/PROJ-123                      # header + gates + next action, no log
+scripts/status.py validate work/PROJ-123                     # structure + skipped-gate check
+```
+
+States are `pending | in-progress | done | approved | waived` (a waiver carries who/when/why as free text after the state).
+
 ### Which repo is "the repo"
 
 Two paths every stage resolves before touching anything, per [core/repo-resolution.md](core/repo-resolution.md): **`<work-repo>`** (the directory holding `.git`, and with it `.conventions.md` and `.domain-glossary.md`) and **`<workspace-root>`** (the directory holding `work/`, defaulting to `<work-repo>`). Both are recorded absolutised in `STATUS.md` at scaffold time, and later stages read them from there rather than re-deriving from their own working directory.
@@ -184,9 +196,23 @@ standards/    default coding standards per language (a repo's .conventions.md ov
 checklists/   per-stage quality gates
 knowledge/    lessons.md (self-improvement memory), decisions.md (framework decision log)
 docs/         QA.md (design Q&A + testing guide), walkthrough.md (narrated example task)
-scripts/      new-task.sh, list-repos.sh (analysis scope), md2docx.sh, md2pdf.sh, md2confluence.sh
+scripts/      new-task.sh, status.py (gate checks + transitions), list-repos.sh (analysis scope),
+              md2docx.sh, md2pdf.sh, md2confluence.sh; build_copilot.py + check_knowledge.py (maintenance)
+tests/        unittest suite for the scripts (run by CI and the pre-commit hook)
 examples/     sample work repo + a fully worked example task workspace
 ```
+
+## Maintaining the framework
+
+Edit only the canonical sources (`skills/`, `agents/`, `templates/`, `checklists/`, `core/`, `standards/`, `scripts/`, `knowledge/`). `AGENTS.md`, `.github/{prompts,skills,agents}/`, `.github/copilot-instructions.md`, and `copilot/` are generated — regenerate with `python3 scripts/build_copilot.py` and commit the result.
+
+Three checks keep that honest, in CI (`.github/workflows/framework-checks.yml`) and locally via the pre-commit hook (`git config core.hooksPath .githooks`, once per clone):
+
+- `python3 scripts/build_copilot.py --check` — fails if any generated file is stale, missing, or orphaned.
+- `python3 scripts/check_knowledge.py` — fails if a `knowledge/decisions.md` "Applied changes" entry names a file that has no commit on or after the entry's date (an edit recorded as applied but made in an install copy and lost), or if a lesson line doesn't match the tag format skills filter on.
+- `python3 -m unittest discover -s tests`.
+
+`/retro` follows the same rule: framework edits go into this repo, never into a generated install copy (`copilot/`, a work repo's `.github/se-stack/`), where the next rebuild would erase them.
 
 ## Document conversion
 

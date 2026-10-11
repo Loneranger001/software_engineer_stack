@@ -25,8 +25,11 @@ skill documents what the code DOES, not what anyone believes it does.
 3. Resolve `<work-repo>` and `<workspace-root>` per
    `./core/repo-resolution.md`, then create the workspace:
    `./scripts/new-task.sh <task-id> <workspace-root> document <work-repo>`
-   (or resume, taking both paths from STATUS.md). Record doc type + target in
-   STATUS.md.
+   (or resume, taking both paths from
+   `python3 ./scripts/status.py show <ws>`, where `<ws>` =
+   `<workspace-root>/work/<id>`). Record doc type + target:
+   `status.py field <ws> doc-type <type>` and
+   `status.py field <ws> target "<target>"`.
 4. Agree the scope with the user in two sentences (which component, which
    aspects, intended audience) and record it in STATUS.md — even docs tasks
    get scope discipline.
@@ -78,7 +81,7 @@ skill documents what the code DOES, not what anyone believes it does.
    subagent where the harness supports it, otherwise as a separate fresh pass
    in its report format. It re-verifies each claim against the code; resolve
    every finding (fix the doc or the fact table).
-2. STATUS.md → `fact-check: done`.
+2. `status.py set <ws> fact-check=done`.
 
 ## 4. Deliver
 
@@ -87,7 +90,7 @@ skill documents what the code DOES, not what anyone believes it does.
    into `work/<id>/deliverables/`.
 2. Present the doc; note any `⚠ UNVERIFIED` steps and open questions so the
    user can close them.
-3. STATUS.md → `deliver: done`.
+3. `status.py set <ws> deliver=done`.
 
 ## Fault tolerance
 

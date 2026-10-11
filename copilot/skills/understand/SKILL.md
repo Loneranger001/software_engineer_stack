@@ -27,6 +27,9 @@ what anyone (comments, wikis, the user, folklore) believes it does.
    `<plugin-root>/core/repo-resolution.md` — with a parent folder as
    cwd, ask which repo the interface lives in — then create the workspace:
    `<plugin-root>/scripts/new-task.sh <task-id> <workspace-root> understand <work-repo>`.
+   Stage state is read and recorded with
+   `python3 <plugin-root>/scripts/status.py` (`<ws>` =
+   `<workspace-root>/work/<id>`).
    If a previous run already mapped this interface (an existing
    `work/*/interface-map.md` naming it), offer to resume/refresh that map
    instead of starting over — check its recorded commit for staleness first.
@@ -61,7 +64,7 @@ what anyone (comments, wikis, the user, folklore) believes it does.
    interfaces stay comparable.
 3. Start `work/<id>/interface-map.md` from
    `<plugin-root>/templates/interface-map.md` and fill the identity
-   section now. STATUS.md → `classify: done`.
+   section now. `status.py set <ws> classify=done`.
 
 ## 2. Trace one real flow end-to-end
 
@@ -86,7 +89,7 @@ Accuracy rules (same as /research): every finding gets a source; inferences
 are labelled `INFERRED` with their evidence and an open question to confirm;
 when a name or comment disagrees with the code, the code wins.
 
-STATUS.md → `trace: done`.
+`status.py set <ws> trace=done`.
 
 ## 3. Map the dependencies both directions
 
@@ -110,7 +113,7 @@ why they belong on the map.
    downstream subgraphs, labelled edges). Diagram and tables must agree in
    both directions — a node without a table row, or vice versa, is a gap.
 
-STATUS.md → `map: done`.
+`status.py set <ws> map=done`.
 
 ## 4. Explain in layers
 
@@ -131,7 +134,7 @@ trust; a confident guess destroys it the first time the user checks.
 If the user opened with a specific question, answer that first — with its
 evidence — then offer the layers around it.
 
-STATUS.md → `explain: done`.
+`status.py set <ws> explain=done`.
 
 ## 5. Q&A until the model holds
 
