@@ -15,7 +15,10 @@ inspection only.
 ## Inputs
 
 - The document path
-- The work repo path (and workspace evidence/ directory if referenced)
+- The task workspace (`<ws>`): repo paths come from `status.py show <ws>`
+  (`work-repo` and every repo under `repos-analyzed`), because references
+  are `<repo>:<path>:<line>` and may point into a sibling repo; its
+  `evidence/` directory holds the run outputs claims cite
 
 ## Procedure
 
@@ -31,9 +34,9 @@ inspection only.
 3. Claims WITHOUT a source reference are automatic findings — the framework
    requires one (properly labelled `INFERRED`/`⚠ UNVERIFIED` items are exempt
    but listed for visibility).
-4. Check business-term usage against `<work-repo>/.domain-glossary.md` (the
-   repo root recorded in the task's STATUS.md, not the caller's cwd)
-   (when present): a document using a term contrary to its user-confirmed
+4. Check business-term usage against `<repo>/.domain-glossary.md` of the
+   repo each claim concerns (repo roots from the workspace, not the caller's
+   cwd) (when present): a document using a term contrary to its user-confirmed
    glossary entry is a finding (report as STALE-REF, naming the entry) — one
    of the two is wrong, and the author must reconcile them.
 5. Spot-check the inverse: skim the referenced code for important behaviour

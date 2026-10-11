@@ -29,7 +29,8 @@ from datetime import date, timedelta
 from pathlib import Path
 
 CANONICAL_DIRS = ("skills", "agents", "templates", "checklists", "core",
-                  "standards", "scripts", "knowledge", "docs", "examples", ".claude-plugin")
+                  "standards", "scripts", "knowledge", "docs", "examples", "tests", ".githooks",
+                  ".claude-plugin")
 CANONICAL_FILES = ("README.md",)
 GENERATED_PREFIXES = ("copilot/", ".github/prompts/", ".github/skills/", ".github/agents/",
                       ".github/copilot-instructions.md", ".github/se-stack/", "AGENTS.md")

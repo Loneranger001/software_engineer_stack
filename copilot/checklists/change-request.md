@@ -14,4 +14,5 @@ Run before delivering a fast-path change.
 - [ ] Repo rules respected (the changed file's own repo's rules files per repo-rules.sh / standards defaults)
 - [ ] Rollback note written (even for small changes: exact revert/redeploy step)
 - [ ] ASSUMPTIONS.md has no open entries — ratified at the mini-contract gate or resolved since (decision-protocol §4)
-- [ ] STATUS.md updated through analyze → mini-contract → change → verify → deliver
+- [ ] status.py recorded analyze → mini-contract → change → verify → deliver, in order
+- [ ] Commits came after verification, follow the repo's commit-msg hook, and end with their Evidence-SHA256 lines

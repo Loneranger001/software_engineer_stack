@@ -10,7 +10,7 @@ description: Produce a technical design document (TDD) from the approved scope c
 > `plugin.json` (the plugin install root). All framework files referenced
 > below live inside it.
 
-Produce `work/<id>/tdd.md` and get it user-approved. The TDD is the contract
+Produce `<ws>/tdd.md` and get it user-approved. The TDD is the contract
 for HOW the scope will be met.
 
 ## 0. Preamble
@@ -19,9 +19,8 @@ for HOW the scope will be met.
    the matching entries; don't read lessons.md whole.
 2. Locate the workspace and gate:
    `python3 <plugin-root>/scripts/status.py require <ws> research=done`
-   (`<ws>` = `<workspace-root>/work/<id>`) — non-zero exit = stop. If research
-   is stale (scope contract version newer than the notes), send the
-   user back to /research. Take `<work-repo>` from STATUS.md
+   (`<ws>` = `<workspace-root>/work/<id>`) — non-zero exit = stop. Take
+   `<work-repo>` from `status.py get <ws> work-repo`
    (`<plugin-root>/core/repo-resolution.md`) — repo-level files below
    hang off it, not off your cwd.
 3. Read scope-contract.md fully — traceability must cover every S# and A#.
@@ -36,7 +35,7 @@ for HOW the scope will be met.
 
 ## 1. Design
 
-1. Copy `<plugin-root>/templates/tdd.md` → `work/<id>/tdd.md`.
+1. Copy `<plugin-root>/templates/tdd.md` → `<ws>/tdd.md`.
 2. Choose the implementation option (from research §Options) and justify it in
    §10 Alternatives; if you deviate from the research recommendation, say why.
 3. Fill §2 traceability FIRST: every in-scope item → the design section that
@@ -72,19 +71,21 @@ for HOW the scope will be met.
 
 ## 2. Quality gates
 
-1. Self-check with `<plugin-root>/checklists/tech-design.md`. Write the
-   TDD's **handoff summary** block last and run
-   `python3 <plugin-root>/scripts/handoff.py check <ws>/tdd.md` — it must pass.
+1. Self-check with `<plugin-root>/checklists/tech-design.md`.
 2. Run the fact-check procedure in
    `<plugin-root>/agents/doc-fact-checker.md` on tdd.md (it verifies
    every claim against the code) — as a subagent where the harness supports
    it, otherwise as a separate fresh pass in its report format. Resolve all
    findings.
-3. Present the TDD to the user for approval: summary, key decisions,
-   traceability table, risks — plus open ASSUMPTIONS.md entries for
-   ratification (decision-protocol §4); promote design-shaping ones into the
-   TDD. Iterate until approved; record approval + date in the TDD header.
-4. Record:
+3. Write the TDD's **handoff summary** block now — after the fact-check
+   fixes — and run `python3 <plugin-root>/scripts/handoff.py check <ws>/tdd.md`; it must pass.
+4. Present the TDD to the user for approval, starting from the summary: key
+   decisions, traceability table, risks — plus open ASSUMPTIONS.md entries
+   for ratification (decision-protocol §4); promote design-shaping ones into
+   the TDD. Iterate until approved — each revision updates the summary in
+   the same edit and re-runs the check. Record approval + date in the TDD
+   header.
+5. Record:
    `python3 <plugin-root>/scripts/status.py set <ws> tech-design=approved --next "Run /grill."`
    (the
    adversarial completeness interrogation runs before any implementation

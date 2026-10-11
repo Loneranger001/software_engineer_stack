@@ -22,4 +22,4 @@
 - Entry points: {pkg_po.approve_po; bin/po_batch_approve.ksh}
 - Aliases / traps: {PO; "order" means THIS in procurement briefs but
   SALES_ORDER in fulfillment briefs}
-- Resolved: {task-id (date, user-confirmed | from-code | seeded — unconfirmed)}
+- Resolved: {task-id (date, user-confirmed | from-code | unconfirmed)}

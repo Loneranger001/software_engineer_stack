@@ -16,5 +16,5 @@ Run before presenting the TDD for approval.
 - [ ] doc-fact-checker agent ran on the TDD and its findings were resolved
 - [ ] Open questions from research are resolved or explicitly carried as risks
 - [ ] ASSUMPTIONS.md reviewed — open entries presented for ratification; design-shaping ones promoted into the TDD (decision-protocol §4)
-- [ ] STATUS.md updated: tech-design → awaiting approval
+- [ ] `tech-design=approved` is set (status.py) only after the user's explicit approval
 - [ ] Handoff summary written last and `scripts/handoff.py check` passes (every ID in the body is in the summary; contract version current)

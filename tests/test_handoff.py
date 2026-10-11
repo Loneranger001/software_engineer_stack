@@ -122,6 +122,12 @@ class HandoffTest(unittest.TestCase):
         self.write("tdd.md", "<!-- handoff:start -->\n- Contract version: 1\n" + filler + "<!-- handoff:end -->\n")
         self.assertIn("max 40", run("check", self.ws / "tdd.md").stderr)
 
+    def test_workspace_without_stage_documents_passes(self):
+        self.write("analysis.md", "# CR analysis\n")
+        r = run("check", self.ws)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("nothing to check", r.stdout)
+
     def test_templates_carry_complete_blocks(self):
         # each template alone (no sibling contract, so only structure and IDs are checked)
         for name in ("scope-contract.md", "research-notes.md", "tdd.md", "impl-doc.md"):

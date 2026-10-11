@@ -31,8 +31,9 @@ fallback proves it parses and conforms. Every run produces an evidence file
 ## Environment resolution (all recipes)
 
 Resolve `<work-repo>` first, per
-`${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md` (STATUS.md's `work-repo:` when
-invoked inside a task, else the enclosing git repo of the current directory).
+`${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md` (`status.py get <ws> work-repo`
+when invoked inside a task, else the enclosing git repo of the current
+directory).
 Run every recipe with the working directory set to the repo the file under
 verification lives in — a test runner launched from a parent folder picks up
 the wrong config, or none, and in a multi-repo change each repo has its own
