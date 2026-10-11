@@ -12,11 +12,16 @@ in the workspace, writing is confined to the repos the scope contract names.
 Four things to resolve, and none of them is "the current directory":
 
 - **`<work-repo>`** — the repository whose code the task changes: the directory
-  containing its `.git`. Repo-level memory lives at its root —
-  `.conventions.md` (from /repo-profile) and `.domain-glossary.md`.
-- **`<workspace-root>`** — the directory holding `work/<task-id>/`. Defaults to
-  `<work-repo>`; the user may point it elsewhere (e.g. workspaces kept outside
-  the repo).
+  containing its `.git`. Its own rules files (AGENTS.md, CODING_STANDARDS.md,
+  … — listed by `scripts/repo-rules.sh`) and the framework's
+  `.domain-glossary.md` live in it.
+- **`<workspace-root>`** — the directory holding `work/<task-id>/`. In a
+  multi-repo workspace it is the folder holding the repos, so task state sits
+  beside the repos rather than inside one of them: a task usually spans
+  several repos, and putting its workspace in one repo would make that repo
+  look like the owner, pollute its `git status`, and need a gitignore entry
+  in every repo. A standalone repo keeps `work/` inside itself.
+  `scripts/workspace-root.sh` applies the rule; `$SES_WORKSPACE_ROOT` pins it.
 - **`<repos-folder>`** — the folder the repos sit in (the editor workspace
   folder). The parent of `<work-repo>` when repos are siblings.
 - **`<repo-set>`** — every repo in ANALYSIS scope: by default all repos under
@@ -31,16 +36,17 @@ normal setup:
 
 ```
 workspace-root-folder/        ← editor/session cwd, NOT a repo
-├── repo-a/  .git  .conventions.md
-├── repo-b/  .git  .conventions.md
-├── repo-c/  .git  .conventions.md
-└── repo-d/  .git  .conventions.md
+├── repo-a/  .git  AGENTS.md
+├── repo-b/  .git  CODING_STANDARDS.md
+├── repo-c/  .git
+├── repo-d/  .git  AGENTS.md
+└── work/           task workspaces (workspace-root)
 ```
 
-There, cwd is not a repo at all. A bare relative reference like
-`.conventions.md` resolves against the parent folder, finds nothing, and the
-skill silently concludes the repo was never profiled — then re-derives or
-re-asks knowledge that is sitting in the child repo. That failure is invisible:
+There, cwd is not a repo at all. A bare relative reference like `AGENTS.md`
+resolves against the parent folder, finds nothing (or the wrong file), and the
+skill silently concludes the repo has no rules — then ignores rules or re-asks
+knowledge that is sitting in the child repo. That failure is invisible:
 nothing errors, the answers just get worse.
 
 The layout also means a task's *analysis* scope is usually wider than its
@@ -72,13 +78,14 @@ below and neither is guessed.
    confirm it before analysis — including any repo they want excluded, which
    is recorded as an exclusion rather than silently dropped.
 4. Record all of it in `STATUS.md` as soon as the workspace exists —
-   `scripts/new-task.sh <task-id> <workspace-root> <pipeline> <work-repo> <repo-set>`
-   writes the paths absolutised. Later stages read them back per step 1.
+   `scripts/new-task.sh <task-id> auto <pipeline> <work-repo> <repo-set>`
+   writes the paths absolutised (`auto` applies the workspace-root rule). Later stages read them back per step 1.
 
 ## Using them
 
-- Repo-level artifacts are ALWAYS written with the prefix:
-  `<work-repo>/.conventions.md`, `<work-repo>/.domain-glossary.md`. Never bare
+- Repo-level files are ALWAYS addressed with the prefix:
+  `<work-repo>/.domain-glossary.md`, and rules files through
+  `scripts/repo-rules.sh <work-repo>`. Never bare
   relative — the bare form is only correct when cwd happens to be the repo,
   which is exactly the assumption that breaks.
 - Task artifacts are always `<workspace-root>/work/<task-id>/…`.
@@ -119,7 +126,7 @@ Rules for cross-repo analysis:
    analysis to fewer repos ("ignore the archive repo"), that goes in the scope
    contract's out-of-scope table with the reason — never assumed because a
    repo looks unrelated. Per decision-protocol §3 this is scope-affecting.
-5. **Each repo answers in its own dialect.** Read the `.conventions.md` and
+5. **Each repo answers in its own dialect.** Read the rules files and
    `.domain-glossary.md` of each repo you analyze; the same term can mean
    different things in two repos, and that mismatch is itself a finding worth
    raising rather than smoothing over.
@@ -138,16 +145,15 @@ For a task that legitimately spans repos:
   repo breaks resumability.
 - Every impl-doc step names its repo; the step's verification and rollback run
   in that repo.
-- Each changed repo gets its own branch (its own `.conventions.md` decides the
-  branch name) and its own checkpoint commits. Record the branch per repo in
+- Each changed repo gets its own branch (its own rules files, else its existing
+  branch naming, decide the name) and its own checkpoint commits. Record the branch per repo in
   STATUS.md.
-- Code written in a repo follows THAT repo's conventions, not the primary
-  repo's.
+- Code written in a repo follows THAT repo's rules files, not the primary
+  repo's. Rules files are the team's own: the framework reads and follows
+  them but never writes to them — a rule worth adding is proposed to the user.
 - Where repos depend on each other, the impl doc states the deploy ORDER and
   what the intermediate state looks like — a consumer deployed before the
   producer is a broken window between deployments, and the plan must say
   whether that window is acceptable.
 - A repo in `<repo-set>` but not in `<changed-repos>` is read-only context:
-  never write code, `work/`, or a branch into it. (`/repo-profile` writing
-  `.conventions.md` is the deliberate exception — that is a per-repo cache,
-  and each repo owns its own.)
+  never write code, `work/`, or a branch into it.

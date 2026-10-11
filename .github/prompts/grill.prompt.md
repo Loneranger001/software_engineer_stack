@@ -24,8 +24,8 @@ proving which scenarios were confronted.
    (`<ws>` = `<workspace-root>/work/<id>`). Grilling an unapproved draft is
    fine if the user asks — record it:
    `status.py log <ws> "grilling unapproved TDD at user request"`.
-3. Read scope-contract.md, research-notes.md, tdd.md, ASSUMPTIONS.md,
-   `<work-repo>/.conventions.md` (`<work-repo>` from STATUS.md — see
+3. Read scope-contract.md, research-notes.md, tdd.md, ASSUMPTIONS.md, the
+   repo rules research recorded (`<work-repo>` from STATUS.md — see
    `./core/repo-resolution.md`), and the affected code.
 4. Unknowns follow `./core/decision-protocol.md`. In this
    skill the bias flips: the whole point is to ASK — proceed-and-log is

@@ -1,6 +1,6 @@
 # PL/SQL default standards
 
-> Framework defaults. A work repo's `.conventions.md` ALWAYS overrides these;
+> Framework defaults. A work repo's rules files (scripts/repo-rules.sh) ALWAYS override these;
 > and the file being edited overrides both — match what's around your change.
 
 ## Naming

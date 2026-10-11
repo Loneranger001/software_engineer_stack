@@ -49,7 +49,7 @@ At the **root of the repo you're working in** (next to `.git`), not inside `.git
 
 ## 10. How does the framework make sense of business terms — e.g. "purchase order must be approved"?
 
-Three passes plus a persistent memory. `/intake` builds a **term inventory** from the brief and looks each term up in the work repo's `.domain-glossary.md`; unknown terms become research targets, and a term the brief uses differently from its entry is always an open question. `/research` **grounds** unresolved terms in checkable facts (decision-protocol §1): what a purchase order *is* — tables, state values, the proc whose execution *is* "approval" — read from the code with `file:line` evidence, never imagined; pure business semantics (approval limits, who may approve) stay questions for you. `/grill` challenges any term the brief bends or that's still unconfirmed. Every resolution is written to `.domain-glossary.md` ([template](../templates/domain-glossary.md)) marked `from-code` or `user-confirmed` — so next month's brief mentioning "purchase order" gets the answer from the glossary instead of re-asking you. `/repo-profile` seeds the glossary with the repo's core entities; the doc-fact-checker flags documents that contradict confirmed entries; hand-edits win.
+Three passes plus a persistent memory. `/intake` builds a **term inventory** from the brief and looks each term up in the work repo's `.domain-glossary.md`; unknown terms become research targets, and a term the brief uses differently from its entry is always an open question. `/research` **grounds** unresolved terms in checkable facts (decision-protocol §1): what a purchase order *is* — tables, state values, the proc whose execution *is* "approval" — read from the code with `file:line` evidence, never imagined; pure business semantics (approval limits, who may approve) stay questions for you. `/grill` challenges any term the brief bends or that's still unconfirmed. Every resolution is written to `.domain-glossary.md` ([template](../templates/domain-glossary.md)) marked `from-code` or `user-confirmed` — so next month's brief mentioning "purchase order" gets the answer from the glossary instead of re-asking you. The doc-fact-checker flags documents that contradict confirmed entries; hand-edits win.
 
 ## 11. How do I test the framework?
 
@@ -60,7 +60,6 @@ Two layers:
 ```sh
 cd examples/sample-repo
 claude                          # or open in VS Code with the Copilot adapter generated
-/repo-profile                   # → .conventions.md
 /intake ../sample-brief.md DEMO-1
 # approve the scope contract, then walk the pipeline:
 /research → /tech-design → /grill → /impl-plan → /implement → /deliver → /retro
@@ -120,7 +119,7 @@ Yes — that's the generator's **default mode**: a thin adapter whose data refer
 
 ## 19. Where does the `work/` folder get created?
 
-At the **root of the repo you're working in** — resolved per [repo-resolution](../core/repo-resolution.md), never the framework checkout, and not blindly the session's current directory (see #21 for the multi-repo case). `/intake` scaffolds `<your-work-repo>/work/<task-id>/` (STATUS.md, scope contract, ASSUMPTIONS.md, evidence/, deliverables/, PARKED.md), co-located with the code it concerns so resuming is trivial. Decide once per repo whether to commit `work/` (versioned task history) or add it to `.gitignore` (intake reminds you but won't edit `.gitignore` itself). If you want workspaces outside the repo entirely, give intake a different workspace root when it asks — the choice is recorded in STATUS.md and every later stage finds it.
+In the **folder holding your repos** when the workspace has several (`workspace-root-folder/work/<task-id>/`), and inside the repo only for a standalone repo — resolved by [`scripts/workspace-root.sh`](../scripts/workspace-root.sh) per [repo-resolution](../core/repo-resolution.md), never the framework checkout and not blindly the session's current directory. A task often spans repos, so its workspace (STATUS.md, scope contract, ASSUMPTIONS.md, evidence/, deliverables/, PARKED.md) sits beside them rather than inside one: no repo looks like the owner, no repo's `git status` fills with task files, and no repo needs a `work/` gitignore entry. Set `SES_WORKSPACE_ROOT` to pin a different location; the choice is recorded in STATUS.md and every later stage finds it there. Note that a workspace outside any repo is not versioned — keep it backed up, or make the parent folder its own repository if you want task history in git. Workspaces created earlier inside a repo keep working (STATUS.md records their root); to move one, move the directory and run `scripts/status.py field <ws> workspace-root <new-root>`.
 
 ## 20. Should each stage run in its own session, or all of them in one?
 
@@ -128,28 +127,27 @@ Either works — the framework is session-agnostic by construction (#16), and no
 
 **Why separate sessions are slightly better.** A fresh session is a free audit of your own documents. `/impl-plan` already demands the impl doc be executable by "some session with no memory of this conversation" — the same standard applies upstream, and a cold start is the only way to test it. If a fresh `/tech-design` has to re-ask something you settled during `/intake`, that gap is a real defect in the scope contract, and you want it surfaced at the design gate rather than after `/deliver` hands the work to someone else. Staying in one session hides that failure mode: the agent still remembers the conversational nuance that never got written down, so an under-documented contract looks fine right up until someone resumes cold. `/grill` is the strongest case for a clean break — it interrogates the TDD adversarially, and the context that just *wrote* the TDD is anchored on its own reasoning, so it grills its own assumptions least hard. Isolation of context for judging, continuity for producing (#3), applied to your own sessions.
 
-**A workable grouping:** `/repo-profile` once per repo, own session; `/intake` → `/research` together (research targets come straight out of the intake Q&A); `/tech-design` either way; `/grill` **fresh**; `/impl-plan` **fresh**; `/implement` in its own session (long and context-heavy, resumable mid-way from checkpoint commits); `/deliver` → `/retro` together. `/clear` mid-session gives the same fresh-context effect as a new session.
+**A workable grouping:** `/intake` → `/research` together (research targets come straight out of the intake Q&A); `/tech-design` either way; `/grill` **fresh**; `/impl-plan` **fresh**; `/implement` in its own session (long and context-heavy, resumable mid-way from checkpoint commits); `/deliver` → `/retro` together. `/clear` mid-session gives the same fresh-context effect as a new session.
 
 One caveat: the audit value only exists if you honor the gates. If you approve a scope contract without reading it, a fresh session downstream just re-asks the same questions and the benefit turns into friction.
 
-## 21. My VS Code workspace root is a parent folder holding several repos — is that supported? And why does each repo get its own `.conventions.md`?
+## 21. My VS Code workspace root is a parent folder holding several repos — is that supported? Whose coding rules apply?
 
-Supported, and the four `.conventions.md` files are correct. That file is a **per-repo** cache of that repo's own rules — layout, naming, error handling, git and deployment conventions — which override the framework defaults in `standards/`. Four repos have four different sets, so one shared file would be wrong; `.domain-glossary.md` is per-repo for the same reason. Repo-level memory belongs to the repo, not to the editor workspace.
+Supported — it is the layout the framework is built around. Coding rules are **per repo**: each repo's own rules files (`AGENTS.md`, `CODING_STANDARDS.md`, `CONTRIBUTING.md`, Copilot instructions, nested `AGENTS.md` near the code — listed by [`scripts/repo-rules.sh`](../scripts/repo-rules.sh)) govern code in that repo and override the framework defaults in `standards/`. Four repos can have four different sets, so nothing is merged across them; `.domain-glossary.md` is per-repo for the same reason. Task state, by contrast, belongs to the workspace: `work/` sits in the parent folder (#19).
 
 What that layout *does* change is which directory counts as "the repo":
 
 ```
 workspace-root-folder/        ← session cwd, NOT a repo
-├── repo-a/  .git  .conventions.md  work/
-├── repo-b/  .git  .conventions.md
-└── …
+├── repo-a/  .git  AGENTS.md
+├── repo-b/  .git  CODING_STANDARDS.md
+├── …
+└── work/<task-id>/
 ```
 
-The rule is [core/repo-resolution.md](../core/repo-resolution.md): `<work-repo>` is the directory containing `.git` (`git rev-parse --show-toplevel`, or — when cwd sits above the repos — the single child repo, else **ask** which one), `<workspace-root>` is the directory holding `work/`, and both are written to `STATUS.md` absolutised by `new-task.sh` so later stages read them instead of re-deriving from their own cwd. Every skill prefixes repo-level paths accordingly: `<work-repo>/.conventions.md`, never a bare `.conventions.md`.
+The rule is [core/repo-resolution.md](../core/repo-resolution.md): `<work-repo>` is the directory containing `.git` (`git rev-parse --show-toplevel`, or — when cwd sits above the repos — the single child repo, else **ask** which one), `<workspace-root>` is the directory holding `work/`, and both are written to `STATUS.md` absolutised by `new-task.sh` so later stages read them instead of re-deriving from their own cwd. Every skill addresses repo-level files with that prefix (`<work-repo>/.domain-glossary.md`) and finds rules files with `repo-rules.sh <work-repo>`, never by a bare filename — from the parent folder, a bare `AGENTS.md` lookup finds nothing (or the wrong file) and the stage silently proceeds without the repo's rules.
 
-Before that rule existed, the two halves disagreed in exactly the way you'd notice: `work/` landed correctly inside the child repo (intake resolves the repo explicitly and passes it to `new-task.sh`), while `.conventions.md` lookups resolved against the parent folder, found nothing, and reported a profiled repo as unprofiled. The tell is a stage offering to run `/repo-profile` on a repo you already profiled, or re-asking a term that is sitting in its `.domain-glossary.md`. `new-task.sh` also recorded `work-repo:` as `$(pwd)` — the caller's directory rather than the repo it scaffolded into — so the wrong path propagated to every downstream stage that trusted STATUS.md.
-
-Practical guidance either way: opening the specific repo as the window root is still the smoothest path, since every tool in the session then agrees on where the repo is. If you prefer the parent-folder workspace, it works — expect a "which repo is this task about?" question when a stage has no STATUS.md to read it from, and pass the repo explicitly when you know it (`/repo-profile <repo-path>`).
+Practical guidance: open the parent folder as the window root if that is how you work; expect a "which repo is this task about?" question when a stage has no STATUS.md to read it from, and name the repo when you know it.
 
 ## 22. A task's analysis spans all repos in the workspace — how is that handled?
 
@@ -160,8 +158,8 @@ By separating two scopes that used to be one ([core/repo-resolution.md](../core/
 
 Analysis is workspace-wide because the repos are siblings for a reason — one calls another's package, consumes its extract, or reads its tables. The failure being prevented is a silent one: a search that never visited repo-c reports "3 callers" with exactly the same confidence as a search that did, and the reader cannot tell the two apart. So `/research` §1 and `/change-request` §1 run each search in **every** repo and record the command per repo *including the repos that returned nothing* ("searched, no references found"). Findings are cited `<repo>:<path>:<line>` — bare `file:line` stops being unique the moment two repos are in play. `/understand` maps dependencies the same way and groups its diagram nodes by repo.
 
-Writing stays narrow because analysis scope is not permission. Discovering that a sibling repo must change is a finding for the next gate, not a licence to edit it — the scope-auditor treats commits in an analysis-only repo as a violation. When a change legitimately spans repos, the task stays single (one workspace, one contract, one STATUS.md) while the mechanics go per repo: a branch each (named by that repo's own conventions), impl-doc steps that each name their repo, per-repo verification with that repo's tooling, code review per repo against its own `.conventions.md`, and rollback per repo in reverse dependency order. The impl doc must also state the **deploy order** and what the window between deployments looks like — a consumer released before its producer is an outage, and the plan either avoids it or declares it acceptable.
+Writing stays narrow because analysis scope is not permission. Discovering that a sibling repo must change is a finding for the next gate, not a licence to edit it — the scope-auditor treats commits in an analysis-only repo as a violation. When a change legitimately spans repos, the task stays single (one workspace, one contract, one STATUS.md) while the mechanics go per repo: a branch each (named per that repo's rules files), impl-doc steps that each name their repo, per-repo verification with that repo's tooling, code review per repo against its own rules files, and rollback per repo in reverse dependency order. The impl doc must also state the **deploy order** and what the window between deployments looks like — a consumer released before its producer is an outage, and the plan either avoids it or declares it acceptable.
 
 On the fast path, `/change-request` escalates to the full pipeline when changes land in more than one repo: coordinated branches plus a deploy order is not a small change, whatever the diff size suggests.
 
-Two things stay per-repo throughout, and that is deliberate: `.conventions.md` and `.domain-glossary.md`. Code written in repo-b follows repo-b's conventions, and a term that means different things in two repos is a finding worth raising rather than smoothing over.
+Two things stay per-repo throughout, and that is deliberate: the repo's rules files and `.domain-glossary.md`. Code written in repo-b follows repo-b's rules, and a term that means different things in two repos is a finding worth raising rather than smoothing over.

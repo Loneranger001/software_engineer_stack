@@ -26,24 +26,25 @@ what anyone (comments, wikis, the user, folklore) believes it does.
 2. Resolve `<work-repo>` and `<workspace-root>` per
    `./core/repo-resolution.md` — with a parent folder as
    cwd, ask which repo the interface lives in — then create the workspace:
-   `./scripts/new-task.sh <task-id> <workspace-root> understand <work-repo>`.
+   `./scripts/new-task.sh <task-id> auto understand <work-repo>`.
    Stage state is read and recorded with
    `python3 ./scripts/status.py` (`<ws>` =
    `<workspace-root>/work/<id>`).
    If a previous run already mapped this interface (an existing
-   `work/*/interface-map.md` naming it), offer to resume/refresh that map
+   `<workspace-root>/work/*/interface-map.md` naming it), offer to resume/refresh that map
    instead of starting over — check its recorded commit for staleness first.
 3. Agree the target and intent in one or two sentences: which interface, and
    what the user is trying to learn — general orientation, a specific
    question, or reconnaissance before a change. Record it in STATUS.md.
    A specific question focuses where to go deep; it does not skip the trace,
    because answers given without the surrounding flow are how folklore starts.
-4. Read `<work-repo>/.domain-glossary.md` and `<work-repo>/.conventions.md` if
-   present — they hold knowledge already confirmed in earlier tasks; never
-   re-derive or re-ask what is established there. Check those full paths: a
-   bare-filename check run from a parent folder reports "absent" for a repo
-   that is in fact profiled, and re-asking answered questions is exactly the
-   failure this stage exists to prevent.
+4. Read `<work-repo>/.domain-glossary.md` if present and the rules files
+   `./scripts/repo-rules.sh <work-repo>` lists — they hold knowledge
+   already confirmed; never re-derive or re-ask what is established there.
+   Use the full path / the script, not a bare filename: run from a parent
+   folder, a bare check reports "absent" for a file that exists, and
+   re-asking answered questions is exactly the failure this stage exists to
+   prevent.
 5. Unknowns follow `./core/decision-protocol.md`:
    anything the code or a reachable environment can answer gets checked, not
    guessed; what only people can answer goes to open questions.

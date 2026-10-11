@@ -8,7 +8,6 @@ same with your own repo and brief.
 **The commands in order:**
 
 ```
-/repo-profile                      (once per repo)
 /intake <brief> <task-id>          → gate: you approve the scope contract
 /research
 /tech-design                       → gate: you approve the TDD
@@ -26,17 +25,13 @@ days, run `/grill`, and it picks up from `STATUS.md` exactly where you left off.
 
 ---
 
-## 0. Once per repo: profile it
+## 0. Nothing to set up per repo
 
-```
-you>  /repo-profile
-```
-
-The agent samples the repo and writes `.conventions.md` — naming patterns,
-error-handling style, test tooling, deployment layout, each convention with a
-real `file:line` example. Every later stage follows this file over the
-framework's own defaults. Takes a few minutes; you only redo it when the repo
-drifts.
+There is no profiling step. Every stage follows the rules the repo's team
+already wrote — `AGENTS.md`, `CODING_STANDARDS.md`, `CONTRIBUTING.md` and
+similar files, as `scripts/repo-rules.sh <repo>` lists them — over the
+framework's own `standards/`. A repo with no such files gets the framework
+defaults plus the style of the code around each change.
 
 ## 1. /intake — the brief becomes an approved scope contract
 

@@ -2,26 +2,42 @@
 # new-task.sh — scaffold a task workspace with a STATUS.md resume point.
 # Usage: new-task.sh <task-id> [workspace-root] [pipeline] [work-repo] [repo-set]
 #   task-id         e.g. PROJ-123 (no spaces)
-#   workspace-root  directory that holds work/ (default: current directory)
+#   workspace-root  directory that holds work/, or `auto` (the default):
+#                   resolved by workspace-root.sh from work-repo — the folder
+#                   holding the repos in a multi-repo workspace, else the repo
 #   pipeline        full | change-request | document | understand  (default: full)
-#   work-repo       repo whose code the task changes, holding .conventions.md
-#                   (default: workspace-root). See core/repo-resolution.md —
-#                   with a parent folder as the session cwd these differ, and
-#                   both are recorded absolutised so later stages don't guess.
+#   work-repo       repo whose code the task changes (default: the git repo
+#                   containing the current directory; with an explicit
+#                   workspace-root, that directory). See core/repo-resolution.md —
+#                   both paths are recorded absolutised so later stages don't guess.
 #   repo-set        comma-separated repos in ANALYSIS scope, i.e. searched for
 #                   callers and dependents (default: work-repo only). Get the
 #                   list from list-repos.sh <repos-folder>.
 set -eu
 
 TASK_ID="${1:?usage: new-task.sh <task-id> [workspace-root] [pipeline] [work-repo] [repo-set]}"
-ROOT="${2:-.}"
+ROOT="${2:-auto}"
 PIPELINE="${3:-full}"
-REPO="${4:-$ROOT}"
+REPO="${4:-}"
 REPO_SET="${5:-}"
+HERE=$(cd "$(dirname "$0")" && pwd)
 
 case "$TASK_ID" in
   *[!A-Za-z0-9._-]*) echo "error: task-id may only contain letters, digits, . _ -" >&2; exit 1 ;;
 esac
+
+if [ -z "$REPO" ]; then
+  if [ "$ROOT" = auto ]; then
+    REPO=$(git rev-parse --show-toplevel 2>/dev/null) \
+      || { echo "error: not inside a git repo — pass work-repo explicitly" >&2; exit 1; }
+  else
+    REPO=$ROOT
+  fi
+fi
+[ -d "$REPO" ] || { echo "error: not a directory: $REPO" >&2; exit 1; }
+if [ "$ROOT" = auto ]; then
+  ROOT=$("$HERE/workspace-root.sh" "$REPO") || exit 1
+fi
 
 for d in "$ROOT" "$REPO"; do
   [ -d "$d" ] || { echo "error: not a directory: $d" >&2; exit 1; }
