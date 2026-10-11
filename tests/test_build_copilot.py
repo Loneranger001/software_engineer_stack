@@ -16,10 +16,31 @@ class YamlStrTest(unittest.TestCase):
         self.assertEqual(bc.yaml_str("Start a new task. Use when ready"), "Start a new task. Use when ready")
 
     def test_colon_space_quoted(self):
-        self.assertEqual(bc.yaml_str("Use when: reading Jira"), '"Use when: reading Jira"')
+        self.assertEqual(bc.yaml_str("Use when: reading tickets"), '"Use when: reading tickets"')
 
     def test_leading_indicator_quoted(self):
         self.assertTrue(bc.yaml_str("- list-like").startswith('"'))
+
+
+class PruneTest(unittest.TestCase):
+    def test_removes_only_generated_orphans(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            gh = Path(tmp)
+            for name, generated in (("kept", True), ("gone", True), ("handmade", False)):
+                text = f"<!-- {bc.MARKER} -->\n" if generated else "hand-written\n"
+                (gh / "skills" / name).mkdir(parents=True)
+                (gh / "skills" / name / "SKILL.md").write_text(text)
+                (gh / "skills" / name / "helper.py").write_text("x = 1\n")
+                (gh / "prompts").mkdir(exist_ok=True)
+                (gh / "prompts" / f"{name}.prompt.md").write_text(text)
+            (gh / "agents").mkdir()
+            bc.prune_generated(gh, ["kept"], [])
+            self.assertTrue((gh / "skills" / "kept" / "SKILL.md").exists())
+            self.assertFalse((gh / "skills" / "gone").exists())
+            self.assertTrue((gh / "skills" / "handmade" / "helper.py").exists())
+            self.assertFalse((gh / "prompts" / "gone.prompt.md").exists())
+            self.assertTrue((gh / "prompts" / "handmade.prompt.md").exists())
 
 
 class MergeKnowledgeTest(unittest.TestCase):

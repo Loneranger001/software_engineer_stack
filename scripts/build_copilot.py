@@ -185,6 +185,29 @@ def restore_knowledge(out: Path, stashed: dict[str, str]) -> None:
             print(f"  kept local-only knowledge/{rel}")
 
 
+def prune_generated(gh: Path, skill_names: list[str], agent_names: list[str]) -> None:
+    """Delete generated prompts/skills/agents whose canonical source was removed.
+
+    Only files carrying the generator marker are touched, so hand-created
+    prompts, skills, and agents in a work repo's .github/ are never deleted.
+    """
+    def is_generated(f: Path) -> bool:
+        return f.is_file() and MARKER in f.read_text(errors="ignore")
+
+    for f in sorted((gh / "prompts").glob("*.prompt.md")):
+        if f.name[:-len(".prompt.md")] not in skill_names and is_generated(f):
+            f.unlink()
+            print(f"removed {f}")
+    for d in sorted(p for p in (gh / "skills").glob("*") if p.is_dir()):
+        if d.name not in skill_names and is_generated(d / "SKILL.md"):
+            shutil.rmtree(d)
+            print(f"removed {d}/")
+    for f in sorted((gh / "agents").glob("*.agent.md")):
+        if f.name[:-len(".agent.md")] not in agent_names and is_generated(f):
+            f.unlink()
+            print(f"removed {f}")
+
+
 def build_prompt(fm: dict, body: str, root_ref: str) -> str:
     body = strip_path_note(body).replace("${CLAUDE_PLUGIN_ROOT}", root_ref)
     args = f"\n> Arguments: `{fm['argument-hint']}`" if fm.get("argument-hint") else ""
@@ -484,10 +507,13 @@ def main() -> None:
         copy_skill_support(d, target / ".github" / "skills" / fm["name"])
 
     agent_files = sorted((stack / "agents").glob("*.md"))
+    agent_names = []
     for f in agent_files:
         fm, body = parse_frontmatter(f.read_text(), f)
+        agent_names.append(fm["name"])
         write_generated(target / ".github" / "agents" / f"{fm['name']}.agent.md",
                         build_agent(fm, body, root_ref))
+    prune_generated(target / ".github", names, agent_names)
 
     write_generated(target / ".github" / "copilot-instructions.md",
                     build_instructions(root_ref, names))
