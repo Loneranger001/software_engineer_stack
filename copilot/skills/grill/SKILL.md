@@ -19,11 +19,13 @@ proving which scenarios were confronted.
 
 1. Load applicable lessons: `<plugin-root>/scripts/lessons.sh grill` — prior corrected
    assumptions and missed edge cases are exactly the scenarios to re-run.
-2. Locate the workspace and gate:
-   `python3 <plugin-root>/scripts/status.py require <ws> tech-design=approved`
-   (`<ws>` = `<workspace-root>/work/<id>`). Grilling an unapproved draft is
-   fine if the user asks — record it:
-   `status.py log <ws> "grilling unapproved TDD at user request"`.
+2. Locate the workspace and gate, by pipeline (`status.py get <ws> pipeline`;
+   `<ws>` = `<workspace-root>/work/<id>`):
+   - **full**: `python3 <plugin-root>/scripts/status.py require <ws> tech-design=approved`.
+     Grilling an unapproved draft is fine if the user asks — record it:
+     `status.py log <ws> "grilling unapproved TDD at user request"`.
+   - **change-request** (see "Use on change requests"):
+     `status.py require <ws> analyze=done`; the target is `analysis.md`.
 3. Read tdd.md and ASSUMPTIONS.md fully — they are what you attack. Read the
    contract and research handoff summaries
    (`python3 <plugin-root>/scripts/handoff.py show <ws>/<doc>`), opening a full section
@@ -36,7 +38,7 @@ proving which scenarios were confronted.
 
 ## 1. Phase 1 — self-grill (no user interruption yet)
 
-Create `work/<id>/grill-log.md` from
+Create `<ws>/grill-log.md` from
 `<plugin-root>/templates/grill-log.md`.
 
 Instantiate CONCRETE scenarios against the TDD from every category below,
@@ -73,7 +75,7 @@ Also collect **terminology challenges**: any term the brief/TDD uses that has
 two defensible readings ("balance: ledger or available?"). Consult
 `<work-repo>/.domain-glossary.md` first — a documented, user-confirmed term with one
 meaning is not a challenge; a term the brief BENDS away from its entry, or an
-entry still `seeded — unconfirmed`, IS. Surviving challenges are always
+entry still `unconfirmed`, IS. Surviving challenges are always
 `ask-user` — never resolve terminology by assumption.
 
 ## 2. Phase 2 — grill the user
@@ -99,14 +101,16 @@ Take the `ask-user` list and interview the user until it is EMPTY:
 ## 3. Close the stage
 
 1. Self-check with `<plugin-root>/checklists/grill.md`.
-2. If the grill materially changed an already-approved TDD, re-present the
-   changed sections for approval (never silently edit an approved document),
-   update the TDD's handoff summary in the same edit, and re-run
-   `handoff.py check <ws>/tdd.md`.
-3. Record:
+2. Every TDD edit (`gap-fixed`, user answers) updates the TDD's handoff
+   summary in the same edit; re-run `handoff.py check <ws>/tdd.md` before
+   closing. If the grill materially changed the approved TDD, re-present the
+   changed sections for approval (never silently edit an approved document).
+3. Record (full pipeline):
    `python3 <plugin-root>/scripts/status.py set <ws> grill=done --next "Run /impl-plan."`
    — or, if the user explicitly skipped it,
-   `grill="waived by <who> <date>: <reason>"`.
+   `grill="waived by <who> <date>: <reason>"`. A change-request pipeline has
+   no grill stage: record `status.py log <ws> "grill done on analysis.md: <n>
+   scenarios, <m> answered by user"` instead.
 
 ## Use on change requests
 

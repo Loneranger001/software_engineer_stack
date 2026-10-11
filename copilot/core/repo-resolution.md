@@ -45,7 +45,9 @@ it only when a case here is ambiguous.
 **Paths**
 - Repo-level files always prefixed: `<work-repo>/.domain-glossary.md`, never
   bare.
-- Task files: `<workspace-root>/work/<task-id>/…`.
+- Task files: `<ws>/…`, where `<ws>` = `<workspace-root>/work/<task-id>`; a
+  workspace-relative name like `evidence/` or `scope-contract.md` always
+  means `<ws>/evidence/`, `<ws>/scope-contract.md` — never relative to cwd.
 - git, test runners, and code greps run with the target repo as cwd.
 
 **Analysis covers every repo in `<repo-set>`**

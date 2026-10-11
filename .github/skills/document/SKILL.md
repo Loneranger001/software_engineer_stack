@@ -18,16 +18,20 @@ skill documents what the code DOES, not what anyone believes it does.
    - **kb-article** — answers a recurring question/problem (template: kb-article.md)
    - **understanding-doc** — explains how an interface/component works
      (template: understanding-doc.md)
-3. Resolve `<work-repo>` and `<workspace-root>` per
-   `./core/repo-resolution.md`, then create the workspace:
-   `./scripts/new-task.sh <task-id> auto document <work-repo>`
+3. Resolve `<work-repo>`, `<workspace-root>`, and the `<repo-set>` per
+   `./core/repo-resolution.md` (enumerate with
+   `./scripts/list-repos.sh <repos-folder>` and confirm
+   the list with the user — the dependency map spans every repo in it), then
+   create the workspace:
+   `./scripts/new-task.sh <task-id> auto document <work-repo> <repo-set>`
    (or resume, taking both paths from
    `python3 ./scripts/status.py show <ws>`, where `<ws>` =
    `<workspace-root>/work/<id>`). Record doc type + target:
    `status.py field <ws> doc-type <type>` and
    `status.py field <ws> target "<target>"`.
 4. Agree the scope with the user in two sentences (which component, which
-   aspects, intended audience) and record it in STATUS.md — even docs tasks
+   aspects, intended audience) and record it:
+   `status.py field <ws> doc-scope "<the two sentences>"` — even docs tasks
    get scope discipline.
 5. Unknowns follow `./core/decision-protocol.md`: for
    documentation, "check checkable facts" means read/run the code — a claim
@@ -50,8 +54,10 @@ skill documents what the code DOES, not what anyone believes it does.
      doc-format "..."`), not into the team's rules files.
    - Build the **complete dependency map** both directions (upstream feeds,
      downstream consumers, associated packages/scripts, schedules, config) —
-     with the grep/queries recorded so the map is reproducible. "Nothing
-     depends on this" requires showing the search that found nothing. Then
+     searched with `python3 ./scripts/xsearch.py --ws <ws> -- <patterns>` (every
+     repo, counts first) and its per-repo rows recorded so the map is
+     reproducible. "Nothing depends on this" requires showing the search
+     that found nothing. Then
      draw it as the §6 mermaid diagram (upstream / interface / downstream
      subgraphs, labelled edges) — the diagram and the tables must agree in
      both directions; the fact-checker treats a node without a table row (or
@@ -62,14 +68,16 @@ skill documents what the code DOES, not what anyone believes it does.
    execute are marked `⚠ UNVERIFIED` in the final doc.
 3. Build a fact table as you go: claim → source (`file:line` / run output).
    This becomes the doc's verification section.
+4. `status.py set <ws> analyze=done`.
 
 ## 2. Draft
 
-1. Fill the matching template into `work/<id>/<doc-name>.md`.
+1. Fill the matching template into `<ws>/<doc-name>.md`.
 2. Write for the stated audience; lead with the short answer / purpose.
 3. Every behavioural statement must trace to the fact table. Suspicions and
    folklore are either verified or explicitly labelled as open questions.
 4. Diagrams: use mermaid for flows (renders in Markdown, survives conversion).
+5. `status.py set <ws> draft=done`.
 
 ## 3. Fact-check gate
 
@@ -82,9 +90,11 @@ skill documents what the code DOES, not what anyone believes it does.
 
 ## 4. Deliver
 
-1. Ask which output formats are needed (or read from STATUS.md); convert via
+1. Ask which output formats are needed (unless `status.py get <ws> formats`
+   already answers it) and record them: `status.py field <ws> formats
+   "<docx,pdf,...>"`. Convert via
    `./scripts/md2docx.sh | md2pdf.sh | md2confluence.sh`
-   into `work/<id>/deliverables/`.
+   into `<ws>/deliverables/`.
 2. Present the doc; note any `⚠ UNVERIFIED` steps and open questions so the
    user can close them.
 3. `status.py set <ws> deliver=done`.

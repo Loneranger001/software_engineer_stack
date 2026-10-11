@@ -10,7 +10,7 @@ mode: agent
 
 # /research — source-referenced investigation
 
-Produce `work/<id>/research-notes.md`: everything /tech-design needs to design
+Produce `<ws>/research-notes.md`: everything /tech-design needs to design
 confidently, with every finding traceable to a source.
 
 ## 0. Preamble
@@ -72,7 +72,9 @@ expand it:
    ambiguous once two repos are in play.
 3. **Data model**: for each touched table/view, capture relevant columns,
    constraints, indexes, and (if the dev DB is reachable via `$SES_DB_CONN`)
-   row volumes. Store queries + outputs in `evidence/research-*.txt`.
+   row volumes. Run the queries through
+   `./scripts/capture.sh <ws>/evidence research-<name> --
+   <command>` and keep their summaries in `evidence/research-*.txt`.
 4. **Repo rules**: read the rules files `repo-rules.sh` listed for each
    changed repo and note which rules bind this change (and any two files that
    contradict each other — an open question).
@@ -110,12 +112,13 @@ platform (note the Oracle/ksh/Python versions if discoverable).
 ## 4. Write up and gate
 
 1. Fill `./templates/research-notes.md` →
-   `work/<id>/research-notes.md`.
-2. Write the **handoff summary** block last and run
-   `python3 ./scripts/handoff.py check <ws>/research-notes.md` — it must pass.
-3. Log out-of-scope findings to PARKED.md (never act on them).
-4. Batch remaining open questions to the user; blocking ones must be answered
-   before /tech-design.
+   `<ws>/research-notes.md`.
+2. Log out-of-scope findings to PARKED.md (never act on them).
+3. Batch remaining open questions to the user; blocking ones must be answered
+   before /tech-design. Fold the answers into the notes.
+4. Only now write the **handoff summary** block — last, so it reflects the
+   answers — and run
+   `python3 ./scripts/handoff.py check <ws>/research-notes.md`; it must pass.
 5. Record:
    `python3 ./scripts/status.py set <ws> research=done --next "Run /tech-design."`
 

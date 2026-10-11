@@ -22,7 +22,7 @@ verification, same scope discipline.
    (or resume from an existing workspace, taking all of them from
    `python3 ./scripts/status.py show <ws>`, where `<ws>` =
    `<workspace-root>/work/<id>`).
-3. Store the CR text as `work/<id>/brief.md`.
+3. Store the CR text as `<ws>/brief.md`.
 4. Unknowns follow `./core/decision-protocol.md`:
    proceed-and-log only for high-confidence, reversible, in-scope calls
    (→ ASSUMPTIONS.md); interface-contract and data questions always ask.
@@ -46,7 +46,7 @@ verification, same scope discipline.
 3. Read the rules files `./scripts/repo-rules.sh <work-repo> <files>`
    lists, and follow them; none listed → framework `standards/` plus the
    surrounding code's style.
-4. Write `work/<id>/analysis.md`: current behaviour (source-referenced),
+4. Write `<ws>/analysis.md`: current behaviour (source-referenced),
    callers found, blast radius, and the proposed change sketch. Then
    `status.py set <ws> analyze=done`.
 
@@ -74,15 +74,17 @@ On approval: `status.py set <ws> mini-contract=approved --log "mini contract app
 ## 3. Change
 
 0. Gate: `status.py require <ws> mini-contract=approved` — non-zero exit = stop.
-1. Branch per the repo rules (else the repo's existing branch naming); one commit per logical unit referencing the
-   task id. Only the repos the mini contract names are touched — a caller
-   found in another repo is reported, not quietly fixed.
+1. Branch per the repo rules (else the repo's existing branch naming).
+   Only the repos the mini contract names are touched — a caller found in
+   another repo is reported, not quietly fixed.
 2. Surgical diff only. Anything else you itch to fix → PARKED.md.
 3. Follow the rules of the repo the file lives in (`repo-rules.sh <repo>
    <file>` — not necessarily `<work-repo>`'s), then the surrounding code's
    style, then the standards defaults.
 4. Record the branch (`status.py field <ws> branch.<repo-name> <branch>`) and
-   `status.py set <ws> change=done`.
+   `status.py set <ws> change=done`. Nothing is committed yet — commits
+   follow verification (§4), so each carries the hashes of the evidence that
+   proves it.
 
 ## 4. Verify
 
@@ -94,14 +96,21 @@ On approval: `status.py set <ws> mini-contract=approved --log "mini contract app
    `./templates/test-evidence.md`, running each command
    through `./scripts/capture.sh` (raw logs land in `evidence/raw/`;
    only its summary goes into the evidence file).
-4. All PASS → `status.py set <ws> verify=done`.
+4. All PASS → commit, one commit per logical unit referencing the task id:
+   - first inspect the repo's `commit-msg` hook and follow its exact format
+     (as /implement §1 step 4 — the hook, not recent history, decides);
+   - end each message with its evidence hash lines from
+     `python3 ./scripts/checkpoint.py trailer <ws> <evidence files>`
+     (`git commit -m "<subject>" -m "<trailer lines>"`).
+   Then `status.py set <ws> verify=done`.
 
 ## 5. Deliver
 
 1. Self-check `./checklists/change-request.md`. For
    multi-file changes, also run the audit procedure in
    `./agents/scope-auditor.md` against the mini contract
-   (subagent where supported, otherwise a separate fresh pass).
+   (subagent where supported, otherwise a separate fresh pass), passing
+   `analysis.md` as the contract.
 2. Short release note (template: release-notes.md, trimmed): change, deploy
    step, rollback step, evidence table.
 3. Push the branch; report to the user; `status.py set <ws> deliver=done`; offer

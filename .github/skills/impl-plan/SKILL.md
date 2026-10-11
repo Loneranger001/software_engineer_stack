@@ -6,7 +6,7 @@ description: Produce an implementation document from the approved TDD - ordered 
 
 # /impl-plan — executable implementation document
 
-Produce `work/<id>/impl-doc.md` and get it user-approved. /implement will
+Produce `<ws>/impl-doc.md` and get it user-approved. /implement will
 execute this document literally, so it must be executable by someone (or some
 session) with no memory of this conversation.
 
@@ -31,7 +31,7 @@ session) with no memory of this conversation.
 
 ## 1. Plan the steps
 
-1. Copy `./templates/impl-doc.md` → `work/<id>/impl-doc.md`.
+1. Copy `./templates/impl-doc.md` → `<ws>/impl-doc.md`.
 2. Decompose the TDD into ordered, commit-sized steps. Ordering rules:
    - The system stays consistent between steps (DDL before code that needs it;
      backward-compatible interface changes before caller updates).
@@ -76,10 +76,11 @@ session) with no memory of this conversation.
    impl doc's **handoff summary** last — a `step <N>:` line per step, the
    branches, tests, deploy order — and run
    `python3 ./scripts/handoff.py check <ws>` (all documents so far) — it must pass.
-2. Present to the user: step table, test-to-criterion mapping, rollback
-   summary — plus open ASSUMPTIONS.md entries for ratification
-   (decision-protocol §4). Iterate until approved; record approval in the
-   header.
+2. Present to the user, starting from the summary: step table,
+   test-to-criterion mapping, rollback summary — plus open ASSUMPTIONS.md
+   entries for ratification (decision-protocol §4). Iterate until approved —
+   each revision updates the summary in the same edit and re-runs the check.
+   Record approval in the header.
 3. Record:
    `python3 ./scripts/status.py set <ws> impl-plan=approved --next "Run /implement."`
 

@@ -10,7 +10,7 @@ description: Execute the approved implementation document step by step on a task
 > `plugin.json` (the plugin install root). All framework files referenced
 > below live inside it.
 
-Execute `work/<id>/impl-doc.md` exactly: one step at a time, verified and
+Execute `<ws>/impl-doc.md` exactly: one step at a time, verified and
 committed before the next begins.
 
 ## 0. Preamble
@@ -53,7 +53,9 @@ committed before the next begins.
 
 ## 1. Branch setup (first run only)
 
-1. Ensure each repo the impl-doc changes is clean; stash/ask if not.
+1. Ensure each repo the impl-doc changes is clean. If one isn't, show the
+   user what is uncommitted and ask — never stash, commit, or discard their
+   work unasked.
 2. In each, create the branch named in the impl-doc from that repo's mainline.
 3. Record the branch per repo:
    `status.py field <ws> branch.<repo-name> <branch> --log "branch created in <repo-name>"`,
@@ -105,8 +107,9 @@ For each impl-doc step N, in order:
 
 ### Scope guard (continuous)
 
-Before each commit, check the diff against the scope contract's handoff
-summary (S# items, repos allowed to change): every changed file must map to
+Before each commit, check the diff (`review-diff.sh <repo> <mainline> HEAD`
+lists the changed files) against the scope contract's handoff summary (S#
+items, repos allowed to change): every changed file must map to
 an in-scope item via the impl-doc, and its repo must be one
 the contract lists as changing. A change that turns out to be needed in
 another repo stops the loop and goes to the user as a scope amendment — not a
@@ -125,7 +128,7 @@ loop.
 1. Run the review procedure in `<plugin-root>/agents/code-reviewer.md`
    on the branch of every changed repo (it reads the diff file by file via
    `review-diff.sh`; one pass per repo, each
-   judged against its own conventions) — as a subagent where the harness
+   judged against that repo's own rules files) — as a subagent where the harness
    supports it;
    otherwise execute the procedure yourself as a separate, fresh review pass,
    holding yourself to its report format. Resolve findings

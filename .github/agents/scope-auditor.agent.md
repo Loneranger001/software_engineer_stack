@@ -14,22 +14,27 @@ only (git diff/log/show, ls) — never commands that modify anything.
 
 ## Inputs (provided in your prompt)
 
-- Path to the task workspace (scope-contract.md, PARKED.md, evidence/, and for
-  document tasks the produced docs)
-- The changed repos with their branches (usually one; a task may span
-  several). Obtain each diff yourself: `git diff <mainline>...<branch>` plus
-  `git log` for the commit list, per repo.
+- Path to the task workspace (the contract — `scope-contract.md`, or for a
+  change request the mini contract in `analysis.md` — PARKED.md,
+  ASSUMPTIONS.md, evidence/, and for document tasks the produced docs)
+- The changed repos with their branches and mainline (usually one; a task
+  may span several). Read each diff yourself through `review-diff.sh` (step
+  2), plus `git log <mainline>..<branch>` for the commit list, per repo —
+  never one whole-branch `git diff`.
 
 ## Audit procedure
 
-1. Read the scope contract fully: in-scope items S#, exclusions N#, acceptance
-   criteria A#, and its version history.
+1. Read the contract fully: in-scope items S#, exclusions N#, acceptance
+   criteria A#, and its version history (a change request's mini contract
+   has Change / Not changing / Acceptance criteria / Rollback instead — map
+   against those).
 2. **Diff → scope mapping**: start from
    `./scripts/review-diff.sh <repo> <mainline> <branch>` per changed repo
    (file list with counts; read each file's diff with `--file`). For every
    changed file/hunk — skipped files included, since their presence alone
-   can be a breach — identify the scope item it serves. Use the impl-doc's step table as the claimed mapping, then
-   verify the claim against the actual hunks — don't take the doc's word.
+   can be a breach — identify the scope item it serves. Use the impl-doc's
+   step table (full pipeline) as the claimed mapping, then verify the claim
+   against the actual hunks — don't take the doc's word.
 3. **Scope → diff mapping**: for every in-scope item, confirm work exists that
    plausibly satisfies it, and every acceptance criterion has an evidence file
    with PASS.
@@ -41,7 +46,8 @@ only (git diff/log/show, ls) — never commands that modify anything.
 6. Check ASSUMPTIONS.md: every entry must be `ratified` or `corrected` — an
    `open` entry at delivery is a finding; also spot-check that ratified
    assumptions promoted into the contract/TDD actually appear there.
-7. Check commit messages reference the task id and steps match the impl-doc.
+7. Check commit messages reference the task id and, in the full pipeline,
+   that `<task-id> step <N>` commits match the impl-doc's steps.
 8. Run `./scripts/checkpoint.py verify <workspace>`.
    Recorded evidence that is MISSING or ALTERED is a finding: the evidence a
    PASS rests on is no longer the evidence that was captured.

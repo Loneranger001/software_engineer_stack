@@ -8,7 +8,7 @@ description: Build a code-verified working understanding of any existing interfa
 
 The deliverable is understanding, not a document: a layered, source-referenced
 explanation the user can interrogate until their mental model matches the code.
-Everything learned lands in an **interface map** (`work/<id>/interface-map.md`)
+Everything learned lands in an **interface map** (`<ws>/interface-map.md`)
 that later stages — /document, /change-request, /intake — reuse instead of
 re-investigating.
 
@@ -19,10 +19,13 @@ what anyone (comments, wikis, the user, folklore) believes it does.
 
 1. Load applicable lessons: `./scripts/lessons.sh understand` — it prints only
    the matching entries; don't read lessons.md whole.
-2. Resolve `<work-repo>` and `<workspace-root>` per
+2. Resolve `<work-repo>`, `<workspace-root>`, and the `<repo-set>` per
    `./core/repo-resolution.md` — with a parent folder as
-   cwd, ask which repo the interface lives in — then create the workspace:
-   `./scripts/new-task.sh <task-id> auto understand <work-repo>`.
+   cwd, ask which repo the interface lives in; enumerate the rest with
+   `./scripts/list-repos.sh <repos-folder>` and confirm
+   the list (§3 maps dependencies across all of them) — then create the
+   workspace:
+   `./scripts/new-task.sh <task-id> auto understand <work-repo> <repo-set>`.
    Stage state is read and recorded with
    `python3 ./scripts/status.py` (`<ws>` =
    `<workspace-root>/work/<id>`).
@@ -31,7 +34,8 @@ what anyone (comments, wikis, the user, folklore) believes it does.
    instead of starting over — check its recorded commit for staleness first.
 3. Agree the target and intent in one or two sentences: which interface, and
    what the user is trying to learn — general orientation, a specific
-   question, or reconnaissance before a change. Record it in STATUS.md.
+   question, or reconnaissance before a change. Record it:
+   `status.py field <ws> intent "<target — what the user wants to learn>"`.
    A specific question focuses where to go deep; it does not skip the trace,
    because answers given without the surrounding flow are how folklore starts.
 4. Read `<work-repo>/.domain-glossary.md` if present and the rules files
@@ -59,7 +63,7 @@ what anyone (comments, wikis, the user, folklore) believes it does.
    points and error contract, a pipeline's lineage and restartability). The
    SAME type always gets the SAME emphasis, so explanations of different
    interfaces stay comparable.
-3. Start `work/<id>/interface-map.md` from
+3. Start `<ws>/interface-map.md` from
    `./templates/interface-map.md` and fill the identity
    section now. `status.py set <ws> classify=done`.
 
@@ -91,8 +95,7 @@ when a name or comment disagrees with the code, the code wins.
 ## 3. Map the dependencies both directions
 
 Search **every repo in `<repo-set>`**, not just the one the interface lives
-in (STATUS.md `repos-analyzed:`, else
-`./scripts/list-repos.sh <repos-folder>`). Consumers in a
+in (`status.py get <ws> repos-analyzed`). Consumers in a
 sibling repo are the ones nobody remembers at change time — which is precisely
 why they belong on the map.
 

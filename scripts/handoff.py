@@ -122,6 +122,10 @@ def main(argv: list[str]) -> int:
             print(f"error: no such file or directory: {t}", file=sys.stderr)
             return 2
     if not docs:
+        if all(t.is_dir() for t in targets):
+            # e.g. a change-request or document workspace: nothing to hold to a summary
+            print("no stage documents (scope-contract/research-notes/tdd/impl-doc) — nothing to check")
+            return 0
         print("error: no stage documents found", file=sys.stderr)
         return 2
     found = [p for d in docs for p in problems(d)]

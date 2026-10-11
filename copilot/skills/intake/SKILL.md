@@ -58,7 +58,7 @@ the user has explicitly approved. Nothing downstream may begin before that appro
 1. Accept the brief as: a file path (md/txt), a docx/pdf (convert with
    `pandoc -t markdown` or extract text; if conversion fails, ask the user to
    paste the content), or pasted text.
-2. Store the original (or its converted markdown) as `work/<id>/brief.md` so the
+2. Store the original (or its converted markdown) as `<ws>/brief.md` so the
    task is self-contained.
 3. Read the ENTIRE brief. Long documents: read in chunks; never summarize from
    the first section alone.
@@ -81,7 +81,8 @@ the user has explicitly approved. Nothing downstream may begin before that appro
   question — the brief may be wrong or the glossary stale; never silently
   pick a side.
 - Do a first scan **across every repo in `<repo-set>`** for the objects the
-  brief names, to populate the "interfaces & objects expected to change" table
+  brief names (`python3 <plugin-root>/scripts/xsearch.py --ws <ws> --
+  <names>` — counts first, every repo), to populate the "interfaces & objects expected to change" table
   — each row carries its repo. A brief written against one repo routinely
   implicates others; finding that at intake is cheap, finding it during
   /implement is not.
@@ -95,7 +96,7 @@ the user has explicitly approved. Nothing downstream may begin before that appro
 ## 4. Draft the scope contract
 
 1. Copy `<plugin-root>/templates/scope-contract.md` to
-   `work/<id>/scope-contract.md` and fill every section.
+   `<ws>/scope-contract.md` and fill every section.
 2. Each in-scope item must be checkable; each must have at least one acceptance
    criterion stating HOW it will be verified (query, test, run).
 3. Run `<plugin-root>/checklists/intake.md` against your draft; fix gaps.
@@ -111,8 +112,10 @@ the user has explicitly approved. Nothing downstream may begin before that appro
    in-scope list, exclusions, acceptance criteria, open questions — plus any open ASSUMPTIONS.md entries
    for ratification (decision-protocol §4). Ask explicitly: "Approve this scope
    contract? Work will be limited to exactly this."
-2. Incorporate feedback and re-present until approved. Record approver and date
-   in the contract, set version 1. Any later scope change bumps the version
+2. Incorporate feedback and re-present until approved — every revision
+   updates the handoff summary in the same edit, and `handoff.py check` must
+   pass on the version the user approves. Record approver and date in the
+   contract, set version 1. Any later scope change bumps the version
    and updates the summary in the same edit (`handoff.py check` flags every
    downstream summary still on the old version).
 3. Only after approval:

@@ -55,21 +55,25 @@ audited against scope, evidenced, and converted to the formats the user needs.
 The documents must match what was actually built:
 
 - tdd.md and impl-doc.md vs the final diff — update stale sections and mark
-  them `(updated at delivery: <reason>)`; substantive divergence needs the
-  user's ack since those documents were approved.
+  them `(updated at delivery: <reason>)`, updating each document's handoff
+  summary in the same edit (`handoff.py check <ws>` must pass); substantive
+  divergence needs the user's ack since those documents were approved.
 - Every acceptance criterion → evidence file → PASS. Missing evidence means
   going back to /implement's verification, not papering over.
 
 ## 3. Package
 
 1. Fill `<plugin-root>/templates/release-notes.md` →
-   `work/<id>/release-notes.md` (deployment + rollback usable stand-alone).
+   `<ws>/release-notes.md` (deployment + rollback usable stand-alone).
 2. Convert deliverables per the user's needs using
    `<plugin-root>/scripts/md2docx.sh | md2pdf.sh | md2confluence.sh`
-   into `work/<id>/deliverables/`. Ask once which formats are wanted if not
-   already recorded in STATUS.md; verify each produced file is non-empty.
-3. Push the task branch (`git push -u origin <branch>`; retry with backoff on
-   network failure). Do NOT open a PR / merge unless the user asks.
+   into `<ws>/deliverables/`. Ask once which formats are wanted unless
+   `status.py get <ws> formats` already answers it, and record the answer
+   (`status.py field <ws> formats "<docx,pdf,...>"`); verify each produced
+   file is non-empty.
+3. Push every changed repo's task branch (the `branch.<repo>` fields:
+   `git -C <repo> push -u origin <branch>`; retry with backoff on network
+   failure). Do NOT open a PR / merge unless the user asks.
 
 ## 4. Close
 

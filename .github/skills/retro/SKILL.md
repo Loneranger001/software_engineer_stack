@@ -40,6 +40,9 @@ Append to `./knowledge/lessons.md` in its format:
 Rules:
 - Append-only; never rewrite or delete existing lessons here (pruning happens
   in §4 curation with the user).
+- In the canonical framework repo, commit the appended lessons (with any §3
+  edits); `python3 scripts/check_knowledge.py` must pass. An uncommitted
+  lesson is lost with the clone.
 - Tag precisely — the tags are how other skills filter for relevance.
 - Repo-specific lessons that are really coding RULES belong in that repo's
   own rules files (AGENTS.md, CODING_STANDARDS.md, … — `repo-rules.sh`
@@ -69,7 +72,7 @@ user approves — and apply it where it lasts:
    `build_copilot.py` run. Ask the user for the software-engineer-stack
    checkout and edit `skills/`, `agents/`, `templates/`, `checklists/`,
    `core/`, `standards/`, or `scripts/` there. No checkout available → write
-   the approved diff to `work/<id>/deliverables/framework-edits.patch` and
+   the approved diff to `<ws>/deliverables/framework-edits.patch` and
    record the entry as pending (step 3), not applied.
 2. **Commit, regenerate, check** in the framework repo: commit the edit, run
    `python3 scripts/build_copilot.py`, then
