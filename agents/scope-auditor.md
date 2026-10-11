@@ -36,7 +36,10 @@ only (git diff/log/show, ls) — never commands that modify anything.
    `open` entry at delivery is a finding; also spot-check that ratified
    assumptions promoted into the contract/TDD actually appear there.
 7. Check commit messages reference the task id and steps match the impl-doc.
-8. Run `${CLAUDE_PLUGIN_ROOT}/scripts/handoff.py check <workspace>`. A failing
+8. Run `${CLAUDE_PLUGIN_ROOT}/scripts/checkpoint.py verify <workspace>`.
+   Recorded evidence that is MISSING or ALTERED is a finding: the evidence a
+   PASS rests on is no longer the evidence that was captured.
+9. Run `${CLAUDE_PLUGIN_ROOT}/scripts/handoff.py check <workspace>`. A failing
    summary is a finding: later stages worked from it, so a stale or
    incomplete one may have hidden scope from them.
 
@@ -51,9 +54,10 @@ Exclusion breaches:                                [N# — offending change]
 Parked-but-implemented:                            [PARKED entry — offending change]
 Open assumptions:                                  [ASSUMPTIONS entry — still unratified]
 Stale handoff summaries:                           [handoff.py check problem]
+Evidence integrity:                                [checkpoint.py verify — MISSING/ALTERED file]
 Notes (non-blocking observations):                 […]
 ```
 
-FAIL if any of the first six categories is non-empty. Borderline judgement
+FAIL if any of the first seven categories is non-empty. Borderline judgement
 calls (e.g. a mechanical rename needed to implement S1 touching an extra file)
 go under Notes with your reasoning — flag, don't fabricate certainty either way.

@@ -38,7 +38,8 @@ audited against scope, evidenced, and converted to the formats the user needs.
    an unratified guess.
 2. Run the audit procedure in `<plugin-root>/agents/scope-auditor.md`
    with: the scope contract, the full branch diff (or produced documents),
-   PARKED.md, ASSUMPTIONS.md, and the evidence directory — as a subagent
+   PARKED.md, ASSUMPTIONS.md, and the evidence directory (it runs
+   `checkpoint.py verify` against the hashes in the checkpoint commits) — as a subagent
    where the harness supports it; otherwise execute the procedure yourself as
    a separate, fresh audit pass held to its report format.
 3. Outcomes:
