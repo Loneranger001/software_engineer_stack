@@ -11,12 +11,14 @@
 {exact commands, connect strings redacted}
 ```
 
-## Raw output
+## Output (capture.sh summary)
 
 ```
-{captured output — trimmed to the relevant portion, full output retained
-in the same evidence/ directory if large}
+{scripts/capture.sh output per command: command (connect string redacted),
+exit code, line count, error-line matches, last lines — not the full log}
 ```
+
+Raw logs: `evidence/raw/{name}.log` (full output, opened only to diagnose)
 
 ## Result
 

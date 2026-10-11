@@ -15,8 +15,8 @@ audited against scope, evidenced, and converted to the formats the user needs.
 
 ## 0. Preamble
 
-1. Load lessons tagged `stage:deliver` from
-   `${CLAUDE_PLUGIN_ROOT}/knowledge/lessons.md`.
+1. Load applicable lessons: `${CLAUDE_PLUGIN_ROOT}/scripts/lessons.sh deliver` — it prints only
+   the matching entries; don't read lessons.md whole.
 2. Locate the workspace and gate on the prior stage:
    `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/status.py require <ws> implement=done`
    (`<ws>` = `<workspace-root>/work/<id>`); for the document pipeline

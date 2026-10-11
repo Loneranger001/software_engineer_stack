@@ -15,8 +15,8 @@ skill documents what the code DOES, not what anyone believes it does.
 
 ## 0. Preamble
 
-1. Load lessons tagged `stage:document` from
-   `<plugin-root>/knowledge/lessons.md`.
+1. Load applicable lessons: `<plugin-root>/scripts/lessons.sh document` — it prints only
+   the matching entries; don't read lessons.md whole.
 2. Determine the doc type; if not given, ask:
    - **howto** — a procedure someone performs (template: howto.md)
    - **kb-article** — answers a recurring question/problem (template: kb-article.md)

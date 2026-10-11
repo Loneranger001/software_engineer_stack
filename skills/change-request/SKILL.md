@@ -16,8 +16,8 @@ verification, same scope discipline.
 
 ## 0. Preamble
 
-1. Load lessons tagged `stage:change-request` from
-   `${CLAUDE_PLUGIN_ROOT}/knowledge/lessons.md`.
+1. Load applicable lessons: `${CLAUDE_PLUGIN_ROOT}/scripts/lessons.sh change-request` — it prints only
+   the matching entries; don't read lessons.md whole.
 2. Resolve `<work-repo>`, `<workspace-root>`, and the `<repo-set>` per
    `${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md` (cwd is not assumed to be
    the repo; sibling repos are in analysis scope by default), then create the
@@ -90,7 +90,9 @@ On approval: `status.py set <ws> mini-contract=approved --log "mini contract app
 2. Run the regression checks for the impacted callers from §1 — the change
    isn't verified until its callers still work.
 3. Capture everything to `evidence/` with
-   `${CLAUDE_PLUGIN_ROOT}/templates/test-evidence.md`.
+   `${CLAUDE_PLUGIN_ROOT}/templates/test-evidence.md`, running each command
+   through `${CLAUDE_PLUGIN_ROOT}/scripts/capture.sh` (raw logs land in `evidence/raw/`;
+   only its summary goes into the evidence file).
 4. All PASS → `status.py set <ws> verify=done`.
 
 ## 5. Deliver

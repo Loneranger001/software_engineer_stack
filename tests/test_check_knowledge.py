@@ -78,6 +78,19 @@ class CheckKnowledgeTest(unittest.TestCase):
         self.assertEqual(r.returncode, 1)
         self.assertIn("generated output", r.stderr)
 
+    def test_bare_skill_path_still_flagged(self):
+        self.write_decisions("- [2026-08-12] Added preflight in `research/SKILL.md` — task X\n")
+        r = self.check()
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("not a framework path", r.stderr)
+
+    def test_prose_directory_mention_ignored(self):
+        (self.repo / "skills" / "research" / "SKILL.md").write_text("v2\n")
+        self.write_decisions("- [2099-01-01] Raw logs go to `evidence/raw/` and `work/<id>/` "
+                             "via `skills/research/SKILL.md` — task X\n")
+        r = self.check()
+        self.assertEqual(r.returncode, 0, r.stderr)
+
     def test_pending_upstream_skips_git_check(self):
         self.write_decisions("- [2026-08-12] [pending-upstream] preflight — work/X/deliverables/framework-edits.patch\n")
         self.assertEqual(self.check().returncode, 0)

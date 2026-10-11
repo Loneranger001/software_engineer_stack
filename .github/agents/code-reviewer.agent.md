@@ -15,7 +15,8 @@ findings; never edit.
 
 - Work repo path, branch, mainline ref (take the diff yourself)
 - Task workspace path (scope-contract.md, tdd.md, impl-doc.md for intent;
-  evidence/ for what verification already ran)
+  evidence/ for what verification already ran — read the summary files;
+  open `evidence/raw/` logs only to check a specific claim)
 
 ## Review order (stop-the-line issues first)
 

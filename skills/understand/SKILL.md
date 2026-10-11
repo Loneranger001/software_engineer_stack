@@ -21,8 +21,8 @@ what anyone (comments, wikis, the user, folklore) believes it does.
 
 ## 0. Preamble
 
-1. Load lessons tagged `stage:understand` from
-   `${CLAUDE_PLUGIN_ROOT}/knowledge/lessons.md`.
+1. Load applicable lessons: `${CLAUDE_PLUGIN_ROOT}/scripts/lessons.sh understand` — it prints only
+   the matching entries; don't read lessons.md whole.
 2. Resolve `<work-repo>` and `<workspace-root>` per
    `${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md` — with a parent folder as
    cwd, ask which repo the interface lives in — then create the workspace:

@@ -15,6 +15,19 @@ fallback proves it parses and conforms. Every run produces an evidence file
 (`./templates/test-evidence.md`) into the task's
 `evidence/` directory (or `./verify-evidence/` when standalone).
 
+## Lessons and output capture (all recipes)
+
+- Load applicable lessons:
+  `./scripts/lessons.sh verify --lang <languages of the files>`.
+- Run every command below through `./scripts/capture.sh`:
+  `capture.sh <evidence-dir> <file>-<check> --grep '<errors>' -- <command>`.
+  It keeps the full output in `<evidence-dir>/raw/` and prints exit code,
+  line count, matching error lines, and the last 40 lines. That summary is
+  what goes into the evidence file and your context. Open a raw log only to
+  diagnose a failure, with `grep -n`/`sed -n` ranges — never `cat` it whole.
+  Error patterns: PL/SQL/SQL `'ORA-|PLS-|SP2-|Warning'`; KSH
+  `'syntax error|not found|SC[0-9]+'`; Python `'FAILED|ERROR|Traceback|error:'`.
+
 ## Environment resolution (all recipes)
 
 Resolve `<work-repo>` first, per
@@ -105,6 +118,8 @@ import-graph sanity and standards review.
 ## Output contract
 
 For each file verified, append to the evidence file: recipe used, mode
-(live/static-fallback), commands run, trimmed output, PASS/FAIL/PARTIAL, and
-the assertion that justifies the verdict. /implement and /change-request treat
+(live/static-fallback), the `capture.sh` summary per command (command, exit
+code, error-line matches, tail — plus the raw log path), PASS/FAIL/PARTIAL,
+and the assertion that justifies the verdict. Never paste a full raw log
+into the evidence file. /implement and /change-request treat
 anything but PASS as a blocker to resolve or escalate.

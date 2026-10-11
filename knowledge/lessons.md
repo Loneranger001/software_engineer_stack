@@ -1,7 +1,8 @@
 # Lessons
 
 > Append-only self-improvement memory, written by /retro. Every stack skill
-> reads this at start and applies entries matching its stage/language/repo.
+> loads the entries matching its stage/language/repo via `scripts/lessons.sh`
+> (never the whole file), so the tags below must be exact.
 >
 > Format (one line per lesson):
 > `- [YYYY-MM-DD] [stage:<stage>] [lang:<plsql|sql|ksh|python|->] [repo:<name|->] <actionable lesson> (task <id>)`

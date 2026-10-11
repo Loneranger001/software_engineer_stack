@@ -57,11 +57,21 @@ def section(text: str, heading: str) -> list[str]:
 
 
 def named_paths(entry: str) -> list[str]:
+    """Backticked tokens that claim to be edited files.
+
+    A token counts when it starts with a framework or generated directory, or
+    ends in a file extension (so a bare `research/SKILL.md` is still caught).
+    Prose like `evidence/raw/` or `work/<id>/` is a mention, not a claim.
+    """
     paths = []
     for tok in re.findall(r"`([^`]+)`", entry):
-        first = tok.split()[0]
-        if "/" in first or first in CANONICAL_FILES:
-            paths.append(first.rstrip(",.;:"))
+        first = tok.split()[0].rstrip(",.;:")
+        if first in CANONICAL_FILES:
+            paths.append(first)
+        elif "/" in first and (first.split("/")[0] in CANONICAL_DIRS
+                               or first.startswith(GENERATED_PREFIXES)
+                               or re.search(r"\.[A-Za-z0-9]+$", first)):
+            paths.append(first)
     return paths
 
 

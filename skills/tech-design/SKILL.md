@@ -15,8 +15,8 @@ for HOW the scope will be met.
 
 ## 0. Preamble
 
-1. Load lessons tagged `stage:tech-design` from
-   `${CLAUDE_PLUGIN_ROOT}/knowledge/lessons.md`.
+1. Load applicable lessons: `${CLAUDE_PLUGIN_ROOT}/scripts/lessons.sh tech-design` — it prints only
+   the matching entries; don't read lessons.md whole.
 2. Locate the workspace and gate:
    `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/status.py require <ws> research=done`
    (`<ws>` = `<workspace-root>/work/<id>`) — non-zero exit = stop. If research

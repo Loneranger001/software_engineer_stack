@@ -15,8 +15,8 @@ for HOW the scope will be met.
 
 ## 0. Preamble
 
-1. Load lessons tagged `stage:tech-design` from
-   `<plugin-root>/knowledge/lessons.md`.
+1. Load applicable lessons: `<plugin-root>/scripts/lessons.sh tech-design` — it prints only
+   the matching entries; don't read lessons.md whole.
 2. Locate the workspace and gate:
    `python3 <plugin-root>/scripts/status.py require <ws> research=done`
    (`<ws>` = `<workspace-root>/work/<id>`) — non-zero exit = stop. If research

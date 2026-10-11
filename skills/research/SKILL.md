@@ -15,7 +15,8 @@ confidently, with every finding traceable to a source.
 
 ## 0. Preamble
 
-1. Load lessons tagged `stage:research` from `${CLAUDE_PLUGIN_ROOT}/knowledge/lessons.md`.
+1. Load applicable lessons: `${CLAUDE_PLUGIN_ROOT}/scripts/lessons.sh research` — it prints only
+   the matching entries; don't read lessons.md whole.
 2. Locate the workspace: the given task-id, else the single `work/*/STATUS.md`
    with next action /research, else ask. Gate:
    `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/status.py require <ws> intake=approved`

@@ -16,8 +16,8 @@ session) with no memory of this conversation.
 
 ## 0. Preamble
 
-1. Load lessons tagged `stage:impl-plan` from
-   `${CLAUDE_PLUGIN_ROOT}/knowledge/lessons.md`.
+1. Load applicable lessons: `${CLAUDE_PLUGIN_ROOT}/scripts/lessons.sh impl-plan` — it prints only
+   the matching entries; don't read lessons.md whole.
 2. Locate the workspace and gate:
    `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/status.py require <ws> tech-design=approved grill=done,waived`
    (`<ws>` = `<workspace-root>/work/<id>`) — non-zero exit = stop. The impl
