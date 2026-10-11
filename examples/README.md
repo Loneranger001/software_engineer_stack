@@ -14,7 +14,10 @@ Two things live here:
 - **sample-task/** — a snapshot of a task workspace mid-pipeline (intake and
   research done, tech-design next), showing what the artifacts look like
   filled in: STATUS.md, an approved scope contract, and PARKED.md with a
-  real-shaped entry.
+  real-shaped entry. Its paths (`/home/you/workspace/…`) are illustrative, so
+  check it with `scripts/status.py validate examples/sample-task
+  --structure-only` and `scripts/handoff.py check examples/sample-task`; the
+  test suite does both, keeping the example in the current format.
 
 The sample repo has no live database; verification there exercises the
 static-fallback path (and `ksh -n`/`py_compile` where those tools exist).

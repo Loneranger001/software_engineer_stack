@@ -65,15 +65,20 @@ def runtime_scripts(stack: Path) -> list[Path]:
     return sorted({p for pat in RUNTIME_SCRIPTS for p in (stack / "scripts").glob(pat)})
 
 
-def copy_skill_support(src_dir: Path, dest_dir: Path) -> None:
-    """Copy a skill's non-SKILL.md files (utils/, assets/, ...) next to its generated SKILL.md."""
+def copy_skill_support(src_dir: Path, dest_dir: Path, root_ref: str) -> None:
+    """Copy a skill's non-SKILL.md files (assets/, reference .md files, ...) next to its
+    generated SKILL.md. Markdown files get the same ${CLAUDE_PLUGIN_ROOT} substitution as
+    SKILL.md, so a reference file a skill loads on demand points at the right paths."""
     for f in sorted(src_dir.rglob("*")):
         rel = f.relative_to(src_dir)
         if not f.is_file() or rel == Path("SKILL.md") or "__pycache__" in rel.parts or f.suffix == ".pyc":
             continue
         dest = dest_dir / rel
         dest.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(f, dest)
+        if f.suffix == ".md":
+            dest.write_text(f.read_text().replace("${CLAUDE_PLUGIN_ROOT}", root_ref))
+        else:
+            shutil.copy2(f, dest)
 
 PLUGIN_NOTE = (
     "> Path note: `<plugin-root>` is the directory containing this plugin's\n"
@@ -277,7 +282,7 @@ def build_plugin(stack: Path, skill_dirs: list[Path], agent_files: list[Path]) -
         dest.parent.mkdir(parents=True)
         dest.write_text(f"---\nname: {fm['name']}\ndescription: {yaml_str(fm['description'])}\n---\n"
                         f"<!-- {MARKER} -->\n{body}")
-        copy_skill_support(d, dest.parent)
+        copy_skill_support(d, dest.parent, "<plugin-root>")
 
     (out / "agents").mkdir()
     for f in agent_files:
@@ -506,7 +511,7 @@ def main() -> None:
                         build_prompt(fm, body, root_ref))
         write_generated(target / ".github" / "skills" / fm["name"] / "SKILL.md",
                         build_skill(fm, body, root_ref))
-        copy_skill_support(d, target / ".github" / "skills" / fm["name"])
+        copy_skill_support(d, target / ".github" / "skills" / fm["name"], root_ref)
 
     agent_files = sorted((stack / "agents").glob("*.md"))
     agent_names = []
