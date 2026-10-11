@@ -38,9 +38,9 @@
 {Who calls the affected objects, what they call. Include the queries or grep
 commands used to establish this, so the result is reproducible.}
 
-### Repo conventions that apply
+### Repo rules that apply
 
-{Relevant entries from each changed repo's <repo>/.conventions.md / standards/, e.g. naming, error handling,
+{Rules files per repo (scripts/repo-rules.sh output) and the relevant rules from them / standards/, e.g. naming, error handling,
 logging, deployment layout.}
 
 ## External research

@@ -11,9 +11,10 @@ and documentation. Full docs: README.md.
 1. Read `core/decision-protocol.md` first — it governs every unknown
    (check facts; proceed-and-log only narrow, reversible calls; otherwise ask)
    — and `core/repo-resolution.md`, which fixes where files are read and
-   written (`<work-repo>` = the repo holding `.git` and `.conventions.md`,
-   `<workspace-root>` = the directory holding `work/`; both recorded in
-   `STATUS.md`, neither assumed to be the current directory).
+   written (`<work-repo>` = the repo holding `.git`, whose own rules files
+   `scripts/repo-rules.sh` lists; `<workspace-root>` = the directory holding
+   `work/` — the folder holding the repos in a multi-repo workspace; both
+   recorded in `STATUS.md`, neither assumed to be the current directory).
 2. Each lifecycle stage is a self-contained instruction file. Execute the one
    matching the task:
 
@@ -27,7 +28,6 @@ and documentation. Full docs: README.md.
 | `/implement` | Execute the approved implementation document step by step on a task branch - code, verify each step against the live environment where available, capture evidence, checkpoint-commit, and pass code review. | `skills/implement/SKILL.md` |
 | `/intake` | Start a new engineering task from a solution design document or requirement brief. | `skills/intake/SKILL.md` |
 | `/meeting-minutes` | Create accurate, structured minutes of meeting from raw notes, transcripts, recordings converted to text, or an existing draft. | `skills/meeting-minutes/SKILL.md` |
-| `/repo-profile` | Scan a work repository and infer its conventions and standards into a cached .conventions.md that all other stack skills consult. | `skills/repo-profile/SKILL.md` |
 | `/research` | Investigate the codebase and external sources for the current task and produce source-referenced research notes. | `skills/research/SKILL.md` |
 | `/retro` | Close the self-improvement loop after a delivered task - capture structured lessons into the framework's knowledge base and propose concrete template/checklist/skill improvements for user approval. | `skills/retro/SKILL.md` |
 | `/tech-design` | Produce a technical design document (TDD) from the approved scope contract and research notes, with full requirements traceability and fact-checked claims. | `skills/tech-design/SKILL.md` |

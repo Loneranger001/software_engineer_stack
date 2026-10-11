@@ -8,5 +8,4 @@ Miniature work repo for trying the software-engineer-stack framework.
   validate row counts, publish
 - `tools/reconcile.py` — reconciles the extract file against the datamart load
 
-Try: open Claude Code here, then `/repo-profile`, then
-`/intake ../sample-brief.md DEMO-1`.
+Try: open Claude Code here, then `/intake ../sample-brief.md DEMO-1`.

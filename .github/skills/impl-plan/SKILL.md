@@ -43,9 +43,9 @@ session) with no memory of this conversation.
    verification (what /verify-code or which test proves it), and its OWN
    rollback note naming the exact revert action. Rollback for a multi-repo
    change is per repo AND in reverse dependency order.
-4. Name a task branch **per changed repo** (each following its own repo's
-   branch conventions from `<repo>/.conventions.md` — see
-   `./core/repo-resolution.md` — e.g. `feature/<task-id>`).
+4. Name a task branch **per changed repo**, each following that repo's
+   rules files (`repo-rules.sh`), else its existing branch naming (`git
+   branch -r`), else ask — e.g. `feature/<task-id>`.
    Only repos the scope contract lists as changing get a branch; if planning
    reveals another repo must change, that is a scope-contract amendment with
    the user's approval, not a new branch.
@@ -55,8 +55,8 @@ session) with no memory of this conversation.
 - Map every acceptance criterion A# to at least one test T#. A criterion
   without a test is a planning failure.
 - Reuse the repo's existing test tooling (utPLSQL, pytest, script harnesses —
-  see `<work-repo>/.conventions.md`); only introduce new tooling with user
-  agreement.
+  the rules files and `tooling:` lines from `repo-rules.sh`); only introduce
+  new tooling with user agreement.
 - Include regression: which existing behaviours are touched (from the TDD §6
   interface impact) and how each is re-checked.
 - For DB changes, specify before/after queries for the evidence bundle.

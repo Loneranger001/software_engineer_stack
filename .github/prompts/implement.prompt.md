@@ -21,8 +21,9 @@ committed before the next begins.
 2. Locate the workspace and gate:
    `python3 ./scripts/status.py require <ws> impl-plan=approved`
    (`<ws>` = `<workspace-root>/work/<id>`) — non-zero exit = stop.
-3. Read scope-contract.md, tdd.md, impl-doc.md, and the `.conventions.md` of
-   every repo the impl doc changes (paths from STATUS.md — see
+3. Read scope-contract.md, tdd.md, impl-doc.md, and the rules files of
+   every repo the impl doc changes (`./scripts/repo-rules.sh <repo>
+   <files>`; paths from STATUS.md — see
    `./core/repo-resolution.md`; git operations and test
    runs execute with the step's own repo as their working directory).
    Also read ASSUMPTIONS.md — you are building on its ratified entries.
@@ -60,9 +61,10 @@ committed before the next begins.
 
 For each impl-doc step N, in order:
 
-1. **Code** the step, in the repo the step names. Match the surrounding
-   code's conventions (that repo's `.conventions.md` overrides
-   `./standards/`). Touch only the files the step
+1. **Code** the step, in the repo the step names, following that repo's
+   rules files (`repo-rules.sh <repo> <files>` — nested AGENTS.md nearest
+   the file wins), then the surrounding code's style, then
+   `./standards/`. Touch only the files the step
    names — if the step turns out to need another file, update the impl-doc row
    first (append a note, don't rewrite history).
 2. **Verify** using the step's verification column — invoke the /verify-code

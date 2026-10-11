@@ -58,7 +58,7 @@
 
 ## Constraints
 
-- {e.g. no downtime; must follow each repo's conventions in <repo>/.conventions.md; delivery by …}
+- {e.g. no downtime; must follow each repo's rules files (scripts/repo-rules.sh <repo>); delivery by …}
 - {for multi-repo changes: required deploy order, and whether the window between repo deployments is acceptable}
 
 ## History

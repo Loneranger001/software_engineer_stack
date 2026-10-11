@@ -36,8 +36,10 @@ invoked inside a task, else the enclosing git repo of the current directory).
 Run every recipe with the working directory set to the repo the file under
 verification lives in — a test runner launched from a parent folder picks up
 the wrong config, or none, and in a multi-repo change each repo has its own
-tooling, its own venv, and its own `.conventions.md`. Evidence files name the
-repo per result.
+tooling, its own venv, and its own rules files. Evidence files name the
+repo per result. `${CLAUDE_PLUGIN_ROOT}/scripts/repo-rules.sh <repo> <files>` lists that repo's
+rules files and its tooling configs (`tooling:` lines) — run that tooling
+first.
 
 | Variable | Purpose |
 |---|---|
@@ -69,8 +71,8 @@ repo per result.
    (`ut.run('<schema>.<test_pkg>')`); otherwise run the impl-doc's test
    queries/anonymous blocks.
 
-**Static fallback**: careful read-through against `standards/plsql.md` +
-`<work-repo>/.conventions.md`: balanced blocks, exception handling present, no implicit
+**Static fallback**: careful read-through against the repo rules
+(`repo-rules.sh`) + `standards/plsql.md`: balanced blocks, exception handling present, no implicit
 commits in unexpected places, object/parameter naming. State clearly this did
 not compile anything.
 
@@ -106,8 +108,8 @@ through pipes, cleanup traps.
 
 **Live**:
 1. Interpreter: `$SES_PY` else the repo's venv else `python3`.
-2. Repo tooling first (from `<work-repo>/.conventions.md`): its pytest config, ruff/flake8,
-   mypy. Run the narrowest test selection covering the change, then the
+2. Repo tooling first (the `tooling:` lines from `repo-rules.sh`, plus what
+   the rules files say to run): its pytest config, ruff/flake8, mypy. Run the narrowest test selection covering the change, then the
    broader suite if fast.
 3. No repo tooling: `python -m py_compile <files>`, `ruff check` if available,
    and run the impl-doc's test snippets.

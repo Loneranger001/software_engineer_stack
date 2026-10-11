@@ -13,7 +13,7 @@
 - [ ] Every repo this task changes is clean, with its branch created: `{repo → branch}`
 - [ ] Repos changed here match the scope contract's "May change" column
 - [ ] Dev environment reachable ({SES_DB_CONN / SES_KSH_HOST as applicable}) — or static-fallback mode acknowledged
-- [ ] <work-repo>/.conventions.md present (run /repo-profile if not)
+- [ ] Rules files of every changed repo read (scripts/repo-rules.sh <repo>) — or none exist and standards/ applies
 
 ## 2. Implementation steps
 

@@ -22,7 +22,7 @@ verification, same scope discipline.
    `${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md` (cwd is not assumed to be
    the repo; sibling repos are in analysis scope by default), then create the
    workspace:
-   `${CLAUDE_PLUGIN_ROOT}/scripts/new-task.sh <task-id> <workspace-root> change-request <work-repo> <repo-set>`
+   `${CLAUDE_PLUGIN_ROOT}/scripts/new-task.sh <task-id> auto change-request <work-repo> <repo-set>`
    (or resume from an existing workspace, taking all of them from
    `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/status.py show <ws>`, where `<ws>` =
    `<workspace-root>/work/<id>`).
@@ -44,8 +44,9 @@ verification, same scope discipline.
    a claim, and on the fast path it is the claim most likely to be wrong,
    because the change looks small precisely when nobody has looked outside the
    obvious repo. Cite findings as `<repo>:<path>:<line>`.
-3. Read `<work-repo>/.conventions.md` (run /repo-profile if missing at that
-   path).
+3. Read the rules files `${CLAUDE_PLUGIN_ROOT}/scripts/repo-rules.sh <work-repo> <files>`
+   lists, and follow them; none listed → framework `standards/` plus the
+   surrounding code's style.
 4. Write `work/<id>/analysis.md`: current behaviour (source-referenced),
    callers found, blast radius, and the proposed change sketch. Then
    `status.py set <ws> analyze=done`.
@@ -74,12 +75,13 @@ On approval: `status.py set <ws> mini-contract=approved --log "mini contract app
 ## 3. Change
 
 0. Gate: `status.py require <ws> mini-contract=approved` — non-zero exit = stop.
-1. Branch per repo conventions; one commit per logical unit referencing the
+1. Branch per the repo rules (else the repo's existing branch naming); one commit per logical unit referencing the
    task id. Only the repos the mini contract names are touched — a caller
    found in another repo is reported, not quietly fixed.
 2. Surgical diff only. Anything else you itch to fix → PARKED.md.
-3. Match surrounding code style over the standards defaults — the conventions
-   of the repo the file lives in, which is not necessarily `<work-repo>`.
+3. Follow the rules of the repo the file lives in (`repo-rules.sh <repo>
+   <file>` — not necessarily `<work-repo>`'s), then the surrounding code's
+   style, then the standards defaults.
 4. Record the branch (`status.py field <ws> branch.<repo-name> <branch>`) and
    `status.py set <ws> change=done`.
 

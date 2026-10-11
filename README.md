@@ -31,7 +31,6 @@ flowchart LR
 | `/change-request <desc>` | Fast path for small changes: impact analysis → mini scope contract → change → verify → deliver | Inline approvals |
 | `/understand <interface>` | Build a code-verified working understanding of any existing interface or integration: trace it end-to-end, map dependencies both directions, explain it in layers, answer follow-ups from the code | — |
 | `/document <type> <target>` | Produce a how-to, KB article, or understanding document for an existing interface | Fact-checker passes |
-| `/repo-profile` | Scan a work repo: conventions into `.conventions.md`, core business entities seeded into `.domain-glossary.md` | — |
 | `/verify-code <files>` | Run per-language verification (live DB/host where available, static fallback) | — |
 | `/retro` | Capture lessons from a finished task into the framework's knowledge base | User approves framework edits |
 
@@ -114,7 +113,7 @@ work/PROJ-123/
 └── deliverables/      # converted docx / pdf / Confluence outputs
 ```
 
-`STATUS.md` is the resume point: if a session dies mid-stage, rerun the same command and the skill picks up from the recorded state. Add `work/` to the work repo's `.gitignore` if workspaces shouldn't be committed there.
+`STATUS.md` is the resume point: if a session dies mid-stage, rerun the same command and the skill picks up from the recorded state. In a multi-repo workspace `work/` sits in the folder holding the repos, beside them rather than inside one (`scripts/workspace-root.sh`; pin it with `SES_WORKSPACE_ROOT`). A standalone repo keeps `work/` inside itself — add it to that repo's `.gitignore` if workspaces shouldn't be committed. Workspaces created before this rule keep the root recorded in their `STATUS.md`; to move one, move the directory and run `scripts/status.py field <ws> workspace-root <new-root>`.
 
 Skills never judge a gate by reading `STATUS.md` themselves — they call `scripts/status.py`, which exits non-zero when a gate isn't met and rewrites the file atomically on every transition:
 
@@ -130,16 +129,22 @@ States are `pending | in-progress | done | approved | waived` (a waiver carries 
 
 ### Which repo is "the repo"
 
-Two paths every stage resolves before touching anything, per [core/repo-resolution.md](core/repo-resolution.md): **`<work-repo>`** (the directory holding `.git`, and with it `.conventions.md` and `.domain-glossary.md`) and **`<workspace-root>`** (the directory holding `work/`, defaulting to `<work-repo>`). Both are recorded absolutised in `STATUS.md` at scaffold time, and later stages read them from there rather than re-deriving from their own working directory.
+Two paths every stage resolves before touching anything, per [core/repo-resolution.md](core/repo-resolution.md): **`<work-repo>`** (the directory holding `.git`, its own rules files, and `.domain-glossary.md`) and **`<workspace-root>`** (the directory holding `work/` — the folder holding the repos in a multi-repo workspace, else the repo). Both are recorded absolutised in `STATUS.md` at scaffold time, and later stages read them from there rather than re-deriving from their own working directory.
 
-This matters when your editor workspace is a **parent folder containing several repos** — a supported layout, and the one case where the session's current directory is not a repo at all. There, each repo keeps its own `.conventions.md` (conventions are a property of a repo, not of the workspace), stages take repo-level paths as `<work-repo>/.conventions.md`, and a stage with no `STATUS.md` to read will ask which repo the task is about instead of guessing. See [Q&A #21](docs/QA.md).
+This matters when your editor workspace is a **parent folder containing several repos** — a supported layout, and the one case where the session's current directory is not a repo at all. There, `work/` lives in that parent folder, each repo's own rules files apply to code in that repo (rules are a property of a repo, not of the workspace), stages address repo-level paths with the `<work-repo>/` prefix, and a stage with no `STATUS.md` to read will ask which repo the task is about instead of guessing. See [Q&A #21](docs/QA.md).
+
+### Each repo's own rules files
+
+Stages follow the rules a repo's team already wrote instead of a framework-generated cache. `scripts/repo-rules.sh <repo> [changed files]` lists them: `AGENTS.md`, `CLAUDE.md`, `CODING_STANDARDS.md`, `STANDARDS.md`, `STYLEGUIDE.md`, `CONVENTIONS.md`, `CONTRIBUTING.md` (case-insensitive, at the root or under `docs/`), `.github/copilot-instructions.md` and `.github/instructions/*.instructions.md`, plus nested `AGENTS.md`/`CLAUDE.md` above each changed file. It also lists tooling configs (`pyproject.toml`, `.shellcheckrc`, `.pre-commit-config.yaml`, …) for `/verify-code` to run. Files this framework generated are skipped.
+
+Precedence: nested `AGENTS.md` nearest the file > the repo's root rules > the surrounding file's style (for what the rules leave open) > framework `standards/`. Untouched lines are never restyled to satisfy a rule, and two rules files that contradict each other are raised as a question. The framework never edits a repo's rules files; `/retro` proposes additions for you to commit.
 
 ### Analysis spans every repo; writing doesn't
 
 Repos share a workspace because they talk to each other, so a task's **analysis** scope is wider than its **write** scope:
 
 - **`<repo-set>`** — every repo under the workspace folder (enumerated by `scripts/list-repos.sh`, recorded in `STATUS.md`). Impact analysis, caller/dependent searches, call graphs, and dependency maps run across ALL of them. A repo searched with no hits is reported as *searched, no references found*, with the command — because a repo nobody searched and a repo with no callers produce the same silence. References are qualified `<repo>:<path>:<line>`.
-- **`<changed-repos>`** — the subset the scope contract says may be modified. It starts as the primary repo and grows only with the user's approval at a gate. Each changed repo gets its own branch and follows its own conventions; the impl doc names a repo per step and states the cross-repo deploy order.
+- **`<changed-repos>`** — the subset the scope contract says may be modified. It starts as the primary repo and grows only with the user's approval at a gate. Each changed repo gets its own branch and follows its own rules files; the impl doc names a repo per step and states the cross-repo deploy order.
 
 Excluding a repo from analysis is a user decision recorded in the contract, never an inference from a repo looking unrelated. See [Q&A #22](docs/QA.md).
 
@@ -193,11 +198,12 @@ agents/       scope-auditor, code-reviewer, doc-fact-checker (read-only reviewer
 templates/    canonical Markdown templates for every document type
 core/         decision-protocol.md (what to do when unknown), repo-resolution.md (where the files are —
               the rules card skills load; repo-resolution-rationale.md holds the why)
-standards/    default coding standards per language (a repo's .conventions.md overrides them)
+standards/    default coding standards per language (a repo's own rules files override them)
 checklists/   per-stage quality gates
 knowledge/    lessons.md (self-improvement memory), decisions.md (framework decision log)
 docs/         QA.md (design Q&A + testing guide), walkthrough.md (narrated example task)
 scripts/      new-task.sh, status.py (gate checks + transitions), list-repos.sh (analysis scope),
+              workspace-root.sh (where work/ goes), repo-rules.sh (a repo's rules files + tooling),
               lessons.sh (stage-filtered lessons), capture.sh (bounded evidence capture, raw logs on disk),
               md2docx.sh, md2pdf.sh, md2confluence.sh; build_copilot.py + check_knowledge.py (maintenance)
 tests/        unittest suite for the scripts (run by CI and the pre-commit hook)

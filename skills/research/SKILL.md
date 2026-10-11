@@ -17,8 +17,9 @@ confidently, with every finding traceable to a source.
 
 1. Load applicable lessons: `${CLAUDE_PLUGIN_ROOT}/scripts/lessons.sh research` — it prints only
    the matching entries; don't read lessons.md whole.
-2. Locate the workspace: the given task-id, else the single `work/*/STATUS.md`
-   with next action /research, else ask. Gate:
+2. Locate the workspace: the given task-id, else the single
+   `<workspace-root>/work/*/STATUS.md` with next action /research, else ask.
+   Gate:
    `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/status.py require <ws> intake=approved`
    (`<ws>` = `<workspace-root>/work/<id>`) — a non-zero exit means stop and
    direct the user to /intake; never overrule it by reading the file yourself. Take `work-repo`,
@@ -39,8 +40,9 @@ confidently, with every finding traceable to a source.
      omit the tables, views, and consumers that mainline has. Record per repo
      the ref and SHA searched; a failed fetch is recorded as "searched a
      possibly-stale local ref", never silently skipped.
-   - A repo without `.conventions.md` is profiled (/repo-profile) before
-     design, or the user explicitly waives it — recorded in research notes.
+   - Run `${CLAUDE_PLUGIN_ROOT}/scripts/repo-rules.sh <repo>` for each repo and record what it
+     lists. A repo with no rules files is noted in research notes (framework
+     `standards/` and its surrounding code's style will apply).
 
 ## 1. Codebase investigation
 
@@ -63,9 +65,9 @@ expand it:
 3. **Data model**: for each touched table/view, capture relevant columns,
    constraints, indexes, and (if the dev DB is reachable via `$SES_DB_CONN`)
    row volumes. Store queries + outputs in `evidence/research-*.txt`.
-4. **Conventions**: read `<work-repo>/.conventions.md` (run /repo-profile first
-   if genuinely missing at that path) and note which conventions bind this
-   change.
+4. **Repo rules**: read the rules files `repo-rules.sh` listed for each
+   changed repo and note which rules bind this change (and any two files that
+   contradict each other — an open question).
 5. **Term grounding**: for every business term intake marked as a research
    target (and any new ones you meet), establish what it IS in this system —
    tables + key columns, state values, the code paths that implement its verbs

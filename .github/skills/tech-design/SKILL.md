@@ -32,9 +32,9 @@ for HOW the scope will be met.
    §10 Alternatives; if you deviate from the research recommendation, say why.
 3. Fill §2 traceability FIRST: every in-scope item → the design section that
    will satisfy it. If an item has no natural home, the design is incomplete.
-4. Design each component against the conventions of the repo it lands in
-   (`<repo>/.conventions.md` — a component designed for a sibling repo follows
-   that repo's rules, not the primary repo's; else
+4. Design each component against the rules of the repo it lands in
+   (its rules files per `repo-rules.sh` — a component designed for a sibling
+   repo follows that repo's rules, not the primary repo's; else
    `./standards/<language>.md`): naming, error
    handling, logging, transaction boundaries. Business terms in the TDD
    reference their `<work-repo>/.domain-glossary.md` entries (§1 Overview lists the terms

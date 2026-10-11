@@ -45,10 +45,10 @@ Rules:
 - Append-only; never rewrite or delete existing lessons here (pruning happens
   in §4 curation with the user).
 - Tag precisely — the tags are how other skills filter for relevance.
-- Repo-specific lessons that are really CONVENTIONS belong in
-  `<work-repo>/.conventions.md` instead (`<work-repo>` from STATUS.md — see
-  `<plugin-root>/core/repo-resolution.md`); put them there and note
-  the move.
+- Repo-specific lessons that are really coding RULES belong in that repo's
+  own rules files (AGENTS.md, CODING_STANDARDS.md, … — `repo-rules.sh`
+  lists them). Those files are the team's: propose the exact addition to the
+  user for them to commit; never edit them as part of the retro.
 - Term resolutions that only made it into the grill log or conversation get
   promoted to `<work-repo>/.domain-glossary.md` now (marked `user-confirmed`
   with this task id) — glossary memory is the cheapest self-improvement there is.

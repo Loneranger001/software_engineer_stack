@@ -35,11 +35,14 @@ the user has explicitly approved. Nothing downstream may begin before that appro
 ## 1. Create the workspace
 
 1. Ask for a task id if none was given (Jira key or short slug).
-2. Run `${CLAUDE_PLUGIN_ROOT}/scripts/new-task.sh <task-id> <workspace-root> full <work-repo> <repo-set>`
+2. Run `${CLAUDE_PLUGIN_ROOT}/scripts/new-task.sh <task-id> auto full <work-repo> <repo-set>`
    (`<repo-set>` comma-separated — it lands in STATUS.md as the recorded
    analysis scope every later stage searches).
-   - Workspace root defaults to the work repo. If `work/` shouldn't be committed
-     there, remind the user to gitignore it (don't edit .gitignore unasked).
+   - Pass `auto` as `<workspace-root>`: `work/` goes in the folder holding
+     the repos (multi-repo workspace) or the repo itself (standalone) — see
+     `${CLAUDE_PLUGIN_ROOT}/scripts/workspace-root.sh`. Only when it lands
+     inside a repo, remind the user to gitignore `work/` (don't edit
+     .gitignore unasked).
    - Both paths land in STATUS.md absolutised; every later stage reads them
      from there instead of re-deriving from its own cwd.
    - If the workspace already exists, read it with
@@ -85,9 +88,9 @@ the user has explicitly approved. Nothing downstream may begin before that appro
 - Fill the contract's "Repos" section: which repos are analyzed, which are
   expected to CHANGE (the write scope — everything else is read-only context),
   and any repo excluded from analysis with the user's reason.
-- If `<work-repo>/.conventions.md` is missing, suggest running /repo-profile
-  after intake — and check the path, not the bare filename: under a multi-repo
-  parent folder a profiled repo looks unprofiled from cwd.
+- Run `${CLAUDE_PLUGIN_ROOT}/scripts/repo-rules.sh <repo>` for each repo expected to change
+  and note the rules files it lists in the contract's constraints; a repo with
+  none falls back to framework `standards/` and its surrounding code.
 
 ## 4. Draft the scope contract
 

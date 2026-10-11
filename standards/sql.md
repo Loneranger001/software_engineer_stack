@@ -1,6 +1,6 @@
 # SQL default standards
 
-> Framework defaults; `.conventions.md` and the surrounding file win.
+> Framework defaults; the repo's rules files (scripts/repo-rules.sh) and the surrounding file win.
 
 ## Style
 
