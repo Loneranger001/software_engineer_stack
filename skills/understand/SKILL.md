@@ -118,53 +118,14 @@ why they belong on the map.
 
 `status.py set <ws> map=done`.
 
-## 4. Explain in layers
+## 4–6. Explain, Q&A, close — load `explain.md`
 
-Present the interface in conversation, top-down, so the user can stop at the
-depth they need:
-
-1. **One paragraph** — what it exists to do, in business terms.
-2. **At a glance** — trigger/schedule, inputs, outputs, key configuration.
-3. **Flow walkthrough** — the mermaid flow plus a narrative of the main path.
-4. **Dependency picture** — what feeds it, what would break without it.
-5. **Failure & recovery** — how it fails, how you know, how it restarts.
-
-Tie statements visibly to sources (`file:line` inline) — the references are
-what lets the user trust the explanation and jump into the code themselves.
-Label `INFERRED` items and open questions honestly: an admitted gap keeps
-trust; a confident guess destroys it the first time the user checks.
-
-If the user opened with a specific question, answer that first — with its
-evidence — then offer the layers around it.
-
-`status.py set <ws> explain=done`.
-
-## 5. Q&A until the model holds
-
-Understanding is interactive; expect follow-ups and treat them as the point
-of the exercise, not an interruption.
-
-- Answer every follow-up from the code (or a fresh run), not from memory of
-  your own summary; add each new fact to the fact table and, when it changes
-  the picture, to the map's diagrams/tables.
-- "What if" questions ("what happens if the feed is late", "what breaks if
-  we rename this column") are answered by tracing the actual handling path;
-  say clearly where the trace ends and reasoning beyond the evidence begins.
-- Business meanings confirmed along the way go into
-  `<work-repo>/.domain-glossary.md` (marked `from-code`, template:
-  `${CLAUDE_PLUGIN_ROOT}/templates/domain-glossary.md`) so the next task
-  doesn't re-derive them.
-- Findings that suggest work — bugs, dead code, risky patterns — go to
-  PARKED.md and are mentioned to the user; never act on them here.
-
-## 6. Close and hand off
-
-1. Make sure interface-map.md reflects everything learned, including Q&A
-   discoveries, and log remaining open questions in it.
-2. Offer the natural next steps where they fit — a formal
-   `/document understanding-doc` (its analyze stage reuses this map), a
-   `/change-request`, or a full `/intake` — but don't push: understanding
-   alone is a complete outcome.
+When `map=done`, read `explain.md` in this skill's directory
+(`${CLAUDE_PLUGIN_ROOT}/skills/understand/explain.md`) and follow it: §4
+explain in layers, §5 Q&A until the model holds, §6 close and hand off. It is
+kept separate so the investigation stages above load without it; a run that
+stops at the map never needs it. If the user opened with a specific question,
+§4 says to answer that first — with its evidence.
 
 ## Fault tolerance
 

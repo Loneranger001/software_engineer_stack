@@ -17,7 +17,9 @@ Usage:
                                                      set a header field (branch.<repo>, current-step, ...)
     status.py next     <ws> TEXT                     replace the Next action paragraph
     status.py log      <ws> TEXT                     append a timestamped log line
-    status.py validate <ws>                          check structure; exit 1 on problems
+    status.py validate <ws> [--structure-only]       check structure; exit 1 on problems
+                                                     (--structure-only: skip path existence, for
+                                                     illustrative workspaces like examples/)
 
 <ws> is the task workspace directory (work/<task-id>) or its STATUS.md.
 
@@ -174,12 +176,12 @@ class Status:
 
     # --- checks --------------------------------------------------------------
 
-    def problems(self) -> list[str]:
+    def problems(self, check_paths: bool = True) -> list[str]:
         out = []
         for f in ("task-id", "pipeline", "work-repo", "workspace-root"):
             if f not in self.fields:
                 out.append(f"missing header field '{f}'")
-        for f in ("work-repo", "workspace-root"):
+        for f in ("work-repo", "workspace-root") if check_paths else ():
             if f in self.fields:
                 v = self.field(f)
                 if not os.path.isabs(v):
@@ -333,7 +335,9 @@ def main(argv: list[str]) -> int:
         return 0
 
     if cmd == "validate":
-        probs = st.problems()
+        if rest not in ([], ["--structure-only"]):
+            raise StatusError("usage: validate <ws> [--structure-only]")
+        probs = st.problems(check_paths=not rest)
         for p in probs:
             print(f"problem: {p}", file=sys.stderr)
         if not probs:
