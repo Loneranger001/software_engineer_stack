@@ -46,12 +46,12 @@ and documentation. Full docs: README.md.
    judgment calls, `evidence/` = verification outputs). Stage gates are
    checked and recorded with `scripts/status.py` (`require` exits non-zero
    when a gate is not met), never by reading or editing STATUS.md by eye.
+5. Review procedures in `agents/` (scope-auditor, code-reviewer,
+   doc-fact-checker) run as subagents where supported — Claude Code agents
+   natively, Copilot custom agents via the generated `.github/agents/` — and
+   as separate fresh passes held to their report formats everywhere else.
 6. Framework changes: edit the canonical files (`skills/`, `agents/`,
    `templates/`, `checklists/`, `core/`, `standards/`, `scripts/`), then run
    `python3 scripts/build_copilot.py` and commit the regenerated output. CI
    and `.githooks/pre-commit` run `build_copilot.py --check`,
    `scripts/check_knowledge.py`, and the tests in `tests/`.
-5. Review procedures in `agents/` (scope-auditor, code-reviewer,
-   doc-fact-checker) run as subagents where supported — Claude Code agents
-   natively, Copilot custom agents via the generated `.github/agents/` — and
-   as separate fresh passes held to their report formats everywhere else.
