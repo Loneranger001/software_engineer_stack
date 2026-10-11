@@ -50,8 +50,12 @@ it only when a case here is ambiguous.
 
 **Analysis covers every repo in `<repo-set>`**
 - Enumerate first and record the list (STATUS `repos-analyzed` + notes).
-- Search every repo; record the command per repo. Zero hits is reported as
-  "searched, no references found" with the command — never omitted.
+- Search every repo with `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/xsearch.py --ws <ws>
+  [--ref origin/<mainline>] -- <patterns>`: counts first, one command and
+  sha recorded per repo, zero hits reported as "searched, no references
+  found" — never omitted. Open only the files that matter (`git grep -n …
+  -- <path>`). A recorded search row may be reused while that repo's sha is
+  unchanged; re-search only repos whose sha moved.
 - Cite `<repo>:<path>:<line>`, never bare `file:line`.
 - Read each repo's own repo rules and `.domain-glossary.md`; the same term
   meaning different things in two repos is a finding to raise.

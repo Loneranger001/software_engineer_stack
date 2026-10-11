@@ -148,6 +148,8 @@ Repos share a workspace because they talk to each other, so a task's **analysis*
 - **`<repo-set>`** — every repo under the workspace folder (enumerated by `scripts/list-repos.sh`, recorded in `STATUS.md`). Impact analysis, caller/dependent searches, call graphs, and dependency maps run across ALL of them. A repo searched with no hits is reported as *searched, no references found*, with the command — because a repo nobody searched and a repo with no callers produce the same silence. References are qualified `<repo>:<path>:<line>`.
 - **`<changed-repos>`** — the subset the scope contract says may be modified. It starts as the primary repo and grows only with the user's approval at a gate. Each changed repo gets its own branch and follows its own rules files; the impl doc names a repo per step and states the cross-repo deploy order.
 
+Searches go through `scripts/xsearch.py --ws <ws> [--ref origin/<mainline>] -- <patterns>`: one command per repo, counts and top files first (full per-file list with `--save`), and ready-made rows for the research notes' search record, each carrying the commit searched — so a later stage reuses a row while that repo hasn't moved and re-searches only the repos that have. Reviews go through `scripts/review-diff.sh <repo> <mainline> <branch>`: a `--stat`-style plan first, then one file at a time with `--file`, with workspace, evidence, framework-generated and lockfiles listed but not read.
+
 Excluding a repo from analysis is a user decision recorded in the contract, never an inference from a repo looking unrelated. See [Q&A #22](docs/QA.md).
 
 ## The four guarantees
@@ -207,6 +209,8 @@ docs/         QA.md (design Q&A + testing guide), walkthrough.md (narrated examp
 scripts/      new-task.sh, status.py (gate checks + transitions), list-repos.sh (analysis scope),
               workspace-root.sh (where work/ goes), repo-rules.sh (a repo's rules files + tooling),
               handoff.py (read/check the handoff summary atop each stage document),
+              checkpoint.py (resume + evidence hashes), xsearch.py (count-first search across
+              every analyzed repo), review-diff.sh (stat-first, file-by-file review of a branch),
               lessons.sh (stage-filtered lessons), capture.sh (bounded evidence capture, raw logs on disk),
               md2docx.sh, md2pdf.sh, md2confluence.sh; build_copilot.py + check_knowledge.py (maintenance)
 tests/        unittest suite for the scripts (run by CI and the pre-commit hook)

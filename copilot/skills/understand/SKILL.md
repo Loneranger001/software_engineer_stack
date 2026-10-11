@@ -105,7 +105,9 @@ why they belong on the map.
 2. **Downstream**: what consumes or depends on it — grep for its outputs,
    its package/proc names, its file names, its table writes.
 3. **Associated objects**: wrappers, shared packages, DDL, monitoring hooks.
-4. Record the exact greps/queries used **per repo** so the map is reproducible
+4. Search with `python3 <plugin-root>/scripts/xsearch.py --ws <ws> -- <patterns>` (counts
+   first, every repo, then open the hits that matter) and record its per-repo
+   rows — command and sha — so the map is reproducible
    — "nothing depends on this" requires showing the search that found nothing,
    in each repo it was run against. Qualify nodes and references with their
    repo (`<repo>:<path>:<line>`), and group the diagram's nodes by repo so a

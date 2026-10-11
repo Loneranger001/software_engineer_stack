@@ -33,9 +33,9 @@ confidently, with every finding traceable to a source.
 5. **Cross-repo preflight (mandatory, before §1).** For EVERY repo in
    `<repo-set>` — not only the repo the contract nominates:
    - Refresh and search the mainline, not just the checkout:
-     `git -C <repo> fetch origin <mainline>` then search `origin/<mainline>`
-     (`git -C <repo> grep -n <term> origin/<mainline> --`) as well as the
-     working tree. A nominated repo, a stale clone, or a feature branch can
+     `git -C <repo> fetch origin <mainline>`, then run every search below
+     with `xsearch.py --ref origin/<mainline>` as well as without (the
+     working tree). A nominated repo, a stale clone, or a feature branch can
      omit the tables, views, and consumers that mainline has. Record per repo
      the ref and SHA searched; a failed fetch is recorded as "searched a
      possibly-stale local ref", never silently skipped.
@@ -57,8 +57,13 @@ expand it:
    and what they call. Run each search in EVERY repo the analysis scope names
    — a caller in a sibling repo is exactly what this stage exists to find, and
    a search that never visited that repo reports the same "no callers" as a
-   search that did. Record per repo: the exact command and its result,
-   including the repos where it found nothing (`searched, no references`).
+   search that did. Use
+   `python3 ./scripts/xsearch.py --ws <ws> [--ref origin/<mainline>] --save
+   <ws>/evidence/research-search-<term>.txt -- <patterns>`: it searches every
+   repo, prints counts and the top files, and ends with the rows for the
+   Cross-repo search record (repo, ref@sha, command, result — including
+   `searched, no references found`). Paste those rows; then open only the
+   files that matter with `git -C <repo> grep -n -e <pattern> -- <path>`.
    Reference every finding as `<repo>:<path>:<line>` — bare `file:line` is
    ambiguous once two repos are in play.
 3. **Data model**: for each touched table/view, capture relevant columns,

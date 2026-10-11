@@ -38,9 +38,12 @@ verification, same scope discipline.
 2. Find ALL callers and dependents **in every repo of `<repo-set>`** (from
    STATUS.md, else enumerate with
    `${CLAUDE_PLUGIN_ROOT}/scripts/list-repos.sh <repos-folder>` and record the
-   list): grep for object/proc/script names, check imports, scheduler
-   references, config and deployment manifests. Record the exact commands per
-   repo, including repos that returned nothing — "no other repo uses this" is
+   list): search object/proc/script names, imports, scheduler references,
+   config and deployment manifests with
+   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/xsearch.py --ws <ws> -- <patterns>` — counts first in every
+   repo, then open only the hits that matter. Paste its per-repo rows
+   (command, sha, result) into analysis.md, including repos that returned
+   nothing — "no other repo uses this" is
    a claim, and on the fast path it is the claim most likely to be wrong,
    because the change looks small precisely when nobody has looked outside the
    obvious repo. Cite findings as `<repo>:<path>:<line>`.

@@ -27,8 +27,11 @@ only (git diff/log/show, ls) — never commands that modify anything.
 
 1. Read the scope contract fully: in-scope items S#, exclusions N#, acceptance
    criteria A#, and its version history.
-2. **Diff → scope mapping**: for every changed file/hunk, identify the scope
-   item it serves. Use the impl-doc's step table as the claimed mapping, then
+2. **Diff → scope mapping**: start from
+   `<plugin-root>/scripts/review-diff.sh <repo> <mainline> <branch>` per changed repo
+   (file list with counts; read each file's diff with `--file`). For every
+   changed file/hunk — skipped files included, since their presence alone
+   can be a breach — identify the scope item it serves. Use the impl-doc's step table as the claimed mapping, then
    verify the claim against the actual hunks — don't take the doc's word.
 3. **Scope → diff mapping**: for every in-scope item, confirm work exists that
    plausibly satisfies it, and every acceptance criterion has an evidence file
