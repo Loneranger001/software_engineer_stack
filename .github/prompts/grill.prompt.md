@@ -17,9 +17,8 @@ proving which scenarios were confronted.
 
 ## 0. Preamble
 
-1. Load lessons tagged `stage:grill` from
-   `./knowledge/lessons.md` — prior corrected assumptions
-   and missed edge cases are exactly the scenarios to re-run.
+1. Load applicable lessons: `./scripts/lessons.sh grill` — prior corrected
+   assumptions and missed edge cases are exactly the scenarios to re-run.
 2. Locate the workspace and gate:
    `python3 ./scripts/status.py require <ws> tech-design=approved`
    (`<ws>` = `<workspace-root>/work/<id>`). Grilling an unapproved draft is

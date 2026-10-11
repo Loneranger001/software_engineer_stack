@@ -12,8 +12,9 @@ the user has explicitly approved. Nothing downstream may begin before that appro
 
 ## 0. Preamble (every stack skill starts this way)
 
-1. Read `./knowledge/lessons.md` and note lessons tagged
-   `stage:intake` or matching this repo/language mix. Apply them.
+1. Load applicable lessons: `./scripts/lessons.sh intake`,
+   re-run with `--repo <work-repo name> --lang <languages>` once step 2 and
+   the brief tell you them. Apply them; don't read lessons.md whole.
 2. Resolve `<work-repo>`, `<workspace-root>`, and the `<repo-set>` per
    `./core/repo-resolution.md` — do NOT assume the current
    directory is the repo. If cwd is a parent folder holding several repos, ask

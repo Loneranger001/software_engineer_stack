@@ -18,8 +18,9 @@ framework itself.
 
 1. Locate the workspace; read STATUS.md's log end-to-end (it records every
    stage transition and stumble), PARKED.md, ASSUMPTIONS.md (corrected
-   entries = over-confidence, see decision-protocol §5), evidence/
-   (failed-then-fixed verifications are lessons), and the conversation
+   entries = over-confidence, see decision-protocol §5), the evidence/
+   summaries (failed-then-fixed verifications are lessons; open `raw/` logs
+   only for a specific failure), and the conversation
    context if available.
 2. Ask the user 2–3 pointed questions (batch them): What cost the most time?
    What did the framework get wrong or make awkward? What almost shipped

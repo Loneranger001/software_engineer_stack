@@ -15,8 +15,9 @@ committed before the next begins.
 
 ## 0. Preamble
 
-1. Load lessons tagged `stage:implement` and the languages involved from
-   `./knowledge/lessons.md`.
+1. Load applicable lessons:
+   `./scripts/lessons.sh implement --lang <languages the impl doc touches>`
+   — the language filter pulls in verify-stage lessons for that code too.
 2. Locate the workspace and gate:
    `python3 ./scripts/status.py require <ws> impl-plan=approved`
    (`<ws>` = `<workspace-root>/work/<id>`) — non-zero exit = stop.
@@ -67,8 +68,10 @@ For each impl-doc step N, in order:
 2. **Verify** using the step's verification column — invoke the /verify-code
    recipes for each changed file (live mode via `$SES_DB_CONN`/`$SES_KSH_HOST`/
    `$SES_PY` when reachable; static fallback otherwise, recorded as such).
-   Capture output to `evidence/step<N>-<desc>.txt` using
-   `./templates/test-evidence.md`.
+   Run each command through `./scripts/capture.sh` and
+   write `evidence/step<N>-<desc>.txt` from its summary using
+   `./templates/test-evidence.md`; the full output stays
+   in `evidence/raw/`.
 3. **On failure**: fix and re-verify. If the fix invalidates the design, STOP —
    report to the user, propose a TDD/impl-doc amendment, get approval before
    continuing. Never quietly diverge from the approved documents.
@@ -92,8 +95,9 @@ notice along the way go to PARKED.md — even one-line "harmless" fixes.
 ## 3. Test plan execution
 
 After the last step, run the full impl-doc test plan (unit, integration,
-regression). Capture results to `evidence/tests-<date>.txt`. Every acceptance
-criterion must reach PASS; failures loop back to the step loop.
+regression) through `capture.sh`, summary to `evidence/tests-<date>.txt`.
+Every acceptance criterion must reach PASS; failures loop back to the step
+loop.
 
 ## 4. Review gate
 
