@@ -45,7 +45,9 @@ category; a category that truly cannot apply is marked `n/a` with a reason.
 - **Lifecycle**: rerun with same input (idempotency), restart after mid-run
   failure, concurrent execution, partial success/failure ordering
 - **Interface**: callers sending the old format, missing/extra fields,
-  consumers NOT in the research call graph, contract version skew
+  consumers NOT in the research call graph (search with broader patterns via
+  `xsearch.py`; reuse research's recorded rows for repos whose sha is
+  unchanged), contract version skew
 - **Temporal**: date boundaries, month/year-end, DST/timezone, late-arriving
   or backdated data
 - **Environment**: DB unreachable mid-run, missing config/env var, disk

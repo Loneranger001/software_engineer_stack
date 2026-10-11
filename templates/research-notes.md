@@ -38,11 +38,12 @@
 
 <!-- Every repo in the analysis scope, including those with no hits — a repo -->
 <!-- that was never searched and a repo with no callers look identical in a -->
-<!-- summary, and only this table tells them apart. -->
-| Repo | Search command | Result |
-|---|---|---|
-| {repo-a} | {grep -rn "PKG_X" .} | {4 references — see call graph} |
-| {repo-b} | {grep -rn "PKG_X" .} | {searched, no references found} |
+<!-- summary, and only this table tells them apart. Rows come from -->
+<!-- scripts/xsearch.py; later stages reuse a row while its sha is unchanged. -->
+| Repo | Ref@sha | Search command | Result |
+|---|---|---|---|
+| {repo-a} | {origin/main@1a2b3c4} | {git -C … grep -c -I -E -e PKG_X origin/main --} | {4 match(es) in 2 file(s) — see call graph} |
+| {repo-b} | {origin/main@5d6e7f8} | {git -C … grep -c -I -E -e PKG_X origin/main --} | {searched, no references found} |
 
 ### Data model
 

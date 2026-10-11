@@ -37,7 +37,9 @@ audited against scope, evidenced, and converted to the formats the user needs.
    for ratification or correction (decision-protocol §4) — nothing ships on
    an unratified guess.
 2. Run the audit procedure in `<plugin-root>/agents/scope-auditor.md`
-   with: the scope contract, the full branch diff (or produced documents),
+   with: the scope contract, each changed repo's path, mainline and branch
+   (the auditor reads the diff itself via `review-diff.sh`) or the produced
+   documents,
    PARKED.md, ASSUMPTIONS.md, and the evidence directory (it runs
    `checkpoint.py verify` against the hashes in the checkpoint commits) — as a subagent
    where the harness supports it; otherwise execute the procedure yourself as

@@ -13,7 +13,13 @@ findings; never edit.
 
 ## Inputs
 
-- Work repo path, branch, mainline ref (take the diff yourself)
+- Work repo path, branch, mainline ref (take the diff yourself, through
+  `./scripts/review-diff.sh <repo> <mainline> <branch>`: it lists every
+  changed file with +/- counts, splitting review files from skipped ones —
+  task workspace, evidence, framework-generated, lockfiles. Read each review
+  file with `--file <path>`, one at a time; never dump the whole branch diff.
+  Every review file is read; a skipped file that should not be in the diff at
+  all is a finding.)
 - Task workspace path (the handoff summaries of scope-contract.md, tdd.md,
   impl-doc.md for intent — `scripts/handoff.py show <doc>`; open the TDD
   section or impl-doc step row for the code under review;

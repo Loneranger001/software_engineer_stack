@@ -123,7 +123,8 @@ loop.
 ## 4. Review gate
 
 1. Run the review procedure in `${CLAUDE_PLUGIN_ROOT}/agents/code-reviewer.md`
-   on the full branch diff of every changed repo (one pass per repo, each
+   on the branch of every changed repo (it reads the diff file by file via
+   `review-diff.sh`; one pass per repo, each
    judged against its own conventions) — as a subagent where the harness
    supports it;
    otherwise execute the procedure yourself as a separate, fresh review pass,
