@@ -191,7 +191,8 @@ If a variable is unset or the environment is unreachable, `/verify-code` falls b
 skills/       one directory per lifecycle command (SKILL.md each)
 agents/       scope-auditor, code-reviewer, doc-fact-checker (read-only reviewers)
 templates/    canonical Markdown templates for every document type
-core/         decision-protocol.md (what to do when unknown), repo-resolution.md (where the files are)
+core/         decision-protocol.md (what to do when unknown), repo-resolution.md (where the files are —
+              the rules card skills load; repo-resolution-rationale.md holds the why)
 standards/    default coding standards per language (a repo's .conventions.md overrides them)
 checklists/   per-stage quality gates
 knowledge/    lessons.md (self-improvement memory), decisions.md (framework decision log)
