@@ -10,10 +10,17 @@ argument-hint: <file(s) or directory to verify> [--task <task-id>]
 > directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
 > it automatically; other harnesses resolve it from this file's location.
 
+> Script shorthand: a bare `status.py`, `handoff.py`, `checkpoint.py`, or
+> `xsearch.py` below means `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/<name>`; a
+> bare `<name>.sh` means `${CLAUDE_PLUGIN_ROOT}/scripts/<name>.sh`. Run them
+> by that full path — the scripts are not on PATH.
+
 Per-language verification recipes. Live mode proves the code works; static
 fallback proves it parses and conforms. Every run produces an evidence file
 (`${CLAUDE_PLUGIN_ROOT}/templates/test-evidence.md`) into the task's
-`evidence/` directory (or `./verify-evidence/` when standalone).
+`evidence/` directory — standalone (no task), into
+`<work-repo>/verify-evidence/`, never a cwd-relative path; remind the user to
+gitignore it (don't edit .gitignore unasked).
 
 ## Lessons and output capture (all recipes)
 
@@ -60,17 +67,41 @@ first.
   environment is a dangerous surface — when in doubt about a statement's
   effect, ask; never proceed-and-log a data-changing run.
 
+## SQL*Plus/SQLcl session wrapper (every live PL/SQL and SQL run)
+
+SQL*Plus COMMITS on exit by default — including the EOF exit `capture.sh`
+forces by feeding `/dev/null` — and exits 0 after SQL errors unless told
+otherwise. Never run a target file directly;
+write a wrapper to `<evidence-dir>/raw/<file>-<check>.sql` (it doubles as the
+record of what ran) and run that, with `-L` so a failed logon exits instead
+of re-prompting:
+
+```sql
+WHENEVER SQLERROR EXIT FAILURE ROLLBACK
+WHENEVER OSERROR EXIT FAILURE ROLLBACK
+SET EXITCOMMIT OFF
+-- recipe-specific statements go here (below)
+EXIT
+```
+
+`capture.sh <evidence-dir> <file>-<check> --grep 'ORA-|PLS-|SP2-|Warning' --
+sqlplus -s -L "$SES_DB_CONN" @<evidence-dir>/raw/<file>-<check>.sql`
+(SQLcl: `sql -s -L`, same wrapper). Reference the target file by absolute
+path inside the wrapper.
+
 ## PL/SQL (.pks .pkb .sql packages/procs/triggers)
 
-**Live**:
-1. Compile: `sqlplus -s "$SES_DB_CONN" @file` (or `sql -s` for SQLcl).
-2. Check: `SELECT * FROM user_errors WHERE name = '<OBJECT>' ORDER BY sequence, line;`
-   — must return no rows. Include `SHOW ERRORS` output in evidence.
-3. Warnings count too: compile with `ALTER SESSION SET plsql_warnings='ENABLE:ALL'`
-   when the repo's conventions allow, and triage warnings.
-4. Tests: if the repo has utPLSQL, run the suite for the object
-   (`ut.run('<schema>.<test_pkg>')`); otherwise run the impl-doc's test
-   queries/anonymous blocks.
+**Live** — one wrapper per file, so the warnings setting and the error check
+share the compile's session:
+1. Wrapper body: `ALTER SESSION SET plsql_warnings='ENABLE:ALL';` (drop it
+   if the repo's conventions say otherwise), `@<absolute path to file>`,
+   `SHOW ERRORS`, then
+   `SELECT type, line, position, text FROM user_errors WHERE name = '<OBJECT>' ORDER BY type, sequence;`
+2. PASS needs zero `user_errors` rows. Triage every warning the compile
+   reports; keep the `SHOW ERRORS` output in evidence.
+3. Tests: if the repo has utPLSQL, run the suite for the object
+   (`exec ut.run('<schema>.<test_pkg>');` in a wrapper); otherwise run the
+   impl-doc's test queries/anonymous blocks the same way.
 
 **Static fallback**: careful read-through against the repo rules
 (`repo-rules.sh`) + `standards/plsql.md`: balanced blocks, exception handling present, no implicit
@@ -82,9 +113,12 @@ not compile anything.
 **Live**:
 1. Queries: `EXPLAIN PLAN FOR ...` then `SELECT * FROM table(dbms_xplan.display)`;
    run the query with a row limit; capture plan + row count + sample rows.
-2. DML: run inside a transaction — capture before-count, execute, after-count,
-   then ROLLBACK unless the task explicitly deploys data (then follow the
-   impl-doc step, with before/after evidence).
+2. DML: in the session wrapper — before-count, execute, after-count, then an
+   explicit `ROLLBACK;` before `EXIT` (never rely on exit behaviour). Only
+   when the impl-doc step explicitly deploys data does the wrapper end with
+   `COMMIT;`, with before/after evidence. A script mixing DDL with DML
+   commits implicitly at each DDL statement, so it cannot be rolled back —
+   run it only as an impl-doc deployment step.
 3. DDL: run in dev; verify via `user_objects`/`user_tab_columns` queries.
 
 **Static fallback**: syntax review, join/predicate sanity, standards check;
@@ -93,8 +127,9 @@ flag full scans on known-large tables from research notes.
 ## KSH (.ksh .sh with ksh shebang)
 
 **Live**:
-1. Syntax: `ksh -n script.ksh` (locally or `ssh "$SES_KSH_HOST" ksh -n <
-   script.ksh`).
+1. Syntax: `ksh -n script.ksh` (locally or `ssh -o BatchMode=yes
+   "$SES_KSH_HOST" ksh -n < script.ksh` — BatchMode fails fast instead of
+   waiting on a password prompt).
 2. `shellcheck -s ksh script.ksh` if available — note: shellcheck's ksh support
    is partial; treat its findings as advisory, not gospel.
 3. Execute the script's dry-run/help mode if it has one; else run in a scratch

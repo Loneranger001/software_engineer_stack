@@ -10,6 +10,11 @@ argument-hint: "[task-id]"
 > directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
 > it automatically; other harnesses resolve it from this file's location.
 
+> Script shorthand: a bare `status.py`, `handoff.py`, `checkpoint.py`, or
+> `xsearch.py` below means `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/<name>`; a
+> bare `<name>.sh` means `${CLAUDE_PLUGIN_ROOT}/scripts/<name>.sh`. Run them
+> by that full path — the scripts are not on PATH.
+
 Produce `<ws>/research-notes.md`: everything /tech-design needs to design
 confidently, with every finding traceable to a source.
 
@@ -90,7 +95,8 @@ expand it:
 
 ### Accuracy rules
 
-- Every finding row gets a source: `file:line`, the query used, or the doc/URL.
+- Every finding row gets a source: `<repo>:<path>:<line>`, the query used,
+  or the doc/URL.
 - If you infer something (e.g. "this job appears to run nightly"), label it
   `INFERRED` with the evidence, and add an open question to confirm.
 - Do not trust names/comments over code: verify what a proc actually does
@@ -115,7 +121,10 @@ platform (note the Oracle/ksh/Python versions if discoverable).
    `<ws>/research-notes.md`.
 2. Log out-of-scope findings to PARKED.md (never act on them).
 3. Batch remaining open questions to the user; blocking ones must be answered
-   before /tech-design. Fold the answers into the notes.
+   before /tech-design. Fold the answers into the notes. While any blocking
+   question is unanswered, do NOT run steps 4–5: run
+   `status.py next <ws> "Waiting on: <Q#, Q#>"` and stop — the next run
+   resumes here.
 4. Only now write the **handoff summary** block — last, so it reflects the
    answers — and run
    `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/handoff.py check <ws>/research-notes.md`; it must pass.

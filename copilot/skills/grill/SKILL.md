@@ -10,6 +10,11 @@ description: Adversarial interrogation of the technical design before the implem
 > `plugin.json` (the plugin install root). All framework files referenced
 > below live inside it.
 
+> Script shorthand: a bare `status.py`, `handoff.py`, `checkpoint.py`, or
+> `xsearch.py` below means `python3 <plugin-root>/scripts/<name>`; a
+> bare `<name>.sh` means `<plugin-root>/scripts/<name>.sh`. Run them
+> by that full path — the scripts are not on PATH.
+
 The tech-design gates prove the TDD's claims are TRUE (fact-checker) and that
 scope is covered (traceability). This stage attacks COMPLETENESS: the cases
 nobody wrote down. Its output is a design with fewer surprises, and a log
@@ -26,6 +31,10 @@ proving which scenarios were confronted.
      `status.py log <ws> "grilling unapproved TDD at user request"`.
    - **change-request** (see "Use on change requests"):
      `status.py require <ws> analyze=done`; the target is `analysis.md`.
+     Wherever this skill says tdd.md, read `analysis.md`; wherever it says
+     TDD §7 Verification approach, use the mini contract's Acceptance
+     criteria; TDD §11 Risks → the mini contract's "Not changing" list
+     plus a Risks line in `analysis.md`.
 3. Read tdd.md and ASSUMPTIONS.md fully — they are what you attack. Read the
    contract and research handoff summaries
    (`python3 <plugin-root>/scripts/handoff.py show <ws>/<doc>`), opening a full section
@@ -43,8 +52,9 @@ Create `<ws>/grill-log.md` from
 
 Instantiate CONCRETE scenarios against the TDD from every category below,
 using the task's real objects — "what if BALANCE_SNAPSHOT already has rows
-for the rerun date", never "what about idempotency". Minimum one scenario per
-category; a category that truly cannot apply is marked `n/a` with a reason.
+for the rerun date", never "what about idempotency". One to three scenarios
+per category — the ones most likely to break THIS design, not every variant;
+a category that truly cannot apply is marked `n/a` with a reason.
 
 - **Data**: nulls/empty sets, duplicates, zero-rows-affected, boundary values
   (0, negative, max), unexpected volumes, bad encodings/formats
@@ -62,7 +72,7 @@ category; a category that truly cannot apply is marked `n/a` with a reason.
   alerting on the new failure modes
 
 For each scenario, answer FROM the TDD and the code — with a source reference
-(TDD §, file:line, or evidence). Decision-protocol §1 applies hard: if the
+(TDD §, `<repo>:<path>:<line>`, or evidence). Decision-protocol §1 applies hard: if the
 code or dev DB can answer it, check it, don't reason about it. Verdicts:
 
 - `covered` — the design handles it; cite where.
@@ -98,6 +108,13 @@ Take the `ask-user` list and interview the user until it is EMPTY:
   deferral verbatim in TDD §11 Risks with their ack, and in the grill log.
   Deferred is a user decision; unanswered is not a terminal state.
 
+Phase 2 ends in exactly one of two ways:
+- **Every `ask-user` row is answered or deferred** → §3.
+- **The user stops** (ends the session, or declines to continue) → leave the
+  stage `in-progress` (`status.py set <ws> grill=in-progress` in the full
+  pipeline), run `status.py next <ws> "Resume /grill: <n> questions open"`,
+  and stop. Never record `grill=done` with an unanswered row.
+
 ## 3. Close the stage
 
 1. Self-check with `<plugin-root>/checklists/grill.md`.
@@ -105,6 +122,8 @@ Take the `ask-user` list and interview the user until it is EMPTY:
    summary in the same edit; re-run `handoff.py check <ws>/tdd.md` before
    closing. If the grill materially changed the approved TDD, re-present the
    changed sections for approval (never silently edit an approved document).
+   Change-request mode: no handoff check; if answers changed the approved
+   mini contract, re-present the changed lines for approval.
 3. Record (full pipeline):
    `python3 <plugin-root>/scripts/status.py set <ws> grill=done --next "Run /impl-plan."`
    — or, if the user explicitly skipped it,
@@ -114,9 +133,12 @@ Take the `ask-user` list and interview the user until it is EMPTY:
 
 ## Use on change requests
 
-For a borderline CR (escalation factors near the threshold in
-/change-request §1), run this skill against `analysis.md` instead of a TDD:
-same categories, same verdicts, answers land in the mini scope contract.
+For a borderline CR — near the fast-path limits of >3 objects changing, an
+external interface-contract change, a data migration, or changes in more
+than one repo — run this skill against `analysis.md` instead of a TDD (the
+substitutions are in §0 step 2): same categories, same verdicts, answers
+land in the mini scope contract. In a change-request workspace, phase 2's
+stop leaves no stage to mark; the `status.py next` line is the record.
 
 ## Fault tolerance
 

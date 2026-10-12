@@ -4,7 +4,7 @@ Run before presenting the TDD for approval.
 
 - [ ] Traceability table maps EVERY in-scope item to a design section (no orphans either way)
 - [ ] Nothing in the design implements an out-of-scope/non-goal item
-- [ ] Every claim about existing behaviour carries a source reference (file:line, query, doc)
+- [ ] Every claim about existing behaviour carries a source reference (`<repo>:<path>:<line>`, query, doc)
 - [ ] Interface impact analysis is backed by the research call graph — "no callers affected" is proven, not assumed
 - [ ] Data model changes include migration/backfill AND rollback for each object
 - [ ] Design follows the conventions of the repo each component lands in (or standards/ defaults where that repo is silent)

@@ -6,9 +6,17 @@ mode: agent
 > Part of **software-engineer-stack** (.). Shared decision protocol:
 > ./core/decision-protocol.md — follow it for every unknown.
 > Arguments: `<path-to-brief-or-pasted-requirements> [task-id]`
+> Paths starting `./` are relative to the repository root (the
+> directory holding `.github/`): run commands from there or prefix that
+> root — never resolve them against another current directory.
 
 
 # /intake — brief to approved scope contract
+
+> Script shorthand: a bare `status.py`, `handoff.py`, `checkpoint.py`, or
+> `xsearch.py` below means `python3 ./scripts/<name>`; a
+> bare `<name>.sh` means `./scripts/<name>.sh`. Run them
+> by that full path — the scripts are not on PATH.
 
 You are starting a new task in the software-engineer-stack lifecycle. Your output
 is a task workspace containing a requirements summary and a **scope contract**
@@ -85,7 +93,9 @@ the user has explicitly approved. Nothing downstream may begin before that appro
   <names>` — counts first, every repo), to populate the "interfaces & objects expected to change" table
   — each row carries its repo. A brief written against one repo routinely
   implicates others; finding that at intake is cheap, finding it during
-  /implement is not.
+  /implement is not. A workspace holding `cr-analysis.md` (a change request
+  escalated here) seeds this table from its caller search; re-search only
+  repos whose sha moved.
 - Fill the contract's "Repos" section: which repos are analyzed, which are
   expected to CHANGE (the write scope — everything else is read-only context),
   and any repo excluded from analysis with the user's reason.

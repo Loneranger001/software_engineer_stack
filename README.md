@@ -231,7 +231,7 @@ Three checks keep that honest, in CI (`.github/workflows/framework-checks.yml`) 
 
 ## Document conversion
 
-Deliverables are authored in Markdown and converted on `/deliver`:
+Deliverables are authored in Markdown and converted at delivery (`/deliver`, or the final step of `/change-request` and `/document`):
 
 ```sh
 scripts/md2docx.sh work/PROJ-123/tdd.md          # → deliverables/tdd.docx

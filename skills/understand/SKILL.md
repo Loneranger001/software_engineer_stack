@@ -1,6 +1,6 @@
 ---
 name: understand
-description: Build a code-verified working understanding of any existing interface or integration - what it does, how it is triggered, what data it moves, everything upstream and downstream, and how it fails and recovers - explained in layers with source references, then interrogated in Q&A until the user's mental model matches the code. Use whenever the user wants to understand, explain, explore, or be walked through how an existing interface, integration, batch job, API, data pipeline, report, or component works - including questions like "what does X do", "where does X get its data", "what happens when X fails", or "what would break if we touched X" - even when no change or document has been requested.
+description: Build a code-verified understanding of an existing interface or integration - trigger, data flow, cross-repo dependencies, failure and recovery - explained in layers with source references and refined through Q&A. Use when the user asks what X does, where its data comes from, what happens when it fails, or what breaks if it changes - wanting understanding (including reconnaissance before a change), not a document or the change itself.
 argument-hint: "<interface/integration name, entry point, or question about it>"
 ---
 
@@ -9,6 +9,11 @@ argument-hint: "<interface/integration name, entry point, or question about it>"
 > Path note: `${CLAUDE_PLUGIN_ROOT}` is this framework's root — the ancestor
 > directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
 > it automatically; other harnesses resolve it from this file's location.
+
+> Script shorthand: a bare `status.py`, `handoff.py`, `checkpoint.py`, or
+> `xsearch.py` below means `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/<name>`; a
+> bare `<name>.sh` means `${CLAUDE_PLUGIN_ROOT}/scripts/<name>.sh`. Run them
+> by that full path — the scripts are not on PATH.
 
 The deliverable is understanding, not a document: a layered, source-referenced
 explanation the user can interrogate until their mental model matches the code.
@@ -27,15 +32,17 @@ what anyone (comments, wikis, the user, folklore) believes it does.
    `${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md` — with a parent folder as
    cwd, ask which repo the interface lives in; enumerate the rest with
    `${CLAUDE_PLUGIN_ROOT}/scripts/list-repos.sh <repos-folder>` and confirm
-   the list (§3 maps dependencies across all of them) — then create the
-   workspace:
+   the list (§3 maps dependencies across all of them).
+   Before creating anything, look for a previous map of this interface (an
+   existing `<workspace-root>/work/*/interface-map.md` naming it). If one
+   exists, offer to resume/refresh it in ITS workspace instead of starting
+   over — check its recorded commit for staleness first.
+   Otherwise create the workspace — task id: the one given, else ask (a
+   short slug such as `understand-<interface>`); never invent one silently:
    `${CLAUDE_PLUGIN_ROOT}/scripts/new-task.sh <task-id> auto understand <work-repo> <repo-set>`.
    Stage state is read and recorded with
    `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/status.py` (`<ws>` =
    `<workspace-root>/work/<id>`).
-   If a previous run already mapped this interface (an existing
-   `<workspace-root>/work/*/interface-map.md` naming it), offer to resume/refresh that map
-   instead of starting over — check its recorded commit for staleness first.
 3. Agree the target and intent in one or two sentences: which interface, and
    what the user is trying to learn — general orientation, a specific
    question, or reconnaissance before a change. Record it:
@@ -78,13 +85,13 @@ describes behaviour.
 
 1. Follow the main path from trigger to final effect: scheduler/caller →
    entry point → every intermediate hop → outputs/side effects. Record each
-   hop with `file:line`.
+   hop with `<repo>:<path>:<line>`.
 2. Where the environment is reachable (`$SES_DB_CONN`, `$SES_KSH_HOST`,
    `$SES_PY`), RUN things to confirm behaviour — queries, `--help`, dry-run
    modes, log inspection — and capture outputs to `evidence/`. Never execute
    anything with side effects on shared data.
 3. Build the fact table in interface-map.md as you go: claim → source
-   (`file:line` / query / run output). It is both the backbone of every later
+   (`<repo>:<path>:<line>` / query / run output). It is both the backbone of every later
    explanation and the resume point if the session dies.
 4. Error paths are part of the flow, not an appendix: how failure surfaces
    (return codes, exceptions, alert/log tables), what state is left behind,

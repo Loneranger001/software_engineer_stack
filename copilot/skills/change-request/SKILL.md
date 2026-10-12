@@ -10,6 +10,11 @@ description: Fast path for a small change to an existing interface - impact anal
 > `plugin.json` (the plugin install root). All framework files referenced
 > below live inside it.
 
+> Script shorthand: a bare `status.py`, `handoff.py`, `checkpoint.py`, or
+> `xsearch.py` below means `python3 <plugin-root>/scripts/<name>`; a
+> bare `<name>.sh` means `<plugin-root>/scripts/<name>.sh`. Run them
+> by that full path — the scripts are not on PATH.
+
 The compressed pipeline: `analyze → mini-contract → change → verify → deliver`.
 Small change does NOT mean lowered standards — it means fewer documents, same
 verification, same scope discipline.
@@ -18,7 +23,9 @@ verification, same scope discipline.
 
 1. Load applicable lessons: `<plugin-root>/scripts/lessons.sh change-request` — it prints only
    the matching entries; don't read lessons.md whole.
-2. Resolve `<work-repo>`, `<workspace-root>`, and the `<repo-set>` per
+2. Task id: the CR reference given, else ask (Jira key or short slug) —
+   never invent one.
+   Resolve `<work-repo>`, `<workspace-root>`, and the `<repo-set>` per
    `<plugin-root>/core/repo-resolution.md` (cwd is not assumed to be
    the repo; sibling repos are in analysis scope by default), then create the
    workspace:
@@ -62,6 +69,18 @@ recommend the full pipeline (/intake). Let them
 decide; record the decision with `status.py log <ws> "..."`. For borderline
 cases the user keeps on the fast path, recommend running /grill against analysis.md before coding.
 
+Escalating to /intake never reuses this task id: `new-task.sh` would return
+this change-request workspace, whose stages have no `intake`, and /intake's
+first `status.py set` would fail. Instead:
+1. Start /intake under a new id (`<task-id>-full`, or the id the user
+   gives), passing this workspace's `brief.md` as the brief.
+2. Once /intake has created the new workspace, copy `analysis.md` into it
+   as `cr-analysis.md`; /intake's first scan reuses its caller search (a
+   recorded row stays valid while that repo's sha is unchanged).
+3. Close this workspace:
+   `status.py next <ws> "Escalated to /intake as <new-id>; no further work here."`
+   and `status.py log <ws> "escalated to <new-id> by <who>"`. Stop.
+
 ## 2. Mini scope contract (approval gate)
 
 Append to `analysis.md` and get explicit user approval before touching code
@@ -78,7 +97,8 @@ On approval: `status.py set <ws> mini-contract=approved --log "mini contract app
 ## 3. Change
 
 0. Gate: `status.py require <ws> mini-contract=approved` — non-zero exit = stop.
-1. Branch per the repo rules (else the repo's existing branch naming).
+1. Branch per the repo rules, else the repo's existing branch naming
+   (`git branch -r`), else ask.
    Only the repos the mini contract names are touched — a caller found in
    another repo is reported, not quietly fixed.
 2. Surgical diff only. Anything else you itch to fix → PARKED.md.
@@ -92,17 +112,29 @@ On approval: `status.py set <ws> mini-contract=approved --log "mini contract app
 
 ## 4. Verify
 
-1. Run /verify-code recipes on every changed file (live via `$SES_DB_CONN`/
-   `$SES_KSH_HOST`/`$SES_PY` where reachable; static fallback recorded).
+1. Verify every changed file with the recipe for its language in
+   `<plugin-root>/skills/verify-code/SKILL.md` — read only the
+   "Lessons and output capture", "Environment resolution", and that
+   language's sections (live via `$SES_DB_CONN`/`$SES_KSH_HOST`/`$SES_PY`
+   where reachable; static fallback recorded).
 2. Run the regression checks for the impacted callers from §1 — the change
    isn't verified until its callers still work.
 3. Capture everything to `evidence/` with
    `<plugin-root>/templates/test-evidence.md`, running each command
    through `<plugin-root>/scripts/capture.sh` (raw logs land in `evidence/raw/`;
    only its summary goes into the evidence file).
-4. All PASS → commit, one commit per logical unit referencing the task id:
-   - first inspect the repo's `commit-msg` hook and follow its exact format
-     (as /implement §1 step 4 — the hook, not recent history, decides);
+4. Anything but PASS → fix and re-verify, at most 3 attempts. Still
+   failing, the fix needs a file or object outside the mini contract, or it
+   changes the agreed behaviour → STOP: `status.py next <ws> "verify blocked:
+   <reason>"`, show the user the evidence, and propose either a mini-contract
+   amendment (re-approved per §2) or escalation. Never commit a failing
+   change.
+5. All PASS → commit, one commit per logical unit referencing the task id:
+   - first inspect the repo's `commit-msg` hook and adopt its exact format —
+     `git -C <repo> config core.hooksPath`, else `.git/hooks/commit-msg`,
+     plus any `commit-msg` stage in `.pre-commit-config.yaml`. The hook, not
+     recent history, decides; record it with
+     `status.py field <ws> commit-format.<repo-name> "<format>"`;
    - end each message with its evidence hash lines from
      `python3 <plugin-root>/scripts/checkpoint.py trailer <ws> <evidence files>`
      (`git commit -m "<subject>" -m "<trailer lines>"`).
@@ -115,10 +147,13 @@ On approval: `status.py set <ws> mini-contract=approved --log "mini contract app
    `<plugin-root>/agents/scope-auditor.md` against the mini contract
    (subagent where supported, otherwise a separate fresh pass), passing
    `analysis.md` as the contract.
-2. Short release note (template: release-notes.md, trimmed): change, deploy
+2. Short release note (template:
+   `<plugin-root>/templates/release-notes.md`, trimmed): change, deploy
    step, rollback step, evidence table.
-3. Push the branch; report to the user; `status.py set <ws> deliver=done`; offer
-   /retro (a one-lesson retro is fine for CRs).
+3. Gate: `status.py require <ws> verify=done`. Push the branch; report to
+   the user; `status.py set <ws> deliver=done`; offer /retro (a one-lesson
+   retro is fine for CRs). Delivery for this pipeline happens here — /deliver
+   is not used.
 
 ## Fault tolerance
 

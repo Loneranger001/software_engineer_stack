@@ -6,9 +6,17 @@ mode: agent
 > Part of **software-engineer-stack** (.). Shared decision protocol:
 > ./core/decision-protocol.md — follow it for every unknown.
 > Arguments: `[task-id]`
+> Paths starting `./` are relative to the repository root (the
+> directory holding `.github/`): run commands from there or prefix that
+> root — never resolve them against another current directory.
 
 
 # /impl-plan — executable implementation document
+
+> Script shorthand: a bare `status.py`, `handoff.py`, `checkpoint.py`, or
+> `xsearch.py` below means `python3 ./scripts/<name>`; a
+> bare `<name>.sh` means `./scripts/<name>.sh`. Run them
+> by that full path — the scripts are not on PATH.
 
 Produce `<ws>/impl-doc.md` and get it user-approved. /implement will
 execute this document literally, so it must be executable by someone (or some

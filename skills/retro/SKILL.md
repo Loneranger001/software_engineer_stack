@@ -10,13 +10,19 @@ argument-hint: "[task-id]"
 > directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
 > it automatically; other harnesses resolve it from this file's location.
 
+> Script shorthand: a bare `status.py`, `handoff.py`, `checkpoint.py`, or
+> `xsearch.py` below means `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/<name>`; a
+> bare `<name>.sh` means `${CLAUDE_PLUGIN_ROOT}/scripts/<name>.sh`. Run them
+> by that full path — the scripts are not on PATH.
+
 Every delivered task teaches something. This skill turns that into durable
 memory (`knowledge/lessons.md`) and, when warranted, into edits to the
 framework itself.
 
 ## 1. Gather the raw material
 
-1. Locate the workspace; read STATUS.md's log end-to-end (it records every
+1. Locate the workspace (an ad-hoc lesson with no task has none — work from
+   the conversation and go to step 2); read STATUS.md's log end-to-end (it records every
    stage transition and stumble), PARKED.md, ASSUMPTIONS.md (corrected
    entries = over-confidence, see decision-protocol §5), the evidence/
    summaries (failed-then-fixed verifications are lessons; open `raw/` logs
@@ -69,15 +75,23 @@ Where a lesson generalizes, propose the concrete edit — the actual diff, not
 Present proposals with the lesson that motivated each. Apply ONLY what the
 user approves — and apply it where it lasts:
 
-1. **Edit the canonical framework repo, never an install copy.** If
-   `${CLAUDE_PLUGIN_ROOT}/.generated` exists you are running from a GENERATED
-   copy (the `copilot/` plugin, or a work repo's `.github/se-stack/`) and any
-   skill/template/checklist edit there is overwritten by the next
-   `build_copilot.py` run. Ask the user for the software-engineer-stack
+1. **Edit the canonical framework repo, never an install copy.**
+   `${CLAUDE_PLUGIN_ROOT}` is an install copy when ANY of these holds:
+   - `${CLAUDE_PLUGIN_ROOT}/.generated` exists — a GENERATED copy (the
+     `copilot/` plugin, or a work repo's `.github/se-stack/`), overwritten
+     by the next `build_copilot.py` run;
+   - it sits under `~/.claude/plugins/` — a Claude Code plugin install,
+     replaced on every plugin update;
+   - `git -C "${CLAUDE_PLUGIN_ROOT}" rev-parse --show-toplevel` fails or
+     names a different directory (compare resolved paths) — not a checkout
+     of the framework repo.
+
+   For an install copy, ask the user for the software-engineer-stack
    checkout and edit `skills/`, `agents/`, `templates/`, `checklists/`,
    `core/`, `standards/`, or `scripts/` there. No checkout available → write
-   the approved diff to `<ws>/deliverables/framework-edits.patch` and
-   record the entry as pending (step 3), not applied.
+   the approved diff to `<ws>/deliverables/framework-edits.patch` (no
+   workspace: put it in your reply) and record the entry as pending
+   (step 3), not applied.
 2. **Commit, regenerate, check** in the framework repo: commit the edit, run
    `python3 scripts/build_copilot.py`, then
    `python3 scripts/check_knowledge.py` — it must pass.
@@ -91,9 +105,13 @@ user approves — and apply it where it lasts:
    change that is approved but not yet in the framework repo is recorded as
    `- [YYYY-MM-DD] [pending-upstream] <change> — <where the patch is>`.
 
-Lessons are the exception to rule 1: a lesson appended to an install copy's
-`knowledge/lessons.md` survives rebuilds (they merge it back). Still tell the
-user to upstream lessons that apply beyond this install.
+Lessons are the exception to rule 1 only in a GENERATED copy (`.generated`
+present): a lesson appended to its `knowledge/lessons.md` survives rebuilds
+(they merge it back). Still tell the user to upstream lessons that apply
+beyond this install. In a Claude Code plugin install nothing survives an
+update: append lessons in the canonical checkout, or, with none available,
+write them to `<ws>/deliverables/lessons-to-upstream.md` (no workspace: put
+them in your reply) and tell the user.
 
 ## 4. Curation (when lessons.md grows)
 
@@ -104,5 +122,11 @@ checklists/templates (then retire the entry), archive stale ones to
 
 ## 5. Close
 
-`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/status.py set <ws> retro=done` (`<ws>` = `<workspace-root>/work/<id>`). Summarize for the user: lessons recorded,
-framework edits applied/declined.
+Record the stage — `<ws>` = `<workspace-root>/work/<id>`:
+- the pipeline has a `retro` stage (full, change-request):
+  `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/status.py set <ws> retro=done`;
+- it has none (document, understand):
+  `status.py log <ws> "retro done: <n> lessons, <m> framework edits"`;
+- no workspace (an ad-hoc lesson): nothing to record.
+
+Summarize for the user: lessons recorded, framework edits applied/declined.

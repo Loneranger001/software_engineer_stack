@@ -18,7 +18,7 @@ findings; never edit.
   Every review file is read; a skipped file that should not be in the diff at
   all is a finding.)
 - Task workspace path (the handoff summaries of scope-contract.md, tdd.md,
-  impl-doc.md for intent — `scripts/handoff.py show <doc>`; open the TDD
+  impl-doc.md for intent — `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/handoff.py show <doc>`; open the TDD
   section or impl-doc step row for the code under review;
   evidence/ for what verification already ran — read the summary files;
   open `evidence/raw/` logs only to check a specific claim)

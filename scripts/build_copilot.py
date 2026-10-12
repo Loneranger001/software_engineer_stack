@@ -87,6 +87,19 @@ PLUGIN_NOTE = (
 )
 
 
+def root_note(root_ref: str) -> str:
+    """Blockquote lines telling the reader where repo-relative references resolve.
+
+    Absolute root_refs need none; "." (the stack repo itself) and
+    ".github/se-stack" (self-contained installs) resolve against the repository
+    root, which is not necessarily the current directory."""
+    if Path(root_ref).is_absolute():
+        return ""
+    return (f"> Paths starting `{root_ref}/` are relative to the repository root (the\n"
+            f"> directory holding `.github/`): run commands from there or prefix that\n"
+            f"> root — never resolve them against another current directory.\n")
+
+
 def strip_path_note(body: str) -> str:
     # remove the canonical skills' path-note blockquote (paths are pre-substituted
     # in generated output, so the note would be stale there)
@@ -223,7 +236,7 @@ mode: agent
 <!-- {MARKER} -->
 > Part of **software-engineer-stack** ({root_ref}). Shared decision protocol:
 > {root_ref}/core/decision-protocol.md — follow it for every unknown.{args}
-
+{root_note(root_ref)}
 {body}"""
 
 
@@ -234,7 +247,7 @@ name: {fm['name']}
 description: {yaml_str(fm['description'])}
 ---
 <!-- {MARKER} -->
-{body}"""
+{root_note(root_ref)}{body}"""
 
 
 def build_agent(fm: dict, body: str, root_ref: str) -> str:
@@ -246,7 +259,7 @@ description: {yaml_str(fm['description'])}
 <!-- {MARKER} -->
 > Part of **software-engineer-stack** ({root_ref}). You are read-only: report
 > findings in your defined format; never modify files or repository state.
-
+{root_note(root_ref)}
 {body}"""
 
 

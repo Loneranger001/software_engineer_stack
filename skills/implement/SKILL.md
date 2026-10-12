@@ -10,6 +10,11 @@ argument-hint: "[task-id]"
 > directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
 > it automatically; other harnesses resolve it from this file's location.
 
+> Script shorthand: a bare `status.py`, `handoff.py`, `checkpoint.py`, or
+> `xsearch.py` below means `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/<name>`; a
+> bare `<name>.sh` means `${CLAUDE_PLUGIN_ROOT}/scripts/<name>.sh`. Run them
+> by that full path — the scripts are not on PATH.
+
 Execute `<ws>/impl-doc.md` exactly: one step at a time, verified and
 committed before the next begins.
 
@@ -48,6 +53,9 @@ committed before the next begins.
      contents). Ask: keep the half-done work and finish step N+1, or discard
      it and redo the step. Never fold uncommitted work into a commit, stash
      it, or discard it without that answer — it may be the user's own edit.
+   - Any other exit (1 = a git or STATUS error, e.g. a recorded branch that
+     no longer exists) → stop and show the user the error; resume only once
+     it is fixed.
    - The commit log is the truth: if it disagrees with `current-step`, trust
      the commits and re-record the field.
 
@@ -82,15 +90,21 @@ For each impl-doc step N, in order:
    names — if the step turns out to need another file, update the impl-doc row
    first (append a note, don't rewrite history) and its `step <N>:` summary
    line.
-2. **Verify** using the step's verification column — invoke the /verify-code
-   recipes for each changed file (live mode via `$SES_DB_CONN`/`$SES_KSH_HOST`/
+2. **Verify** using the step's verification column — for each changed file,
+   the recipe for its language in
+   `${CLAUDE_PLUGIN_ROOT}/skills/verify-code/SKILL.md` (read only its
+   "Lessons and output capture", "Environment resolution", and that
+   language's sections; live mode via `$SES_DB_CONN`/`$SES_KSH_HOST`/
    `$SES_PY` when reachable; static fallback otherwise, recorded as such).
    Run each command through `${CLAUDE_PLUGIN_ROOT}/scripts/capture.sh` and
    write `evidence/step<N>-<desc>.txt` from its summary using
    `${CLAUDE_PLUGIN_ROOT}/templates/test-evidence.md`; the full output stays
    in `evidence/raw/`.
-3. **On failure**: fix and re-verify. If the fix invalidates the design, STOP —
-   report to the user, propose a TDD/impl-doc amendment, get approval before
+3. **On failure**: fix and re-verify, at most 3 attempts per step. STOP
+   when it still fails after the third, when the fix needs a file outside
+   the step's row, or when it invalidates the design:
+   `status.py next <ws> "step <N> blocked: <reason>"`, show the user the
+   evidence, propose the TDD/impl-doc amendment, and get approval before
    continuing. Never quietly diverge from the approved documents.
 4. **Checkpoint commit**: `git commit` the step **in the step's repo** with
    message `<task-id> step <N>: <desc>` (inside the hook format from §1),
@@ -120,8 +134,16 @@ notice along the way go to PARKED.md — even one-line "harmless" fixes.
 
 After the last step, run the full impl-doc test plan (unit, integration,
 regression) through `capture.sh`, summary to `evidence/tests-<date>.txt`.
-Every acceptance criterion must reach PASS; failures loop back to the step
-loop.
+Every acceptance criterion must reach PASS. A failure is fixed as a NEW
+step, never by reopening a committed one:
+1. Append step N+1 to impl-doc §2 — an integer number (`checkpoint.py`
+   parses only integers), its repo, files, verification, and rollback —
+   with an amendment note naming the failing test, and add its `step <N+1>:`
+   line to the handoff summary. If the fix changes the approved design, stop
+   for approval first (§2 step 3).
+2. Run it through §2 like any other step (code, verify, checkpoint commit,
+   `current-step`), then re-run the full test plan. The 3-attempt cap of §2
+   step 3 applies to the test plan too.
 
 ## 4. Review gate
 

@@ -10,6 +10,11 @@ description: Produce a how-to guide, knowledge-base article, or understanding do
 > `plugin.json` (the plugin install root). All framework files referenced
 > below live inside it.
 
+> Script shorthand: a bare `status.py`, `handoff.py`, `checkpoint.py`, or
+> `xsearch.py` below means `python3 <plugin-root>/scripts/<name>`; a
+> bare `<name>.sh` means `<plugin-root>/scripts/<name>.sh`. Run them
+> by that full path — the scripts are not on PATH.
+
 Pipeline: `analyze → draft → fact-check → deliver`. The defining rule: this
 skill documents what the code DOES, not what anyone believes it does.
 
@@ -18,15 +23,18 @@ skill documents what the code DOES, not what anyone believes it does.
 1. Load applicable lessons: `<plugin-root>/scripts/lessons.sh document` — it prints only
    the matching entries; don't read lessons.md whole.
 2. Determine the doc type; if not given, ask:
-   - **howto** — a procedure someone performs (template: howto.md)
-   - **kb-article** — answers a recurring question/problem (template: kb-article.md)
+   - **howto** — a procedure someone performs
+     (`<plugin-root>/templates/howto.md`)
+   - **kb-article** — answers a recurring question/problem
+     (`<plugin-root>/templates/kb-article.md`)
    - **understanding-doc** — explains how an interface/component works
-     (template: understanding-doc.md)
+     (`<plugin-root>/templates/understanding-doc.md`)
 3. Resolve `<work-repo>`, `<workspace-root>`, and the `<repo-set>` per
    `<plugin-root>/core/repo-resolution.md` (enumerate with
    `<plugin-root>/scripts/list-repos.sh <repos-folder>` and confirm
    the list with the user — the dependency map spans every repo in it), then
-   create the workspace:
+   create the workspace — task id: the one given, else ask (Jira key or a
+   short slug such as `doc-<target>`); never invent one silently:
    `<plugin-root>/scripts/new-task.sh <task-id> auto document <work-repo> <repo-set>`
    (or resume, taking both paths from
    `python3 <plugin-root>/scripts/status.py show <ws>`, where `<ws>` =
@@ -70,13 +78,17 @@ skill documents what the code DOES, not what anyone believes it does.
    (queries, `--help`, dry-run modes) and capture outputs to `evidence/`.
    For a howto: execute each step yourself where safe; steps you could not
    execute are marked `⚠ UNVERIFIED` in the final doc.
-3. Build a fact table as you go: claim → source (`file:line` / run output).
-   This becomes the doc's verification section.
+3. Build the fact table in `<ws>/fact-table.md` as you go, from the first
+   claim: claim → source (`<repo>:<path>:<line>` / run output). It is the
+   resume point until the draft exists, and becomes the doc's verification
+   section.
 4. `status.py set <ws> analyze=done`.
 
 ## 2. Draft
 
-1. Fill the matching template into `<ws>/<doc-name>.md`.
+0. Gate: `status.py require <ws> analyze=done` — non-zero exit = stop.
+1. Fill the matching template into `<ws>/<doc-type>-<target-slug>.md` and
+   record the name: `status.py field <ws> doc-file <name>.md`.
 2. Write for the stated audience; lead with the short answer / purpose.
 3. Every behavioural statement must trace to the fact table. Suspicions and
    folklore are either verified or explicitly labelled as open questions.
@@ -85,25 +97,36 @@ skill documents what the code DOES, not what anyone believes it does.
 
 ## 3. Fact-check gate
 
+0. Gate: `status.py require <ws> draft=done` — non-zero exit = stop.
 1. Run the fact-check procedure in
    `<plugin-root>/agents/doc-fact-checker.md` on the draft — as a
    subagent where the harness supports it, otherwise as a separate fresh pass
    in its report format. It re-verifies each claim against the code; resolve
    every finding (fix the doc or the fact table).
-2. `status.py set <ws> fact-check=done`.
+2. Re-run the fact-check after the fixes until its verdict is PASS — at most
+   3 rounds. Findings left after the third go to the user with the report;
+   record their call (fix, or label the claim `⚠ UNVERIFIED`) with
+   `status.py log <ws> "..."`.
+3. `status.py set <ws> fact-check=done`.
 
 ## 4. Deliver
 
+Delivery for this pipeline happens here — /deliver is not used for document
+tasks (there is no scope contract, branch, or impl doc for it to audit).
+
+0. Gate: `status.py require <ws> fact-check=done` — non-zero exit = stop.
 1. Ask which output formats are needed (unless `status.py get <ws> formats`
    already answers it) and record them: `status.py field <ws> formats
    "<docx,pdf,...>"`. Convert via
    `<plugin-root>/scripts/md2docx.sh | md2pdf.sh | md2confluence.sh`
-   into `<ws>/deliverables/`.
+   into `<ws>/deliverables/`; verify each produced file is non-empty.
 2. Present the doc; note any `⚠ UNVERIFIED` steps and open questions so the
    user can close them.
 3. `status.py set <ws> deliver=done`.
 
 ## Fault tolerance
 
-The fact table in the draft doubles as the resume point — on interruption,
-the next run reads it and continues analysis from the first unsourced section.
+`status.py show <ws>` names the last finished stage; `<ws>/fact-table.md`
+(and, once drafted, the `doc-file` it records) is the content resume point —
+on interruption, the next run reads it and continues from the first
+unsourced section.

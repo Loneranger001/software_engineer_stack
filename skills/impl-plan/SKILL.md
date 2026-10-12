@@ -10,6 +10,11 @@ argument-hint: "[task-id]"
 > directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
 > it automatically; other harnesses resolve it from this file's location.
 
+> Script shorthand: a bare `status.py`, `handoff.py`, `checkpoint.py`, or
+> `xsearch.py` below means `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/<name>`; a
+> bare `<name>.sh` means `${CLAUDE_PLUGIN_ROOT}/scripts/<name>.sh`. Run them
+> by that full path — the scripts are not on PATH.
+
 Produce `<ws>/impl-doc.md` and get it user-approved. /implement will
 execute this document literally, so it must be executable by someone (or some
 session) with no memory of this conversation.

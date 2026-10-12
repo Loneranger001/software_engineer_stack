@@ -10,6 +10,11 @@ description: Produce an implementation document from the approved TDD - ordered 
 > `plugin.json` (the plugin install root). All framework files referenced
 > below live inside it.
 
+> Script shorthand: a bare `status.py`, `handoff.py`, `checkpoint.py`, or
+> `xsearch.py` below means `python3 <plugin-root>/scripts/<name>`; a
+> bare `<name>.sh` means `<plugin-root>/scripts/<name>.sh`. Run them
+> by that full path — the scripts are not on PATH.
+
 Produce `<ws>/impl-doc.md` and get it user-approved. /implement will
 execute this document literally, so it must be executable by someone (or some
 session) with no memory of this conversation.

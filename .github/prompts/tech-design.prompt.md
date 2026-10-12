@@ -6,9 +6,17 @@ mode: agent
 > Part of **software-engineer-stack** (.). Shared decision protocol:
 > ./core/decision-protocol.md — follow it for every unknown.
 > Arguments: `[task-id]`
+> Paths starting `./` are relative to the repository root (the
+> directory holding `.github/`): run commands from there or prefix that
+> root — never resolve them against another current directory.
 
 
 # /tech-design — traceable technical design document
+
+> Script shorthand: a bare `status.py`, `handoff.py`, `checkpoint.py`, or
+> `xsearch.py` below means `python3 ./scripts/<name>`; a
+> bare `<name>.sh` means `./scripts/<name>.sh`. Run them
+> by that full path — the scripts are not on PATH.
 
 Produce `<ws>/tdd.md` and get it user-approved. The TDD is the contract
 for HOW the scope will be met.

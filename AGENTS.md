@@ -31,7 +31,7 @@ and documentation. Full docs: README.md.
 | `/research` | Investigate the codebase and external sources for the current task and produce source-referenced research notes. | `skills/research/SKILL.md` |
 | `/retro` | Close the self-improvement loop after a delivered task - capture structured lessons into the framework's knowledge base and propose concrete template/checklist/skill improvements for user approval. | `skills/retro/SKILL.md` |
 | `/tech-design` | Produce a technical design document (TDD) from the approved scope contract and research notes, with full requirements traceability and fact-checked claims. | `skills/tech-design/SKILL.md` |
-| `/understand` | Build a code-verified working understanding of any existing interface or integration - what it does, how it is triggered, what data it moves, everything upstream and downstream, and how it fails and recovers - explained in layers with source references, then interrogated in Q&A until the user's mental model matches the code. | `skills/understand/SKILL.md` |
+| `/understand` | Build a code-verified understanding of an existing interface or integration - trigger, data flow, cross-repo dependencies, failure and recovery - explained in layers with source references and refined through Q&A. | `skills/understand/SKILL.md` |
 | `/verify-code` | Verify PL/SQL, SQL, KSH, or Python code by running it against live dev environments where available (Oracle via SQL*Plus/SQLcl, Unix host for KSH, project Python), with documented static fallbacks. | `skills/verify-code/SKILL.md` |
 
 3. Instruction files reference framework paths as `${CLAUDE_PLUGIN_ROOT}` —

@@ -17,7 +17,7 @@ depth they need:
 4. **Dependency picture** — what feeds it, what would break without it.
 5. **Failure & recovery** — how it fails, how you know, how it restarts.
 
-Tie statements visibly to sources (`file:line` inline) — the references are
+Tie statements visibly to sources (`<repo>:<path>:<line>` inline) — the references are
 what lets the user trust the explanation and jump into the code themselves.
 Label `INFERRED` items and open questions honestly: an admitted gap keeps
 trust; a confident guess destroys it the first time the user checks.
@@ -38,18 +38,27 @@ of the exercise, not an interruption.
 - "What if" questions ("what happens if the feed is late", "what breaks if
   we rename this column") are answered by tracing the actual handling path;
   say clearly where the trace ends and reasoning beyond the evidence begins.
-- Business meanings confirmed along the way go into
-  `<work-repo>/.domain-glossary.md` (marked `from-code`, template:
+- Business meanings established along the way go into
+  `<work-repo>/.domain-glossary.md` (template:
   `./templates/domain-glossary.md`) so the next task
-  doesn't re-derive them.
+  doesn't re-derive them — marked `from-code` when the code proves them,
+  `user-confirmed` when the user stated them.
 - Findings that suggest work — bugs, dead code, risky patterns — go to
   PARKED.md and are mentioned to the user; never act on them here.
+
+Q&A ends when the user says so. After each cluster of answers, ask
+explicitly: "Anything else on <interface>, or shall I close?" — close on
+"done", a decline, or no further question; never close unasked, and never
+keep generating unasked-for explanations to fill the gap.
 
 ## 6. Close and hand off
 
 1. Make sure interface-map.md reflects everything learned, including Q&A
    discoveries, and log remaining open questions in it.
-2. Offer the natural next steps where they fit — a formal
+2. Record the close — this is the stage's done state:
+   `status.py log <ws> "closed: <n> facts, <m> open questions"` and
+   `status.py next <ws> "Closed. Optional: /document understanding-doc, /change-request, or /intake."`
+3. Offer the natural next steps where they fit — a formal
    `/document understanding-doc` (its analyze stage reuses this map), a
    `/change-request`, or a full `/intake` — but don't push: understanding
    alone is a complete outcome.

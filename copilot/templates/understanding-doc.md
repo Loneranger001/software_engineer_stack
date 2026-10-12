@@ -20,7 +20,7 @@
 
 | Aspect | Value | Source |
 |---|---|---|
-| Entry points | {proc / script / endpoint} | {file:line} |
+| Entry points | {proc / script / endpoint} | {repo:path:line} |
 | Trigger / schedule | {cron, event, manual} | {…} |
 | Inputs | {files, tables, parameters} | {…} |
 | Outputs | {files, tables, return codes} | {…} |
@@ -33,7 +33,7 @@ flowchart TD
     {diagram of the main path}
 ```
 
-{Narrative walk-through of the flow. Reference each hop: file:line.}
+{Narrative walk-through of the flow. Reference each hop: repo:path:line.}
 
 ## 4. Components
 
@@ -41,7 +41,7 @@ flowchart TD
 
 - Location: {path}
 - Responsibility: {…}
-- Key logic: {described with file:line references}
+- Key logic: {described with repo:path:line references}
 - Error handling: {…}
 
 ## 5. Data
@@ -82,7 +82,7 @@ flowchart LR
 
 | Dependency | Type | How used | Source |
 |---|---|---|---|
-| {feed file / table / package / service} | {…} | {…} | {file:line / query} |
+| {feed file / table / package / service} | {…} | {…} | {repo:path:line / query} |
 
 ### Downstream (what depends on this interface)
 

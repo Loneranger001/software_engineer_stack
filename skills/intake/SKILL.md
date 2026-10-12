@@ -10,6 +10,11 @@ argument-hint: <path-to-brief-or-pasted-requirements> [task-id]
 > directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
 > it automatically; other harnesses resolve it from this file's location.
 
+> Script shorthand: a bare `status.py`, `handoff.py`, `checkpoint.py`, or
+> `xsearch.py` below means `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/<name>`; a
+> bare `<name>.sh` means `${CLAUDE_PLUGIN_ROOT}/scripts/<name>.sh`. Run them
+> by that full path — the scripts are not on PATH.
+
 You are starting a new task in the software-engineer-stack lifecycle. Your output
 is a task workspace containing a requirements summary and a **scope contract**
 the user has explicitly approved. Nothing downstream may begin before that approval.
@@ -85,7 +90,9 @@ the user has explicitly approved. Nothing downstream may begin before that appro
   <names>` — counts first, every repo), to populate the "interfaces & objects expected to change" table
   — each row carries its repo. A brief written against one repo routinely
   implicates others; finding that at intake is cheap, finding it during
-  /implement is not.
+  /implement is not. A workspace holding `cr-analysis.md` (a change request
+  escalated here) seeds this table from its caller search; re-search only
+  repos whose sha moved.
 - Fill the contract's "Repos" section: which repos are analyzed, which are
   expected to CHANGE (the write scope — everything else is read-only context),
   and any repo excluded from analysis with the user's reason.

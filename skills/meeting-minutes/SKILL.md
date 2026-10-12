@@ -32,9 +32,9 @@ Ask one focused question only when the source itself is missing or inaccessible.
    - A proposal, suggestion, or option is not a decision unless the source records agreement.
 4. Preserve names, identifiers, dates, measurements, and technical terms exactly where possible. Resolve pronouns only when the referent is unambiguous.
 5. Load only the template for the selected detail level and draft from it:
-  - `summary`: [summary-template.md](./assets/summary-template.md)
-  - `detailed`: [detailed-template.md](./assets/detailed-template.md)
-6. Run the fidelity and completeness checks before saving or returning the result.
+   - `summary`: [summary-template.md](./assets/summary-template.md)
+   - `detailed`: [detailed-template.md](./assets/detailed-template.md)
+6. Run the **Final Checks** below before saving or returning the result.
 7. Save the document when workspace file tools are available. Otherwise, return ready-to-save Markdown and state the intended path.
 
 ## Accuracy Rules
@@ -74,13 +74,13 @@ Replace an unsupported table or list with `None identified.` Do not leave templa
 
 Unless the user specifies another destination:
 
-1. Save under `docs/temp/` relative to the relevant workspace or repository root.
+1. Save under `docs/temp/` in the root of the repository (or open project folder) the meeting concerns — not the stack's task `work/` area.
 2. Build a lowercase, hyphen-separated slug from the meeting subject.
 3. Remove unsafe filename characters and collapse repeated hyphens.
-4. Use `<meeting-subject>-<YYYY-MM-DD>.md`, where the date is the current date on which the minutes are prepared.
+4. Use `<meeting-subject>-<YYYY-MM-DD>.md`, where the date is the meeting date from the source; when the source does not establish it, use the date the minutes are prepared.
 5. Never overwrite an existing file silently. If the path exists, preserve it and use the next available suffix: `-2`, `-3`, and so on.
 
-If there is no relevant workspace or repository, return the Markdown in chat instead of creating an arbitrary directory.
+If there is no relevant repository or project folder, return the Markdown in chat instead of creating an arbitrary directory.
 
 ## Final Checks
 

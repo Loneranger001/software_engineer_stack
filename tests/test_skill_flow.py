@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parent.parent
 PIPELINE_SKILLS = {
     "full": ["intake", "research", "tech-design", "grill", "impl-plan", "implement", "deliver", "retro"],
     "change-request": ["change-request", "grill", "retro"],
-    "document": ["document", "deliver"],
+    "document": ["document"],
     "understand": ["understand"],
 }
 
@@ -58,6 +58,17 @@ class FlowTest(unittest.TestCase):
                 if ref and ref != ".generated" and not (ROOT / ref).exists():
                     missing.add(f"{f.relative_to(ROOT)} → {ref}")
         self.assertEqual(sorted(missing), [])
+
+    def test_agents_reference_scripts_by_plugin_root(self):
+        # review agents run with the WORK repo as cwd, where a bare scripts/ path
+        # does not exist
+        bad = []
+        for f in (ROOT / "agents").glob("*.md"):
+            for n, line in enumerate(f.read_text().splitlines(), 1):
+                for m in re.finditer(r"scripts/[A-Za-z0-9_-]+\.(?:py|sh)", line):
+                    if not line[:m.start()].endswith("${CLAUDE_PLUGIN_ROOT}/"):
+                        bad.append(f"{f.relative_to(ROOT)}:{n}: {line.strip()}")
+        self.assertEqual(bad, [])
 
     def test_no_bare_task_paths_or_hand_edited_status(self):
         bad = []

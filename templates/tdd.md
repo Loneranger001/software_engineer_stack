@@ -71,7 +71,7 @@ flowchart TD
 - Change type: new | modify | drop
 - Design: {signatures, pseudocode where useful, data flow}
 - Error handling: {…}
-- Source references for claims about existing behaviour: {file:line}
+- Source references for claims about existing behaviour: {repo:path:line}
 
 ### 4.2 {Component / object 2}
 

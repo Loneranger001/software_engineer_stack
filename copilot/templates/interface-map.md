@@ -14,7 +14,7 @@
 
 | Aspect | Value | Source |
 |---|---|---|
-| Entry points | {proc / script / endpoint} | {file:line} |
+| Entry points | {proc / script / endpoint} | {repo:path:line} |
 | Trigger / schedule | {cron, event, manual, caller} | {…} |
 | Inputs | {files, tables, parameters} | {…} |
 | Outputs / side effects | {files, tables, return codes, messages} | {…} |
@@ -27,7 +27,7 @@ flowchart TD
     {main path, trigger → final effect}
 ```
 
-{Narrative of the main path. Every hop: file:line. Error paths included —
+{Narrative of the main path. Every hop: repo:path:line. Error paths included —
 how failure surfaces, what state is left, how it recovers.}
 
 ## 3. Dependency map
@@ -75,7 +75,7 @@ flowchart LR
 
 <!-- The backbone of every explanation given, and the resume point. -->
 
-| # | Claim | Source (file:line / query / run output) | Status |
+| # | Claim | Source (repo:path:line / query / run output) | Status |
 |---|---|---|---|
 | 1 | {…} | {…} | verified \| INFERRED |
 

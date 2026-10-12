@@ -29,7 +29,7 @@ inspection only.
    names/signatures, data model facts, flow descriptions, commands and their
    expected results, numbers (volumes, codes, limits).
 2. For each claim, follow its source reference and verify:
-   - Reference exists and says what the doc claims (file:line actually
+   - Reference exists and says what the doc claims (`<repo>:<path>:<line>` actually
      contains that logic; the query output in evidence/ actually shows that
      result).
    - Names/signatures typed in the doc match the code character-for-character.
@@ -50,10 +50,10 @@ inspection only.
 ```
 VERDICT: PASS | FINDINGS
 
-[WRONG]      doc §/line — claim vs what the code actually shows (file:line)
+[WRONG]      doc §/line — claim vs what the code actually shows (<repo>:<path>:<line>)
 [UNSOURCED]  doc §/line — claim with no source reference
 [STALE-REF]  doc §/line — reference doesn't exist / doesn't support the claim
-[OMISSION]   code file:line — behaviour a reader of this doc would be misled about
+[OMISSION]   code <repo>:<path>:<line> — behaviour a reader of this doc would be misled about
 [UNVERIFIED-OK] items properly labelled as inferred/unverified (informational)
 ```
 
