@@ -59,5 +59,31 @@ class CheckModeTest(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stderr[-2000:])
 
 
+class SelfContainedTest(unittest.TestCase):
+    def test_every_bundle_reference_resolves(self):
+        import re
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp)
+            subprocess.run(["git", "init", "-q", str(target)], check=True)
+            r = subprocess.run([sys.executable, str(ROOT / "scripts" / "build_copilot.py"),
+                                "--target", str(target), "--self-contained"],
+                               capture_output=True, text=True)
+            self.assertEqual(r.returncode, 0, r.stderr[-2000:])
+            gh = target / ".github"
+            missing, literal = set(), set()
+            for f in gh.rglob("*.md"):
+                text = f.read_text()
+                if "${CLAUDE_PLUGIN_ROOT}" in text and "knowledge" not in f.parts:
+                    literal.add(str(f.relative_to(target)))
+                for ref in re.findall(r"\.github/se-stack/([A-Za-z0-9_./-]+)", text):
+                    ref = ref.rstrip(".,;:)")
+                    if ref and not (gh / "se-stack" / ref).exists():
+                        missing.add(f"{f.relative_to(target)} -> {ref}")
+            self.maxDiff = None
+            self.assertEqual(sorted(missing), [])
+            self.assertEqual(sorted(literal), [])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -118,6 +118,12 @@ path inside the wrapper.
 
 ### MCP mode — a database MCP server connection
 
+**SQLcl's MCP server** (tools `list-connections`, `connect`, `disconnect`,
+`run-sql`, `run-sqlcl` — e.g. the one SQL Developer for VS Code sets up):
+also read `./skills/verify-code/sqlcl-mcp.md` before
+the first call. Its rules are stricter than the steps below and win where
+they differ (scripts are refused; DML checks run only as anonymous blocks).
+
 1. Connect with the server's connect tool to exactly the recorded
    connection. First statement: `SELECT sys_context('USERENV','DB_NAME') db,
    sys_context('USERENV','SERVICE_NAME') svc, user FROM dual` — record the

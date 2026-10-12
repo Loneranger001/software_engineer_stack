@@ -86,7 +86,7 @@ This writes `.github/prompts/<stage>.prompt.md` (explicit `/intake`,
 and `.github/copilot-instructions.md` (shared rules). Path references point
 back at this repo — keep it checked out at a stable location and regenerate
 after skill edits. Add **`--self-contained`** to instead bundle the framework
-data (templates, checklists, protocol, standards, scripts, knowledge) into
+data (templates, checklists, protocol, standards, skills, review agents, scripts, knowledge) into
 `.github/se-stack/` and point every reference there — the work repo then
 needs no framework checkout at all, and `/stage` commands still work in
 VS Code Chat. (The bundled `knowledge/` is a per-install copy — sync lessons
@@ -192,7 +192,7 @@ Connection details are **never stored in this framework**. Verification recipes 
 | `SES_KSH_HOST` | Optional ssh host for running KSH scripts | `devuser@unixdev01` |
 | `SES_PY` | Python interpreter for the work repo | `~/.venvs/proj/bin/python` |
 
-**Database through an MCP server.** If you reach Oracle through a database MCP server (e.g. SQLcl's), leave `SES_DB_CONN` unset and name the connection when you start the task — "use the `DEV_APP` connection on the oracle MCP". It is recorded in the workspace (`status.py field <ws> db-connection "mcp:oracle/DEV_APP"`), and every later stage — including a resumed session — connects to exactly that one, never another from the server's list. With neither a recorded connection nor `SES_DB_CONN`, the agent asks once instead of assuming there is no database. In MCP mode, DML checks run as one call ending in `ROLLBACK`, and no session is left with an open transaction (SQL*Plus-family servers commit on disconnect).
+**Database through an MCP server.** If you reach Oracle through a database MCP server — e.g. the SQLcl MCP server that SQL Developer for VS Code sets up, whose specifics live in [`skills/verify-code/sqlcl-mcp.md`](skills/verify-code/sqlcl-mcp.md) — leave `SES_DB_CONN` unset and name the connection when you start the task — "use the `DEV_APP` connection on the oracle MCP". It is recorded in the workspace (`status.py field <ws> db-connection "mcp:oracle/DEV_APP"`), and every later stage — including a resumed session — connects to exactly that one, never another from the server's list. With neither a recorded connection nor `SES_DB_CONN`, the agent asks once instead of assuming there is no database. In MCP mode no session is left with an open transaction (SQL*Plus-family servers commit on disconnect); on SQLcl's server, DML checks run only as anonymous blocks ending in `ROLLBACK` (whether `run-sql` autocommits is undocumented), code is compiled by sending its source (the server's default restrict level 4 refuses `@` scripts), and the connection must be saved with its password in the extension — the agent never asks for one in chat.
 
 If the environment is unreachable — or you answer "none" for the database — `/verify-code` falls back to static checks and says so in the evidence file.
 

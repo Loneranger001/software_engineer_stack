@@ -29,7 +29,7 @@ Usage:
 Default target is the stack repo. When targeting a work repo, path references
 in prompts point back at the stack root by absolute path — unless
 --self-contained is given, which bundles the framework data (templates,
-checklists, core, standards, scripts, knowledge) into <target>/.github/se-stack/
+checklists, core, standards, skills, agents, scripts, knowledge) into <target>/.github/se-stack/
 and points all references there, so the work repo needs no framework checkout.
 """
 import argparse
@@ -63,6 +63,13 @@ def yaml_str(value: str) -> str:
 
 def runtime_scripts(stack: Path) -> list[Path]:
     return sorted({p for pat in RUNTIME_SCRIPTS for p in (stack / "scripts").glob(pat)})
+
+
+def copy_tree_substituted(src: Path, dest: Path, root_ref: str) -> None:
+    """copytree, with ${CLAUDE_PLUGIN_ROOT} in Markdown files replaced by root_ref."""
+    shutil.copytree(src, dest, ignore=IGNORE)
+    for f in sorted(dest.rglob("*.md")):
+        f.write_text(f.read_text().replace("${CLAUDE_PLUGIN_ROOT}", root_ref))
 
 
 def copy_skill_support(src_dir: Path, dest_dir: Path, root_ref: str) -> None:
@@ -362,8 +369,12 @@ def build_bundle(stack: Path, target: Path) -> None:
     shutil.rmtree(out, ignore_errors=True)
     out.mkdir(parents=True)
     gen_marker.write_text(MARKER + "\n")
-    for dirname in ("templates", "checklists", "core", "standards", "knowledge"):
-        shutil.copytree(stack / dirname, out / dirname, ignore=IGNORE)
+    # skills/ and agents/ too: skills load each other's files (verify-code recipes,
+    # reference .md files) and the review procedures by ${CLAUDE_PLUGIN_ROOT}/...
+    # paths, which point here
+    for dirname in ("templates", "checklists", "core", "standards", "skills", "agents"):
+        copy_tree_substituted(stack / dirname, out / dirname, ".github/se-stack")
+    shutil.copytree(stack / "knowledge", out / "knowledge", ignore=IGNORE)
     restore_knowledge(out, stashed)
     (out / "scripts").mkdir()
     for sh in runtime_scripts(stack):
