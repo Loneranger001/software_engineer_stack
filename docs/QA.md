@@ -55,7 +55,7 @@ Three passes plus a persistent memory. `/intake` builds a **term inventory** fro
 
 Two layers:
 
-**End-to-end dry run** (the real test) — no live DB needed; it exercises the static-fallback path:
+**End-to-end dry run** (the real test) — no live DB needed; it exercises the static-fallback path (answer "none" when asked which DB connection to use):
 
 ```sh
 cd examples/sample-repo
@@ -76,7 +76,7 @@ python3 scripts/build_copilot.py && python3 scripts/build_copilot.py  # idempote
 scripts/md2docx.sh examples/sample-brief.md          # needs pandoc; prints install hint otherwise
 ```
 
-With a dev Oracle/Unix environment available, set `SES_DB_CONN` / `SES_KSH_HOST` / `SES_PY` and re-run `/verify-code` on the sample repo to exercise live mode.
+With a dev Oracle/Unix environment available, name your database MCP connection (or set `SES_DB_CONN`) and set `SES_KSH_HOST` / `SES_PY`, then re-run `/verify-code` on the sample repo to exercise live mode.
 
 ## 12. How does build_copilot.py work?
 

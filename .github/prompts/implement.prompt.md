@@ -97,10 +97,11 @@ For each impl-doc step N, in order:
    the recipe for its language in
    `./skills/verify-code/SKILL.md` (read only its
    "Lessons and output capture", "Environment resolution", and that
-   language's sections; live mode via `$SES_DB_CONN`/`$SES_KSH_HOST`/
-   `$SES_PY` when reachable; static fallback otherwise, recorded as such).
-   Run each command through `./scripts/capture.sh` and
-   write `evidence/step<N>-<desc>.txt` from its summary using
+   language's sections; live mode via the task's recorded `db-connection`
+   (MCP or CLI) / `$SES_KSH_HOST` / `$SES_PY` when reachable; static
+   fallback otherwise, recorded as such).
+   Run each shell command through `./scripts/capture.sh`
+   (MCP database calls: verify-code's MCP-mode capture) and write `evidence/step<N>-<desc>.txt` from its summary using
    `./templates/test-evidence.md`; the full output stays
    in `evidence/raw/`.
 3. **On failure**: fix and re-verify, at most 3 attempts per step. STOP

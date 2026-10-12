@@ -2,16 +2,17 @@
 
 - Date: {UTC timestamp}
 - Environment: {dev DB / host / local} — mode: live | static-fallback
+- DB connection: {mcp:<server>/<connection> | cli:SES_DB_CONN | none} — identified as {db / service / user}
 - Verified by: /verify-code (recipes: {plsql|sql|ksh|python})
 - Relates to: impl-doc.md step {N} / acceptance criterion {A#}
 
 ## What was run
 
 ```sh
-{exact commands, connect strings redacted}
+{exact commands or MCP statements sent, connect strings redacted}
 ```
 
-## Output (capture.sh summary)
+## Output (capture.sh summary, or the same summary for an MCP call)
 
 ```
 {scripts/capture.sh output per command: command (connect string redacted),

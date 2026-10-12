@@ -192,7 +192,9 @@ Connection details are **never stored in this framework**. Verification recipes 
 | `SES_KSH_HOST` | Optional ssh host for running KSH scripts | `devuser@unixdev01` |
 | `SES_PY` | Python interpreter for the work repo | `~/.venvs/proj/bin/python` |
 
-If a variable is unset or the environment is unreachable, `/verify-code` falls back to static checks and says so in the evidence file.
+**Database through an MCP server.** If you reach Oracle through a database MCP server (e.g. SQLcl's), leave `SES_DB_CONN` unset and name the connection when you start the task — "use the `DEV_APP` connection on the oracle MCP". It is recorded in the workspace (`status.py field <ws> db-connection "mcp:oracle/DEV_APP"`), and every later stage — including a resumed session — connects to exactly that one, never another from the server's list. With neither a recorded connection nor `SES_DB_CONN`, the agent asks once instead of assuming there is no database. In MCP mode, DML checks run as one call ending in `ROLLBACK`, and no session is left with an open transaction (SQL*Plus-family servers commit on disconnect).
+
+If the environment is unreachable — or you answer "none" for the database — `/verify-code` falls back to static checks and says so in the evidence file.
 
 ## Repository layout
 

@@ -74,8 +74,9 @@ you>  /research
 No questions for you unless it hits a blocker. The agent reads the affected
 objects (package spec AND body, the ksh job, the Python tool), builds the
 caller graph both directions with recorded grep commands, captures data-model
-facts (running queries against dev if `SES_DB_CONN` is set), and writes
-`research-notes.md` where every finding has a `file:line` or query source.
+facts (running queries against dev on the task's recorded DB connection —
+an MCP connection you named, or `SES_DB_CONN`), and writes
+`research-notes.md` where every finding has a `<repo>:<path>:<line>` or query source.
 Side discoveries land in PARKED.md, not in your lap.
 
 ## 3. /tech-design — the TDD, traceable and fact-checked
@@ -144,8 +145,9 @@ change your mind.
 you>  /implement
 ```
 
-Branch created, then per step: code → `/verify-code` (live against dev if
-`SES_DB_CONN`/`SES_KSH_HOST`/`SES_PY` are set, static fallback otherwise) →
+Branch created, then per step: code → `/verify-code` (live against dev on
+the recorded DB connection and `SES_KSH_HOST`/`SES_PY` where set, static
+fallback otherwise) →
 evidence file → checkpoint commit. If a step invalidates the design, it stops
 and asks rather than quietly diverging. After the last step: full test plan,
 then the code-reviewer pass; SEV-1/2 findings get fixed before the stage

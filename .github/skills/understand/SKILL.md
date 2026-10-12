@@ -85,7 +85,9 @@ describes behaviour.
 1. Follow the main path from trigger to final effect: scheduler/caller →
    entry point → every intermediate hop → outputs/side effects. Record each
    hop with `<repo>:<path>:<line>`.
-2. Where the environment is reachable (`$SES_DB_CONN`, `$SES_KSH_HOST`,
+2. Where the environment is reachable (the recorded `db-connection` — an
+   MCP connection or `$SES_DB_CONN`, per "Database access" in
+   `./skills/verify-code/SKILL.md` — `$SES_KSH_HOST`,
    `$SES_PY`), RUN things to confirm behaviour — queries, `--help`, dry-run
    modes, log inspection — and capture outputs to `evidence/`. Never execute
    anything with side effects on shared data.

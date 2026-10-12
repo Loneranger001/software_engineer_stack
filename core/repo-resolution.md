@@ -41,6 +41,11 @@ it only when a case here is ambiguous.
 4. Record via
    `${CLAUDE_PLUGIN_ROOT}/scripts/new-task.sh <task-id> auto <pipeline> <work-repo> <repo-set>`
    (`auto` = the workspace-root rule above; paths land absolutised).
+5. A database connection the user names (e.g. an MCP server connection) is
+   recorded the moment it is given —
+   `status.py field <ws> db-connection "mcp:<server>/<connection>"` — and
+   every later stage uses exactly that one (rules: "Database access" in
+   `${CLAUDE_PLUGIN_ROOT}/skills/verify-code/SKILL.md`).
 
 **Paths**
 - Repo-level files always prefixed: `<work-repo>/.domain-glossary.md`, never

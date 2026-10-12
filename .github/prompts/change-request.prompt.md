@@ -118,14 +118,16 @@ On approval: `status.py set <ws> mini-contract=approved --log "mini contract app
 1. Verify every changed file with the recipe for its language in
    `./skills/verify-code/SKILL.md` — read only the
    "Lessons and output capture", "Environment resolution", and that
-   language's sections (live via `$SES_DB_CONN`/`$SES_KSH_HOST`/`$SES_PY`
-   where reachable; static fallback recorded).
+   language's sections (live via the task's recorded `db-connection` — MCP
+   or CLI — / `$SES_KSH_HOST` / `$SES_PY` where reachable; static fallback
+   recorded).
 2. Run the regression checks for the impacted callers from §1 — the change
    isn't verified until its callers still work.
 3. Capture everything to `evidence/` with
-   `./templates/test-evidence.md`, running each command
-   through `./scripts/capture.sh` (raw logs land in `evidence/raw/`;
-   only its summary goes into the evidence file).
+   `./templates/test-evidence.md`, running each shell
+   command through `./scripts/capture.sh` and each MCP
+   database call per verify-code's MCP-mode capture (raw logs land in
+   `evidence/raw/`; only the summary goes into the evidence file).
 4. Anything but PASS → fix and re-verify, at most 3 attempts. Still
    failing, the fix needs a file or object outside the mini contract, or it
    changes the agreed behaviour → STOP: `status.py next <ws> "verify blocked:

@@ -75,10 +75,13 @@ expand it:
    Reference every finding as `<repo>:<path>:<line>` — bare `file:line` is
    ambiguous once two repos are in play.
 3. **Data model**: for each touched table/view, capture relevant columns,
-   constraints, indexes, and (if the dev DB is reachable via `$SES_DB_CONN`)
-   row volumes. Run the queries through
+   constraints, indexes, and (if the dev DB is reachable) row volumes —
+   on the task's recorded DB connection, resolved per "Database access" in
+   `./skills/verify-code/SKILL.md` (an MCP connection or
+   `$SES_DB_CONN`; read-only queries only). Capture each query —
    `./scripts/capture.sh <ws>/evidence research-<name> --
-   <command>` and keep their summaries in `evidence/research-*.txt`.
+   <command>` in CLI mode, that section's MCP-mode step 6 otherwise — and
+   keep the summaries in `evidence/research-*.txt`.
 4. **Repo rules**: read the rules files `repo-rules.sh` listed for each
    changed repo and note which rules bind this change (and any two files that
    contradict each other — an open question).
