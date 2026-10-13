@@ -25,7 +25,7 @@ flowchart LR
 |---|---|---|
 | `/intake <brief>` | Parse a solution design / requirement brief into a requirements summary and a **scope contract** | User approves scope contract |
 | `/research` | Investigate the codebase and external sources; every finding carries a source reference | Checklist |
-| `/func-design [task-id \| brief \| component]` | Functional design document: what the system does, when, and under which business rules — component logic as plain-language steps, tables/columns only where they carry meaning, no code (linted by `fdd_lint.py`). Attached to a task before `/tech-design`, which then realises it, or standalone; forward (proposed change) or as-built | User approves FDD |
+| `/func-design <task-id> \| brief <path> \| as-built <component> \| change <repo> <base>..<head>` | Optional functional design document for stakeholders: what the system does, when, and under which business rules — component logic as plain-language steps, tables/columns only where they carry meaning, no code (linted by `fdd_lint.py`). Forward (a proposed change; `/tech-design` then realises it), as-built (existing functionality), or change (a change already built, before vs after from its diff). Rendered for `audience=business` (default) or `technical` by `fdd_view.py` | User approves FDD |
 | `/tech-design` | Produce a technical design document traceable to requirements and research | User approves TDD |
 | `/grill` | Adversarial interrogation of the TDD: concrete edge-case scenarios per category (data, lifecycle, interface, temporal, environment, security/ops); gaps fixed from evidence, the rest grilled out of you until answered or explicitly deferred | Zero open questions |
 | `/impl-plan` | Produce an implementation document: ordered steps, test plan, rollback plan | User approves impl doc |
@@ -214,6 +214,7 @@ scripts/      new-task.sh, status.py (gate checks + transitions), list-repos.sh 
               workspace-root.sh (where work/ goes), repo-rules.sh (a repo's rules files + tooling),
               handoff.py (read/check the handoff summary atop each stage document),
               fdd_lint.py (flags code-level content in a functional design),
+              fdd_view.py (renders a functional design for a business or technical audience),
               checkpoint.py (resume + evidence hashes), xsearch.py (count-first search across
               every analyzed repo), review-diff.sh (stat-first, file-by-file review of a branch),
               lessons.sh (stage-filtered lessons), capture.sh (bounded evidence capture, raw logs on disk),

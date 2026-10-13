@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parent.parent
 PIPELINE_SKILLS = {
     "full": ["intake", "research", "func-design", "tech-design", "grill", "impl-plan", "implement",
              "deliver", "retro"],
-    "change-request": ["change-request", "grill", "retro"],
+    "change-request": ["change-request", "grill", "func-design", "retro"],
     "document": ["document", "deliver"],
     "understand": ["understand"],
     "func-design": ["func-design"],

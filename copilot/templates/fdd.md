@@ -1,9 +1,9 @@
 # Functional Design Document — {TASK_ID}: {TITLE}
 
 - Status: draft | user-approved ({date})
-- Mode: forward (proposed change) | as-built (existing behaviour)
-- Inputs: {scope-contract.md v{n} + research-notes.md | brief: {path} | code: {repo}@{sha}}
-- Audience: {business owner, functional analysts, UAT testers, developers}
+- Mode: forward (proposed change) | as-built (existing behaviour) | change (a change already built)
+- Inputs: {scope-contract.md v{n} + research-notes.md | brief: {path} | code: {repo}@{sha} | change: {repo} {base-sha}..{head-sha}}
+- Audience: {business | technical} — {who: business owner, functional analysts, UAT testers, developers}
 - Author: Claude, reviewed by {user}
 
 <!-- FUNCTIONAL LEVEL ONLY (skills/func-design/SKILL.md, "Abstraction rules"):
@@ -13,7 +13,10 @@
      file names, numbered plain-language steps, decision tables, mermaid
      business flows. Not allowed: code, SQL, pseudocode, DDL, data types,
      indexes, hints, commit points, variable names, error codes.
-     Mechanical floor: scripts/fdd_lint.py <file>. -->
+     Mechanical floor: scripts/fdd_lint.py <file>.
+     Stakeholders get a rendered view (scripts/fdd_view.py): the business
+     audience drops the handoff summary, every technical:start/end region,
+     and Appendix A — keep the markers around developer-only detail. -->
 
 <!-- handoff:start -->
 ## Handoff summary
@@ -21,7 +24,7 @@
      amendment. /tech-design reads ONLY this block unless it needs a section's
      detail. Every FR/BR/EX/TS/Q ID in the body appears here; max 40 lines —
      group IDs on one line where needed. Check: scripts/handoff.py check <file>. -->
-- Contract version: {n | none (standalone)}
+- Contract version: {n | none (standalone or change request)}
 - Purpose: {one line}
 - Requirements: FR1 {…}; FR2 {…}
 - Traceability: S1 → FR1, FR2 (attached mode; standalone: brief §… → FR…)
@@ -84,10 +87,12 @@ flowchart TD
 
 {One paragraph walking the diagram.}
 
-### Today vs after this change
+### Before and after this change
 
-<!-- Forward mode only; as-built mode: delete this subsection. -->
-| Aspect | Today | After this change |
+<!-- Forward and change modes — the stakeholders' main view of what the
+     change does; change mode fills both columns from the code (before = base
+     commit, after = head commit). As-built mode: delete this subsection. -->
+| Aspect | Before | After this change |
 |---|---|---|
 | {how orders reach vendors} | {…} | {…} |
 
@@ -99,25 +104,28 @@ flowchart TD
      its meaning) and the rule it applies (BR#), never loops, cursors, SQL, or
      variables. A 400-line procedure becomes 5–10 steps. Litmus test: two
      developers could implement these steps differently and both satisfy them.
-     Mark components shown only for context as "context — unchanged". -->
+     Mark components shown only for context as "context — unchanged"; in
+     change mode, mark each new or changed step "(new)" / "(changed)". -->
 
 ### 5.1 {Component name} — {new | changed | context — unchanged}
 
 - Purpose: {one sentence}
 - Invoked by / when: {actor or caller from §3}
+<!-- technical:start -->
 - Inputs:
 
   | Input | Business meaning | Mandatory | Valid values / default |
   |---|---|---|---|
   | {run date} | {the business day being processed} | {no} | {defaults to today} |
 
+<!-- technical:end -->
 - Processing logic:
   1. {Identify the purchase orders to send: approved (`ORDHEAD.STATUS` = 'A')
      and not yet sent to the vendor (`ORDHEAD.EDI_SENT_IND` = 'N').}
   2. {Check each order against BR1; an order that fails is reported (EX1) and
      skipped, the rest continue.}
-  3. {Write the accepted orders to the vendor file (§8) and mark each as sent
-     (`ORDHEAD.EDI_SENT_IND` = 'Y').}
+  3. {(new) Write the accepted orders to the vendor file (§8) and mark each
+     as sent (`ORDHEAD.EDI_SENT_IND` = 'Y').}
 - Outputs and effects: {records created or updated (table.column → new value
   and what it means), files produced, notifications sent}
 - Exceptions: {EX1, …}
@@ -213,12 +221,16 @@ Dependencies: {other changes, data, or teams this design relies on — or "None"
 | Role | Name | Date | Decision |
 |---|---|---|---|
 
+<!-- technical:start -->
 ## Appendix A. Source references
 
 <!-- The fact table: every statement about EXISTING behaviour (all of an
-     as-built FDD) → its source. The doc-fact-checker verifies each row; a
-     claim about existing behaviour with no row is a finding. Proposed
-     behaviour traces to §2.1 instead. Business readers can skip this. -->
+     as-built or change FDD) → its source. Change mode cites the head commit
+     for "after" claims and the base commit for "before" claims. The
+     doc-fact-checker verifies each row; a claim about existing behaviour
+     with no row is a finding. Proposed behaviour traces to §2.1 instead.
+     Dropped from the business view. -->
 | Section | Claim | Source |
 |---|---|---|
 | {§5.1 step 1} | {orders are selected by status and sent indicator} | {repo:path:line} |
+<!-- technical:end -->

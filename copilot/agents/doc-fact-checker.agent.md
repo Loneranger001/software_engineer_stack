@@ -47,7 +47,12 @@ inspection only.
 6. For a functional design (fdd.md), its plain-language steps are claims too:
    check each against the code's actual conditions and order (as-built) or
    the existing behaviour it relies on (forward), using its Appendix A as the
-   claim → source table. Every existing table, column, and code value it
+   claim → source table. Change mode: "after" claims are checked at the
+   head commit and "before" claims at the base commit (`change-head` /
+   `change-base` in the workspace), and every changed file in
+   `review-diff.sh <repo> <base> <head>` must be reflected somewhere in the
+   FDD — a business-visible change the FDD omits is an OMISSION. Every
+   existing table, column, and code value it
    names must exist with that meaning; ones marked `new` must not collide
    with an existing name. Proposed behaviour is checked for traceability
    (each FR# cites its S# or brief section), not against code. Functional
