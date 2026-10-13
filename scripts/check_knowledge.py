@@ -34,8 +34,8 @@ CANONICAL_DIRS = ("skills", "agents", "templates", "checklists", "core",
 CANONICAL_FILES = ("README.md",)
 GENERATED_PREFIXES = ("copilot/", ".github/prompts/", ".github/skills/", ".github/agents/",
                       ".github/copilot-instructions.md", ".github/se-stack/", "AGENTS.md")
-STAGES = ("intake", "research", "tech-design", "grill", "impl-plan", "implement", "deliver",
-          "change-request", "document", "understand", "verify", "any")
+STAGES = ("intake", "research", "func-design", "tech-design", "grill", "impl-plan", "implement",
+          "deliver", "change-request", "document", "understand", "verify", "any")
 ENTRY_RE = re.compile(r"^- \[(\d{4}-\d{2}-\d{2})\] (.*)$")
 LESSON_RE = re.compile(r"^- \[\d{4}-\d{2}-\d{2}\] \[stage:([a-z-]+)\] \[lang:(plsql|sql|ksh|python|-)\] "
                        r"\[repo:[^\]]+\] .+ \(task [^)]+\)$")

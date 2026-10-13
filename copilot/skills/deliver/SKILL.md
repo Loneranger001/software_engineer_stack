@@ -54,7 +54,8 @@ audited against scope, evidenced, and converted to the formats the user needs.
 
 The documents must match what was actually built:
 
-- tdd.md and impl-doc.md vs the final diff — update stale sections and mark
+- tdd.md, impl-doc.md, and fdd.md (when present) vs the final diff — update
+  stale sections and mark
   them `(updated at delivery: <reason>)`, updating each document's handoff
   summary in the same edit (`handoff.py check <ws>` must pass); substantive
   divergence needs the user's ack since those documents were approved.
@@ -70,7 +71,9 @@ The documents must match what was actually built:
    into `<ws>/deliverables/`. Ask once which formats are wanted unless
    `status.py get <ws> formats` already answers it, and record the answer
    (`status.py field <ws> formats "<docx,pdf,...>"`); verify each produced
-   file is non-empty.
+   file is non-empty. An `fdd.md` is converted through its audience view
+   (`python3 <plugin-root>/scripts/fdd_view.py <ws>/fdd.md --audience <fdd-audience>`),
+   never directly.
 3. Push every changed repo's task branch (the `branch.<repo>` fields:
    `git -C <repo> push -u origin <branch>`; retry with backoff on network
    failure). Do NOT open a PR / merge unless the user asks.
