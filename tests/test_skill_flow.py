@@ -9,10 +9,12 @@ ROOT = Path(__file__).resolve().parent.parent
 
 # which skills drive which pipeline (a skill may serve several)
 PIPELINE_SKILLS = {
-    "full": ["intake", "research", "tech-design", "grill", "impl-plan", "implement", "deliver", "retro"],
+    "full": ["intake", "research", "func-design", "tech-design", "grill", "impl-plan", "implement",
+             "deliver", "retro"],
     "change-request": ["change-request", "grill", "retro"],
     "document": ["document", "deliver"],
     "understand": ["understand"],
+    "func-design": ["func-design"],
 }
 
 

@@ -29,6 +29,12 @@ for HOW the scope will be met.
    research section only when designing the component it concerns.
    `handoff.py check <ws>/research-notes.md` reporting an older contract
    version means research is stale: send the user back to /research.
+   If the task has an approved functional design (`<ws>/fdd.md`; approval in
+   `status.py get <ws> fdd`), read its handoff summary
+   (`handoff.py show <ws>/fdd.md`): the TDD realises it — every FR# joins the
+   S# items in §2 traceability, its business rules (BR#) and exceptions
+   (EX#) are honoured, and a design that has to depart from it goes back to
+   the user as an FDD amendment, re-approved before the TDD diverges.
 4. Unknowns follow `./core/decision-protocol.md`: design
    judgment calls that pass §2 (high confidence, reversible, in-scope, no
    dangerous surface) go to ASSUMPTIONS.md; anything else stops and asks.

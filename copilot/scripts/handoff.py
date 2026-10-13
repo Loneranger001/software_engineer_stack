@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """handoff.py — read and check the handoff summary at the top of a stage document.
 
-Each stage document (scope-contract.md, research-notes.md, tdd.md,
+Each stage document (scope-contract.md, research-notes.md, fdd.md, tdd.md,
 impl-doc.md) opens with a bounded summary between these markers:
 
     <!-- handoff:start -->
@@ -35,7 +35,7 @@ import re
 import sys
 from pathlib import Path
 
-DOCS = ("scope-contract.md", "research-notes.md", "tdd.md", "impl-doc.md")
+DOCS = ("scope-contract.md", "research-notes.md", "fdd.md", "tdd.md", "impl-doc.md")
 MAX_LINES = 40
 START, END = "<!-- handoff:start -->", "<!-- handoff:end -->"
 ID_ROW = re.compile(r"^\|\s*([A-Z]{1,2}\d+)\s*\|", re.M)
@@ -124,7 +124,7 @@ def main(argv: list[str]) -> int:
     if not docs:
         if all(t.is_dir() for t in targets):
             # e.g. a change-request or document workspace: nothing to hold to a summary
-            print("no stage documents (scope-contract/research-notes/tdd/impl-doc) — nothing to check")
+            print("no stage documents (scope-contract/research-notes/fdd/tdd/impl-doc) — nothing to check")
             return 0
         print("error: no stage documents found", file=sys.stderr)
         return 2

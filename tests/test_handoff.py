@@ -122,6 +122,15 @@ class HandoffTest(unittest.TestCase):
         self.write("tdd.md", "<!-- handoff:start -->\n- Contract version: 1\n" + filler + "<!-- handoff:end -->\n")
         self.assertIn("max 40", run("check", self.ws / "tdd.md").stderr)
 
+    def test_fdd_is_checked_as_a_stage_document(self):
+        self.write("scope-contract.md", CONTRACT.format(version=1))
+        self.write("fdd.md", "<!-- handoff:start -->\n- Contract version: 1\n- Requirements: FR1 x\n"
+                             "<!-- handoff:end -->\n\n| # | Requirement | Source |\n|---|---|---|\n"
+                             "| FR1 | x | S1 |\n| FR2 | y | S2 |\n")
+        r = run("check", self.ws)
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("fdd.md: summary omits ID(s) the body defines or traces: FR2", r.stderr)
+
     def test_workspace_without_stage_documents_passes(self):
         self.write("analysis.md", "# CR analysis\n")
         r = run("check", self.ws)
@@ -130,7 +139,7 @@ class HandoffTest(unittest.TestCase):
 
     def test_templates_carry_complete_blocks(self):
         # each template alone (no sibling contract, so only structure and IDs are checked)
-        for name in ("scope-contract.md", "research-notes.md", "tdd.md", "impl-doc.md"):
+        for name in ("scope-contract.md", "research-notes.md", "fdd.md", "tdd.md", "impl-doc.md"):
             with tempfile.TemporaryDirectory() as d:
                 shutil.copy(ROOT / "templates" / name, d)
                 r = run("check", Path(d) / name)

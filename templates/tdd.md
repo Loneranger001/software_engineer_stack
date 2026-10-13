@@ -31,7 +31,8 @@ document does not re-define terms.
 
 ## 2. Requirements traceability
 
-<!-- Every in-scope item from the scope contract must map to at least one design section. -->
+<!-- Every in-scope item from the scope contract must map to at least one design section.
+     With an approved fdd.md, each of its FR# items gets a row too. -->
 | Scope item | Design section(s) |
 |---|---|
 | S1 | §4.1, §5 |

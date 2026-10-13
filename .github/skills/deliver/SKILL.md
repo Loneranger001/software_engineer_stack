@@ -50,7 +50,8 @@ audited against scope, evidenced, and converted to the formats the user needs.
 
 The documents must match what was actually built:
 
-- tdd.md and impl-doc.md vs the final diff — update stale sections and mark
+- tdd.md, impl-doc.md, and fdd.md (when present) vs the final diff — update
+  stale sections and mark
   them `(updated at delivery: <reason>)`, updating each document's handoff
   summary in the same edit (`handoff.py check <ws>` must pass); substantive
   divergence needs the user's ack since those documents were approved.
