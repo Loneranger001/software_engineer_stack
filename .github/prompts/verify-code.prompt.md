@@ -121,8 +121,9 @@ path inside the wrapper.
 **SQLcl's MCP server** (tools `list-connections`, `connect`, `disconnect`,
 `run-sql`, `run-sqlcl` — e.g. the one SQL Developer for VS Code sets up):
 also read `./skills/verify-code/sqlcl-mcp.md` before
-the first call. Its rules are stricter than the steps below and win where
-they differ (scripts are refused; DML checks run only as anonymous blocks).
+the first call. Its rules are more specific than the steps below and win
+where they differ (scripts are refused; `run-sql` does not autocommit, so
+pending DML outlives the call).
 
 1. Connect with the server's connect tool to exactly the recorded
    connection. First statement: `SELECT sys_context('USERENV','DB_NAME') db,

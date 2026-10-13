@@ -46,17 +46,21 @@ The server starts at restrict level 4: `@`/`@@`/`START` scripts, `HOST`,
   you — it is their security setting (starting the server with `-R 1`
   allows scripts but not host commands, if they choose to).
 
-## Transactions — assume the worst
+## Transactions — pending work outlives the call
 
-Oracle does not document whether `run-sql` autocommits or what happens to
-pending work between calls, and the server itself runs DDL on first use
-(creating its log table, an implicit commit) and writes a log row per call —
-possibly in your session. So a DML check never spans calls and never runs
-as a bare statement:
+`run-sql` does NOT autocommit (confirmed by the user on SQL Developer for
+VS Code's server, 2026-10): DML stays pending in the session across later
+calls until a `COMMIT` or `ROLLBACK` — and anything that commits implicitly
+commits it too: any DDL (including compiling code with `CREATE OR REPLACE`)
+and `disconnect`. The server also runs DDL itself on first use (creating its
+log table), so the first call after `connect` is the identity query, never
+DML. Order the work so compiles and other DDL come first and DML checks
+after — never interleaved.
 
 1. `run-sqlcl`: `SET SERVEROUTPUT ON` (once per session).
-2. One `run-sql` call per DML check, as an anonymous block. A block is one
-   statement, so even an autocommit after it finds nothing to commit:
+2. Preferred — one `run-sql` call per DML check, as an anonymous block that
+   rolls back before it returns, so nothing is ever left pending between
+   calls:
 
    ```sql
    DECLARE
@@ -73,13 +77,17 @@ as a bare statement:
    END;
    ```
 
-3. Then the open-transaction check (MCP mode step 2) — it must return NULL.
-4. No DBMS_OUTPUT comes back → do not fall back to running the DML bare:
-   check its predicate with the equivalent `SELECT COUNT(*)` instead, and
-   record the check as PARTIAL.
+3. No DBMS_OUTPUT comes back → run the check as consecutive `run-sql`
+   calls with NOTHING else in between: before-count, the DML, after-count,
+   then `ROLLBACK`. No compile, other DDL, `run-sqlcl` command, or
+   `disconnect` before that `ROLLBACK` — each could commit the DML. An
+   error at any point → `ROLLBACK` is the very next call.
+4. Either way, then the open-transaction check (MCP mode step 2) — it must
+   return NULL before you do anything else or end your turn.
 
-DDL cannot be rolled back and commits implicitly — over MCP it runs only as
-an impl-doc deployment step, exactly as in the SQL recipe.
+DDL cannot be rolled back and commits implicitly. Run it in dev as the SQL
+recipe says — never while a DML check is pending (ordering above) — and a
+script mixing DDL with DML only as an impl-doc deployment step.
 
 ## The audit log table
 
