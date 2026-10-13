@@ -9,13 +9,21 @@ Copilot's native plugin layout. No generator run needed.
 
 ```sh
 copilot plugin install ./copilot          # from a local checkout
-copilot plugin install <repo-url>         # or straight from the repository
+copilot plugin install Loneranger001/software_engineer_stack:copilot   # or straight from GitHub
 ```
 
-Verify in a Copilot CLI session: `/plugin list`, `/skills list`, `/agent`.
+Install this folder, never the repository root: the root's
+`.claude-plugin/plugin.json` is the Claude Code flavor, whose skills keep
+unresolved `${CLAUDE_PLUGIN_ROOT}` paths and whose reviewers are not
+`.agent.md` custom agents.
+
+Verify: `copilot plugins list`, then `/skills list` and `/agent` in a session.
 Components are cached — after updating the checkout, run the install command
-again to pick up changes. For the Copilot coding agent, enable the plugin in
-the work repo's `.github/copilot/settings.json`.
+again to pick up changes. The install replaces the cached copy wholesale, so
+lessons /retro appended to the installed `knowledge/` are lost on update:
+upstream them to the framework repo's `knowledge/lessons.md` first. For the
+Copilot cloud agent, enable the plugin via `enabledPlugins` in the work repo's
+`.github/copilot/settings.json`.
 
 ## Contents
 

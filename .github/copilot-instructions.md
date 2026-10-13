@@ -2,10 +2,11 @@
 # software-engineer-stack — Copilot instructions
 
 This repository is worked on with the software-engineer-stack lifecycle
-framework rooted at `.`. The stages are available two ways with the
-same instructions: explicitly as prompt files in Copilot Chat (`/change-request`, `/deliver`, `/document`, `/grill`, `/impl-plan`, `/implement`, `/intake`, `/meeting-minutes`, `/research`, `/retro`, `/tech-design`, `/understand`, `/verify-code`) and as
-native agent skills in `.github/skills/` which the Copilot CLI and coding
-agent load automatically when a request matches a stage's description.
+framework rooted at `.`. Each stage (`/change-request`, `/deliver`, `/document`, `/grill`, `/impl-plan`, `/implement`, `/intake`, `/meeting-minutes`, `/research`, `/retro`, `/tech-design`, `/understand`, `/verify-code`) ships twice with the
+same instructions: as an agent skill in `.github/skills/` — loaded
+automatically when a request matches its description, or invoked as a slash
+command, in VS Code, Copilot CLI, the Copilot app and the cloud agent — and
+as a prompt file in `.github/prompts/` for IDEs without skill support.
 
 Rules that apply to ALL work here:
 
@@ -36,6 +37,6 @@ Rules that apply to ALL work here:
 6. The review procedures (scope-auditor, code-reviewer, doc-fact-checker)
    are installed as Copilot custom agents in `.github/agents/` — where a
    prompt says to run one, delegate to the matching custom agent (VS Code,
-   Copilot CLI `/agents`, or the coding agent). On a surface without
+   Copilot CLI `/agent`, or the cloud agent). On a surface without
    custom-agent support, execute the procedure from `./agents/`
    yourself as a separate, fresh review pass held to its report format.
