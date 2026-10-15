@@ -122,5 +122,49 @@ class CheckpointTest(unittest.TestCase):
         self.assertIn("no task branches recorded", r.stdout)
 
 
+class WorkspaceStaysOutOfGitTest(unittest.TestCase):
+    """A standalone repo keeps work/ inside itself — it must never reach a commit."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.repo = Path(self.tmp.name) / "solo"
+        git(Path(self.tmp.name), "init", "-q", str(self.repo))
+        git(self.repo, "config", "user.email", "t@example.com")
+        git(self.repo, "config", "user.name", "t")
+        (self.repo / "README").write_text("x\n")
+        git(self.repo, "add", "README")
+        git(self.repo, "commit", "-qm", "init")
+        r = subprocess.run(["sh", str(SCRIPTS / "new-task.sh"), "S-1", "auto", "full", str(self.repo)],
+                           capture_output=True, text=True, check=True)
+        self.assertIn("kept out of git", r.stdout)
+        self.ws = self.repo / "work" / "S-1"
+        git(self.repo, "checkout", "-qb", "feature/S-1")
+        run(SCRIPTS / "status.py", "field", self.ws, "branch.solo", "feature/S-1")
+        (self.ws / "evidence" / "step1.txt").write_text("ok\n")
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_new_task_excludes_work_locally(self):
+        status = subprocess.run(["git", "-C", str(self.repo), "status", "--porcelain", "-uall"],
+                                capture_output=True, text=True).stdout
+        self.assertEqual(status, "")
+        self.assertIn("/work/", (self.repo / ".git" / "info" / "exclude").read_text())
+        self.assertFalse((self.repo / ".gitignore").exists())   # the team's file is left alone
+
+    def test_trailer_refuses_staged_workspace_files(self):
+        git(self.repo, "add", "-f", "work/S-1/evidence/step1.txt")
+        r = run(SCRIPTS / "checkpoint.py", "trailer", self.ws, "evidence/step1.txt")
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("workspace files are staged", r.stderr)
+
+    def test_verify_fails_when_workspace_reaches_a_branch(self):
+        git(self.repo, "add", "-f", "work/S-1/STATUS.md")
+        git(self.repo, "commit", "-qm", "S-1 step 1: oops")
+        r = run(SCRIPTS / "checkpoint.py", "verify", self.ws)
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("IN GIT   solo:work/S-1/STATUS.md", r.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()

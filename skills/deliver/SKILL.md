@@ -8,8 +8,10 @@ argument-hint: "[task-id]"
 
 > Framework files: `<root>` is what `ses root` prints — run it once. Every
 > framework script runs as `ses <command>` (`ses help` lists them). If `ses`
-> is not on PATH, stop and ask the user to install the framework (README →
-> Install) — never guess its location.
+> is not on PATH, use `python3 <skill-dir>/../../bin/ses` in its place —
+> `<skill-dir>` is the folder this SKILL.md was loaded from — here and for
+> every `ses` below. If neither runs, stop and ask the user (README →
+> Install); never guess another path.
 
 Turn a finished implementation (or document task) into a delivered package:
 audited against scope, evidenced, and converted to the formats the user needs.
@@ -42,9 +44,8 @@ audited against scope, evidenced, and converted to the formats the user needs.
    (the auditor reads the diff itself via `ses review-diff`) or the produced
    documents,
    PARKED.md, ASSUMPTIONS.md, and the evidence directory (it runs
-   `ses checkpoint verify` against the hashes in the checkpoint commits) — as a subagent
-   where the harness supports it; otherwise execute the procedure yourself as
-   a separate, fresh audit pass held to its report format.
+   `ses checkpoint verify` against the hashes in the checkpoint commits) —
+   delegated per `<root>/core/reviewers.md`.
 3. Outcomes:
    - PASS → proceed.
    - Violations → either remove the out-of-scope change (preferred) or get an
@@ -77,7 +78,10 @@ The documents must match what was actually built:
    never directly.
 3. Push every changed repo's task branch (the `branch.<repo>` fields:
    `git -C <repo> push -u origin <branch>`; retry with backoff on network
-   failure). Do NOT open a PR / merge unless the user asks.
+   failure). Only those branches leave the machine — the task workspace
+   (`work/`, deliverables included) is never committed or pushed, and the
+   audit's `ses checkpoint verify` has already proven no workspace file is on
+   them. Do NOT open a PR / merge unless the user asks.
 
 ## 4. Close
 

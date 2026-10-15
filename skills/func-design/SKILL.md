@@ -8,8 +8,10 @@ argument-hint: "<task-id> | brief <path> | as-built <component> | change <repo> 
 
 > Framework files: `<root>` is what `ses root` prints — run it once. Every
 > framework script runs as `ses <command>` (`ses help` lists them). If `ses`
-> is not on PATH, stop and ask the user to install the framework (README →
-> Install) — never guess its location.
+> is not on PATH, use `python3 <skill-dir>/../../bin/ses` in its place —
+> `<skill-dir>` is the folder this SKILL.md was loaded from — here and for
+> every `ses` below. If neither runs, stop and ask the user (README →
+> Install); never guess another path.
 
 Produce `<ws>/fdd.md`, get it user-approved, and render it for its audience.
 The FDD tells stakeholders WHAT the solution does, in their language; the TDD
@@ -205,9 +207,8 @@ and a clean lint does not excuse a step that fails the litmus test.
 
 1. Self-check with `<root>/checklists/func-design.md`.
 2. Run the fact-check procedure in
-   `<root>/agents/doc-fact-checker.md` on fdd.md — as a
-   subagent where the harness supports it, otherwise as a separate fresh pass
-   in its report format; pass the mode and, in change mode, the repo with
+   `<root>/agents/doc-fact-checker.md` on fdd.md —
+   delegated per `<root>/core/reviewers.md`; pass the mode and, in change mode, the repo with
    `change-base`/`change-head`. Resolve every finding; fixes keep the
    functional level (a WRONG step is corrected in plain language, not
    replaced by the code it summarises). Standalone:

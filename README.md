@@ -39,53 +39,88 @@ flowchart LR
 
 ## Installation
 
-The same `skills/` and `agents/` run in all three harnesses — nothing is generated or copied per harness. Skills reach the framework only through the `ses` command (`bin/ses`): every script is `ses <command>`, every framework file is `<root>/…` where `<root>` is what `ses root` prints. Requirements: `python3` (3.9+), `git`, a POSIX `sh`; `pandoc` for document conversion.
+One repository installs as a plugin in all three harnesses. Each harness needs **two commands** and nothing else; Codex has one optional extra. Requirements: `python3` (3.9+), `git`, and a POSIX shell (macOS or Linux); `pandoc` only if you convert documents to Word/PDF/Confluence.
 
-**Claude Code — plugin:**
+### Claude Code
 
 ```sh
-claude plugin marketplace add Loneranger001/software_engineer_stack   # or a local checkout path
+claude plugin marketplace add Loneranger001/software_engineer_stack
 claude plugin install software-engineer-stack@se-stack
 ```
 
-The plugin ships the 14 skills, the three reviewer agents, and `bin/`, which Claude Code puts on PATH — so `ses` just works. Skills are namespaced: `/software-engineer-stack:intake`.
+Done. You get the 14 skills (invoked as `/software-engineer-stack:intake` and so on, or just by describing the work), the three reviewer agents, and the `ses` command on PATH.
 
-**GitHub Copilot or Codex — install from a checkout:**
+### GitHub Copilot CLI
+
+```sh
+copilot plugin marketplace add Loneranger001/software_engineer_stack
+copilot plugin install software-engineer-stack@se-stack
+```
+
+Done. `copilot skill list` shows the 14 skills; `/agent` in a session shows the three reviewers.
+
+### Codex
+
+```sh
+codex plugin marketplace add Loneranger001/software_engineer_stack
+codex plugin add software-engineer-stack@se-stack
+```
+
+Done — the 14 skills appear as `software-engineer-stack:<name>`. **Optional:** Codex plugins can't ship custom agents yet, so without this step the skills run each reviewer as a generic subagent with the same procedure. To register them as named Codex agents with a read-only sandbox, run once (and again after each plugin update, since Codex keeps one folder per version):
+
+```sh
+python3 "$(ls -dt ~/.codex/plugins/cache/se-stack/software-engineer-stack/*/ | head -1)bin/ses" setup codex
+```
+
+### What you don't need to set up
+
+- **`ses` on PATH.** Every skill runs framework scripts as `ses <command>`; where `ses` isn't on PATH (Copilot, Codex) the skill runs `bin/ses` from its own plugin folder instead. If you want `ses` by name in your own terminal, `ses setup <harness>` links it into `~/.local/bin`.
+- **Anything per work repo.** Nothing is copied into your repos. Open the harness in the repo you're changing — or in the folder holding several repos — and start with `/intake`, `/change-request`, `/understand`, … New here? Read the [narrated walkthrough](docs/walkthrough.md).
+- **`.gitignore` entries.** Task workspaces are kept out of git automatically — see [Keeping `work/` out of git](#keeping-work-out-of-git).
+
+### Updating
+
+```sh
+claude plugin marketplace update se-stack && claude plugin update software-engineer-stack@se-stack
+copilot plugin update software-engineer-stack
+codex plugin marketplace upgrade se-stack && codex plugin add software-engineer-stack@se-stack
+```
+
+### Without the plugin system
+
+To run straight from a clone (e.g. while editing the framework), link the skills and reviewers into the harness's user folders instead — skills are symlinks, so `git pull` updates them:
 
 ```sh
 git clone https://github.com/Loneranger001/software_engineer_stack ~/src/software_engineer_stack
-python3 ~/src/software_engineer_stack/bin/ses install copilot     # or: codex  (or: claude, without the plugin)
+python3 ~/src/software_engineer_stack/bin/ses setup codex --skills    # or: copilot | claude
 ```
 
-| | Skills (symlinks) | Reviewer agents | `ses` |
-|---|---|---|---|
-| `copilot` | `~/.copilot/skills/<name>` | `~/.copilot/agents/<name>.agent.md` | `~/.local/bin/ses` |
-| `codex` | `~/.agents/skills/<name>` | `~/.codex/agents/<name>.toml` (read-only sandbox) | `~/.local/bin/ses` |
-| `claude` | `~/.claude/skills/<name>` | `~/.claude/agents/<name>.md` | `~/.local/bin/ses` |
+Use one route per harness — a plugin plus `--skills` registers every skill twice. `ses setup <harness> --remove` undoes it; `--dry-run` shows the plan; it never replaces a file it didn't create.
 
-`~/.local/bin` must be on PATH (the installer says so if it isn't). Skills are symlinks into the checkout, so `git pull` updates every harness at once; the agent files point at the canonical procedures in `agents/`. `--dry-run` shows the plan; the installer never replaces a file it didn't create; `ses uninstall <harness>` removes only its own links. Pick one route per harness — the Claude Code plugin *and* `ses install claude` would register every skill twice.
-
-Then open the harness **inside the work repo** you're changing (or the folder holding several repos) and run the commands above — by name, or by describing the work ("start a new task from this brief"). New here? Read the [narrated walkthrough](docs/walkthrough.md) of a full task first.
-
-**Cloud agents** (Copilot coding agent, Codex cloud) check out only the repo, so a `work/` folder in its parent doesn't exist there: set `SES_WORKSPACE_ROOT` to a path inside the repo for those runs.
+**Cloud agents** (Copilot coding agent, Codex cloud) check out only the repo and start fresh each time: the workspace is created inside the repo (and kept out of git), but it doesn't outlive the session — run lifecycle tasks locally.
 
 ## Task workspaces
 
 Every engagement (task, change request, doc request) lives in its own workspace directory, `work/<task-id>/`, created by `/intake` (or `ses new-task`):
 
 ```
-work/PROJ-123/
-├── STATUS.md          # minimal: repos, one line per stage gate, next action
-├── scope-contract.md  # approved at intake; the single source of scope truth
-├── research-notes.md
-├── fdd.md             # optional functional design (/func-design)
-├── tdd.md
-├── impl-doc.md
-├── evidence/          # captured run outputs, test results, before/after
-├── ASSUMPTIONS.md     # proceed-and-log decisions awaiting gate ratification
-├── PARKED.md          # out-of-scope findings logged, never acted on
-└── deliverables/      # converted docx / pdf / Confluence outputs
+work/PROJ-123/                 (never committed — see "Keeping work/ out of git")
+├── STATUS.md                  # minimal: repos, one line per stage gate, next action
+├── brief.md                   # the requirement brief as received
+├── scope-contract.md          # /intake — approved scope, the single source of scope truth
+├── research-notes.md          # /research
+├── fdd.md                     # /func-design (optional), plus fdd.<audience>.md views
+├── tdd.md                     # /tech-design
+├── grill-log.md               # /grill — every scenario confronted and its verdict
+├── impl-doc.md                # /impl-plan
+├── evidence/                  # captured run outputs (summaries; raw logs in evidence/raw/)
+├── release-notes.md           # /deliver
+├── deliverables/              # converted docx / pdf / Confluence outputs
+├── ASSUMPTIONS.md             # proceed-and-log decisions awaiting gate ratification
+└── PARKED.md                  # out-of-scope findings logged, never acted on
 ```
+
+A change request keeps `analysis.md` (impact analysis + mini contract) instead of the contract/TDD/impl doc; `/understand` keeps `interface-map.md`; `/document` keeps the document it writes.
 
 **Who keeps which state.** The harness owns the *session*: conversation history, its own resume (`claude --resume`, `codex resume`, `copilot --resume`), compaction, and in-session progress (todo/plan tools). The workspace owns the *task*: what was approved and when, what is in scope, what was assumed, what was built and proven. Nothing about the task lives only in chat, and nothing git or a stage document already records is duplicated into `STATUS.md` — it has no log and no step counter. A task started in one harness resumes in another.
 
@@ -123,9 +158,20 @@ States are `pending | in-progress | done | approved | waived` (a waiver carries 
 
 **Step record and evidence live in git.** Each `/implement` step is one checkpoint commit `<task-id> step <N>: …` ending with `Evidence-SHA256: <hash> <path>` lines (`ses checkpoint trailer`). On resume, `ses checkpoint resume` reports the last checkpoint step, branch mismatches, and every uncommitted file (the next step's own files vs anything unexpected), so a half-done step is kept or discarded by your choice, never folded silently into the next commit. `ses checkpoint verify` — run by the scope auditor at `/deliver` — fails if any recorded evidence file is missing or was edited afterwards.
 
-**Where `work/` goes.** In a multi-repo workspace it sits in the folder holding the repos, beside them rather than inside one (`ses workspace-root`; pin it with `SES_WORKSPACE_ROOT`). A standalone repo keeps `work/` inside itself — add it to that repo's `.gitignore` if workspaces shouldn't be committed. To move a workspace, move the directory and run `ses status field <ws> workspace-root <new-root>`.
-
 **Handoff summaries — the context management.** The scope contract, research notes, FDD (when there is one), TDD and impl doc each open with a bounded summary (≤ 40 lines, one line per ID) between `<!-- handoff:start -->` / `<!-- handoff:end -->`, written last at that stage's gate. Later stages read the summary (`ses handoff show <doc>`) and open full sections only when they need the detail — except where judging the whole document is the job: `/tech-design` on the contract, `/grill` and `/impl-plan` on the TDD, the scope auditor on everything. `ses handoff check <ws>` fails a summary that is missing an ID the body defines (S#, N#, A#, Q#, T#, numbered steps), runs over length, or names an older contract version than `scope-contract.md`. This works the same in every harness and survives any harness's compaction, because it is on disk.
+
+### Keeping `work/` out of git
+
+Task workspaces never reach a repository or its remote — no setup needed:
+
+- **Multi-repo workspace:** `work/` sits in the folder holding the repos, outside all of them.
+- **Standalone repo:** `work/` sits inside the repo, and `ses new-task` adds `/work/` to that clone's `.git/info/exclude` — a local ignore list that is never committed or pushed, so your team's `.gitignore` stays untouched. An existing `.gitignore` entry of your own works just as well; if `work/` is already tracked, `ses new-task` warns you.
+- **Commits** stage the step's own files by name, never `git add -A`; `ses checkpoint trailer` refuses to produce a commit's evidence lines while any workspace file is staged.
+- **Before anything is pushed,** the `/deliver` scope audit runs `ses checkpoint verify`, which fails if any workspace file is on a task branch — and `/deliver` pushes only the task branches.
+
+What does go into git is a hash: each checkpoint commit message ends with `Evidence-SHA256: <hash> evidence/<file>` lines, which prove later that the evidence wasn't altered — file names and hashes, never the content.
+
+To move a workspace, move the directory and run `ses status field <ws> workspace-root <new-root>`; `SES_WORKSPACE_ROOT` pins where new ones go.
 
 ### Which repo is "the repo"
 
@@ -211,18 +257,21 @@ scripts/      what `ses` runs: status.py (gates), new-task.sh, list-repos.sh, wo
               check_knowledge.py (maintenance)
 tests/        unittest suite for ses, the scripts, and the skill wiring (run by CI and the pre-commit hook)
 examples/     sample work repo + a worked example task workspace
-.claude-plugin/  plugin.json + marketplace.json (Claude Code)
+.claude-plugin/     plugin.json + marketplace.json (Claude Code; Copilot reads this marketplace too)
+plugin.json         Agent Plugins 1.0 manifest (GitHub Copilot)
+com.github.copilot/agents/  the reviewers as Copilot NAME.agent.md files — exact copies of agents/
+.codex-plugin/      plugin.json (Codex);  .agents/plugins/marketplace.json (Codex marketplace)
 ```
 
 ## Maintaining the framework
 
-Edit the canonical files — there is nothing generated to regenerate. Checks, in CI (`.github/workflows/framework-checks.yml`) and locally via the pre-commit hook (`git config core.hooksPath .githooks`, once per clone):
+Edit the canonical files — there is nothing generated to regenerate. Two things to keep in step, both enforced by `tests/test_plugin_manifests.py`: after editing a reviewer in `agents/`, copy it over its `com.github.copilot/agents/<name>.agent.md`; and when releasing, bump `version` in all three manifests (`.claude-plugin/plugin.json`, `plugin.json`, `.codex-plugin/plugin.json`) — installed plugins only update when it changes. Checks, in CI (`.github/workflows/framework-checks.yml`) and locally via the pre-commit hook (`git config core.hooksPath .githooks`, once per clone):
 
 - `python3 -m unittest discover -s tests` — includes `tests/test_skill_flow.py`, which fails on any instruction file that names a harness-specific path (`${CLAUDE_PLUGIN_ROOT}`) or a raw script path instead of `ses <command>`, references a `ses` command or `<root>/` file that doesn't exist, or breaks the stage wiring.
 - `python3 scripts/check_knowledge.py` — fails if a `knowledge/decisions.md` "Applied changes" entry names a file that has no commit on or after the entry's date (an edit recorded as applied but lost), or if a lesson line doesn't match the tag format skills filter on.
 - `claude plugin validate .` — the plugin and marketplace manifests, where the Claude Code CLI is available.
 
-`/retro` follows the same rule: framework edits go into your checkout, never into an installed copy (a marketplace plugin cache is replaced on update); lessons go to `~/.ses/lessons.md`.
+`/retro` follows the same rule: framework edits go into your checkout, never into an installed copy (a plugin cache is replaced on update); lessons go to `~/.ses/lessons.md`.
 
 ## Document conversion
 

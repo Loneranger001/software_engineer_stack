@@ -1,0 +1,37 @@
+{
+  "name": "software-engineer-stack",
+  "version": "0.8.0",
+  "description": "End-to-end software engineering lifecycle framework: intake, research, functional design, technical design, grill (adversarial design interrogation), implementation planning, coding with verification, delivery, change requests, and documentation — for PL/SQL, SQL, KSH, and Python codebases. One plugin for Claude Code, GitHub Copilot and Codex. Accurate (source-referenced docs, runnable verification), fault-tolerant (script-checked stage gates, checkpoint commits), self-improving (lessons, domain glossary), and scope-disciplined (scope contracts).",
+  "author": {
+    "name": "loneranger001"
+  },
+  "license": "MIT",
+  "repository": "https://github.com/Loneranger001/software_engineer_stack",
+  "keywords": [
+    "sdlc",
+    "lifecycle",
+    "plsql",
+    "sql",
+    "ksh",
+    "python",
+    "tdd",
+    "scope-contract",
+    "code-review"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Software Engineer Stack",
+    "shortDescription": "Brief → research → design → grill → plan → verified code → audited delivery",
+    "longDescription": "Lifecycle skills for PL/SQL, SQL, KSH and Python codebases: scope contracts, source-referenced research, functional and technical design, adversarial design review, step-by-step verified implementation with checkpoint commits, scope-audited delivery, change requests and documentation.",
+    "developerName": "loneranger001",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Start a new task from this requirement brief."
+    ]
+  }
+}

@@ -1,4 +1,4 @@
-"""Tests for bin/ses: script dispatch and per-harness install/uninstall."""
+"""Tests for bin/ses: script dispatch and per-harness setup."""
 import os
 import subprocess
 import sys
@@ -54,7 +54,7 @@ class DispatchTest(unittest.TestCase):
         self.assertEqual(ses("bogus").returncode, 2)
 
 
-class InstallTest(unittest.TestCase):
+class SetupTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.home = Path(self.tmp.name)
@@ -62,8 +62,8 @@ class InstallTest(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
-    def install(self, harness, *extra):
-        r = ses("install", harness, "--home", self.home, *extra)
+    def setup_(self, harness, *extra):
+        r = ses("setup", harness, "--home", self.home, *extra)
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         return r
 
@@ -73,69 +73,82 @@ class InstallTest(unittest.TestCase):
             self.assertTrue(link.is_symlink(), link)
             self.assertEqual(link.resolve(), ROOT / "skills" / name)
 
-    def test_codex(self):
-        self.install("codex")
-        self.assert_skill_links(".agents/skills")
+    def test_default_links_only_ses(self):
+        self.setup_("copilot")
+        self.assertEqual((self.home / ".local" / "bin" / "ses").resolve(), SES)
+        self.assertFalse((self.home / ".copilot").exists())   # the plugin ships skills and agents
+
+    def test_codex_registers_reviewer_agents(self):
+        self.setup_("codex")
+        self.assertFalse((self.home / ".agents").exists())     # skills come from the plugin
         for name in AGENTS:
             text = (self.home / ".codex" / "agents" / f"{name}.toml").read_text()
             self.assertIn(f'name = "{name}"', text)
             self.assertIn('sandbox_mode = "read-only"', text)
-            self.assertIn(str(ROOT / "agents" / f"{name}.md"), text)
+            self.assertIn(f"agents/{name}.md", text)
             if sys.version_info >= (3, 11):
                 import tomllib
-                self.assertEqual(tomllib.loads(text)["name"], name)
-        self.assertEqual((self.home / ".local" / "bin" / "ses").resolve(), SES)
+                parsed = tomllib.loads(text)
+                self.assertEqual(parsed["name"], name)
+                self.assertTrue(parsed["developer_instructions"].strip())
 
-    def test_copilot(self):
-        self.install("copilot")
+    def test_skills_mode_per_harness(self):
+        self.setup_("codex", "--skills")
+        self.assert_skill_links(".agents/skills")
+        self.setup_("copilot", "--skills")
         self.assert_skill_links(".copilot/skills")
         for name in AGENTS:
-            text = (self.home / ".copilot" / "agents" / f"{name}.agent.md").read_text()
-            self.assertTrue(text.startswith(f"---\nname: {name}\ndescription: "))
-            self.assertIn(str(ROOT / "agents" / f"{name}.md"), text)
-
-    def test_claude_links_agents_directly(self):
-        self.install("claude")
+            self.assertEqual((self.home / ".copilot" / "agents" / f"{name}.agent.md").resolve(),
+                             ROOT / "com.github.copilot" / "agents" / f"{name}.agent.md")
+        self.setup_("claude", "--skills")
         self.assert_skill_links(".claude/skills")
         for name in AGENTS:
             self.assertEqual((self.home / ".claude" / "agents" / f"{name}.md").resolve(),
                              ROOT / "agents" / f"{name}.md")
 
-    def test_installed_ses_runs_scripts(self):
-        self.install("codex")
+    def test_symlinked_skill_dir_still_finds_ses_by_relative_path(self):
+        # the fallback skills use: <skill-dir>/../../bin/ses, with <skill-dir> a symlink
+        self.setup_("codex", "--skills")
+        rel = self.home / ".agents" / "skills" / "intake" / ".." / ".." / "bin" / "ses"
+        r = subprocess.run([sys.executable, str(rel), "root"], capture_output=True, text=True)
+        self.assertEqual(r.stdout.strip(), str(ROOT), r.stderr)
+
+    def test_linked_ses_runs_scripts(self):
+        self.setup_("codex")
         r = subprocess.run([sys.executable, str(self.home / ".local" / "bin" / "ses"), "lessons", "intake"],
                            capture_output=True, text=True,
                            env=dict(os.environ, SES_HOME=str(self.home / ".ses")))
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertIn("lesson(s) for stage:intake", r.stdout)
 
-    def test_reinstall_is_idempotent(self):
-        self.install("codex")
-        self.install("codex")
+    def test_rerun_is_idempotent(self):
+        self.setup_("codex", "--skills")
+        self.setup_("codex", "--skills")
         self.assert_skill_links(".agents/skills")
 
     def test_foreign_files_are_never_replaced(self):
         own = self.home / ".agents" / "skills" / "research"
         own.mkdir(parents=True)
         (own / "SKILL.md").write_text("someone else's skill\n")
-        r = ses("install", "codex", "--home", self.home)
+        r = ses("setup", "codex", "--skills", "--home", self.home)
         self.assertEqual(r.returncode, 1)
-        self.assertIn("was not installed by ses", r.stderr)
+        self.assertIn("was not created by ses setup", r.stderr)
         self.assertEqual((own / "SKILL.md").read_text(), "someone else's skill\n")
         self.assertFalse((self.home / ".agents" / "skills" / "intake").exists())
 
     def test_dry_run_changes_nothing(self):
-        self.install("copilot", "--dry-run")
+        self.setup_("copilot", "--skills", "--dry-run")
         self.assertFalse((self.home / ".copilot").exists())
+        self.assertFalse((self.home / ".local").exists())
 
-    def test_uninstall_keeps_shared_cli_until_last_harness(self):
-        self.install("codex")
-        self.install("copilot")
-        ses("uninstall", "codex", "--home", self.home)
+    def test_remove_keeps_shared_cli_until_last_harness(self):
+        self.setup_("codex", "--skills")
+        self.setup_("copilot", "--skills")
+        ses("setup", "codex", "--remove", "--home", self.home)
         self.assertFalse((self.home / ".agents" / "skills" / "intake").exists())
         self.assertFalse((self.home / ".codex" / "agents" / "scope-auditor.toml").exists())
         self.assertTrue((self.home / ".local" / "bin" / "ses").is_symlink())
-        ses("uninstall", "copilot", "--home", self.home)
+        ses("setup", "copilot", "--remove", "--home", self.home)
         self.assertFalse((self.home / ".local" / "bin" / "ses").exists())
         self.assertFalse((self.home / ".copilot" / "skills" / "intake").exists())
 

@@ -10,7 +10,8 @@ be rigorous and cite evidence for every claim. Bash is for read-only commands
 only (git diff/log/show, ls) — never commands that modify anything.
 
 > Framework scripts run as `ses <command>`; `<root>` is what `ses root` prints.
-> If `ses` is not on PATH, say so in your report instead of guessing paths.
+> If `ses` is not on PATH, use the `ses` command and `<root>` your caller gave
+> you; if you have neither, say so in your report instead of guessing paths.
 
 ## Inputs (provided in your prompt)
 
@@ -50,7 +51,9 @@ only (git diff/log/show, ls) — never commands that modify anything.
    that `<task-id> step <N>` commits match the impl-doc's steps.
 8. Run `ses checkpoint verify <workspace>`.
    Recorded evidence that is MISSING or ALTERED is a finding: the evidence a
-   PASS rests on is no longer the evidence that was captured.
+   PASS rests on is no longer the evidence that was captured. A workspace
+   file IN GIT on a task branch is a finding too — /deliver pushes those
+   branches, and task workspaces never leave the machine.
 9. Run `ses handoff check <workspace>`. A failing
    summary is a finding: later stages worked from it, so a stale or
    incomplete one may have hidden scope from them.
@@ -66,7 +69,7 @@ Exclusion breaches:                                [N# — offending change]
 Parked-but-implemented:                            [PARKED entry — offending change]
 Open assumptions:                                  [ASSUMPTIONS entry — still unratified]
 Stale handoff summaries:                           [ses handoff check problem]
-Evidence integrity:                                [ses checkpoint verify — MISSING/ALTERED file]
+Evidence integrity:                                [ses checkpoint verify — MISSING/ALTERED/IN GIT file]
 Notes (non-blocking observations):                 […]
 ```
 

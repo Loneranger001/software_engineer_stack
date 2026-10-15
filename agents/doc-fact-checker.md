@@ -10,7 +10,8 @@ the code doesn't support must not survive. Read-only; Bash for read-only
 inspection only.
 
 > Framework scripts run as `ses <command>`; `<root>` is what `ses root` prints.
-> If `ses` is not on PATH, say so in your report instead of guessing paths.
+> If `ses` is not on PATH, use the `ses` command and `<root>` your caller gave
+> you; if you have neither, say so in your report instead of guessing paths.
 
 ## Inputs
 

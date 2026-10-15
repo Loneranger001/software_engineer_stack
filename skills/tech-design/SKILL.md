@@ -8,8 +8,10 @@ argument-hint: "[task-id]"
 
 > Framework files: `<root>` is what `ses root` prints — run it once. Every
 > framework script runs as `ses <command>` (`ses help` lists them). If `ses`
-> is not on PATH, stop and ask the user to install the framework (README →
-> Install) — never guess its location.
+> is not on PATH, use `python3 <skill-dir>/../../bin/ses` in its place —
+> `<skill-dir>` is the folder this SKILL.md was loaded from — here and for
+> every `ses` below. If neither runs, stop and ask the user (README →
+> Install); never guess another path.
 
 Produce `<ws>/tdd.md` and get it user-approved. The TDD is the contract
 for HOW the scope will be met.
@@ -81,8 +83,7 @@ for HOW the scope will be met.
 1. Self-check with `<root>/checklists/tech-design.md`.
 2. Run the fact-check procedure in
    `<root>/agents/doc-fact-checker.md` on tdd.md (it verifies
-   every claim against the code) — as a subagent where the harness supports
-   it, otherwise as a separate fresh pass in its report format. Resolve all
+   every claim against the code) — delegated per `<root>/core/reviewers.md`. Resolve all
    findings.
 3. Write the TDD's **handoff summary** block now — after the fact-check
    fixes — and run `ses handoff check <ws>/tdd.md`; it must pass.

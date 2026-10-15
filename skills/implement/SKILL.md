@@ -8,8 +8,10 @@ argument-hint: "[task-id]"
 
 > Framework files: `<root>` is what `ses root` prints — run it once. Every
 > framework script runs as `ses <command>` (`ses help` lists them). If `ses`
-> is not on PATH, stop and ask the user to install the framework (README →
-> Install) — never guess its location.
+> is not on PATH, use `python3 <skill-dir>/../../bin/ses` in its place —
+> `<skill-dir>` is the folder this SKILL.md was loaded from — here and for
+> every `ses` below. If neither runs, stop and ask the user (README →
+> Install); never guess another path.
 
 Execute `<ws>/impl-doc.md` exactly: one step at a time, verified and
 committed before the next begins.
@@ -91,13 +93,16 @@ For each impl-doc step N, in order:
 3. **On failure**: fix and re-verify. If the fix invalidates the design, STOP —
    report to the user, propose a TDD/impl-doc amendment, get approval before
    continuing. Never quietly diverge from the approved documents.
-4. **Checkpoint commit**: `git commit` the step **in the step's repo** with
-   message `<task-id> step <N>: <desc>` (inside the hook format from §1),
-   ending with the evidence hashes as their own paragraph —
-   `ses checkpoint trailer <ws> evidence/step<N>-<desc>.txt
-   evidence/raw/<its logs>` prints them (`git commit -m "<subject>" -m
-   "<trailer lines>"`). `work/` may live outside every repo; these lines put
-   proof of the evidence into git.
+4. **Checkpoint commit**: stage the step's own files by name
+   (`git -C <repo> add <files>` — never `git add -A` or `git add .`, which
+   would sweep in `work/` when it sits inside the repo), then `git commit`
+   the step **in the step's repo** with message `<task-id> step <N>: <desc>`
+   (inside the hook format from §1), ending with the evidence hashes as
+   their own paragraph — `ses checkpoint trailer <ws>
+   evidence/step<N>-<desc>.txt evidence/raw/<its logs>` prints them
+   (`git commit -m "<subject>" -m "<trailer lines>"`) and refuses while any
+   workspace file is staged. The workspace itself never goes into git; these
+   lines put proof of the evidence there instead.
    Never batch multiple steps into one commit, and never span repos in one
    step — a step belongs to exactly one repo so that its rollback is a single
    revert. The commit IS the resume point; nothing else needs recording.
@@ -127,10 +132,8 @@ loop.
 1. Run the review procedure in `<root>/agents/code-reviewer.md`
    on the branch of every changed repo (it reads the diff file by file via
    `ses review-diff`; one pass per repo, each
-   judged against that repo's own rules files) — as a subagent where the harness
-   supports it;
-   otherwise execute the procedure yourself as a separate, fresh review pass,
-   holding yourself to its report format. Resolve findings
+   judged against that repo's own rules files) — delegated per `<root>/core/reviewers.md`.
+   Resolve findings
    or record a conscious waiver (with the user for anything non-trivial).
 2. Self-check with `<root>/checklists/implement.md`.
 3. Record: `ses status set <ws> implement=done --next "Run /deliver."`.

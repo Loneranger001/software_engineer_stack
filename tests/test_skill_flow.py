@@ -20,7 +20,7 @@ def ses_commands():
     loader = SourceFileLoader("ses_cli", str(ROOT / "bin" / "ses"))
     mod = module_from_spec(spec_from_loader("ses_cli", loader))
     loader.exec_module(mod)
-    return set(mod.COMMANDS) | {"root", "install", "uninstall", "help"}
+    return set(mod.COMMANDS) | {"root", "setup", "help"}
 
 # which skills drive which pipeline (a skill may serve several)
 PIPELINE_SKILLS = {

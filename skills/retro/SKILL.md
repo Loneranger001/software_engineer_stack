@@ -8,8 +8,10 @@ argument-hint: "[task-id]"
 
 > Framework files: `<root>` is what `ses root` prints — run it once. Every
 > framework script runs as `ses <command>` (`ses help` lists them). If `ses`
-> is not on PATH, stop and ask the user to install the framework (README →
-> Install) — never guess its location.
+> is not on PATH, use `python3 <skill-dir>/../../bin/ses` in its place —
+> `<skill-dir>` is the folder this SKILL.md was loaded from — here and for
+> every `ses` below. If neither runs, stop and ask the user (README →
+> Install); never guess another path.
 
 Every delivered task teaches something. This skill turns that into durable
 memory (your lessons file, `ses lessons --path`) and, when warranted, into
@@ -89,10 +91,11 @@ user approves — and apply it where it lasts:
    (step 3), not applied.
 2. **Commit and check** in the framework checkout: commit the edit, then run
    `python3 scripts/check_knowledge.py` and the tests
-   (`python3 -m unittest discover -s tests`) — both must pass. Skills
-   installed with `ses install` are symlinks into the checkout, so the edit
-   is live in every harness at once; a Claude Code marketplace install picks
-   it up on its next plugin update.
+   (`python3 -m unittest discover -s tests`) — both must pass. A plugin
+   installed from GitHub picks the edit up once it is pushed and the plugin
+   is updated (README → Updating); one installed from the local checkout, or
+   skills linked with `ses setup <harness> --skills`, read the checkout
+   directly.
 3. **Record** under "Applied changes" in the framework repo's
    `knowledge/decisions.md`, naming every edited file by its repo-root path
    in backticks:

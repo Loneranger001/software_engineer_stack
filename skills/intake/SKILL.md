@@ -8,8 +8,10 @@ argument-hint: <path-to-brief-or-pasted-requirements> [task-id]
 
 > Framework files: `<root>` is what `ses root` prints — run it once. Every
 > framework script runs as `ses <command>` (`ses help` lists them). If `ses`
-> is not on PATH, stop and ask the user to install the framework (README →
-> Install) — never guess its location.
+> is not on PATH, use `python3 <skill-dir>/../../bin/ses` in its place —
+> `<skill-dir>` is the folder this SKILL.md was loaded from — here and for
+> every `ses` below. If neither runs, stop and ask the user (README →
+> Install); never guess another path.
 
 You are starting a new task in the software-engineer-stack lifecycle. Your output
 is a task workspace containing a requirements summary and a **scope contract**
@@ -41,9 +43,10 @@ the user has explicitly approved. Nothing downstream may begin before that appro
    analysis scope every later stage searches).
    - Pass `auto` as `<workspace-root>`: `work/` goes in the folder holding
      the repos (multi-repo workspace) or the repo itself (standalone) — as
-     `ses workspace-root <work-repo>` prints. Only when it lands
-     inside a repo, remind the user to gitignore `work/` (don't edit
-     .gitignore unasked).
+     `ses workspace-root <work-repo>` prints. When it lands inside a repo,
+     `ses new-task` keeps it out of git itself (a local `.git/info/exclude`
+     entry — never committed, the team's `.gitignore` untouched); pass on any
+     WARNING it prints that `work/` is already tracked.
    - Both paths land in STATUS.md absolutised; every later stage reads them
      from there instead of re-deriving from its own cwd.
    - If the workspace already exists, read it with

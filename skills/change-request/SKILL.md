@@ -8,8 +8,10 @@ argument-hint: <change description or CR reference> [task-id]
 
 > Framework files: `<root>` is what `ses root` prints — run it once. Every
 > framework script runs as `ses <command>` (`ses help` lists them). If `ses`
-> is not on PATH, stop and ask the user to install the framework (README →
-> Install) — never guess its location.
+> is not on PATH, use `python3 <skill-dir>/../../bin/ses` in its place —
+> `<skill-dir>` is the folder this SKILL.md was loaded from — here and for
+> every `ses` below. If neither runs, stop and ask the user (README →
+> Install); never guess another path.
 
 The compressed pipeline: `analyze → mini-contract → change → verify → deliver`.
 Small change does NOT mean lowered standards — it means fewer documents, same
@@ -104,18 +106,19 @@ On approval: `ses status set <ws> mini-contract=approved --note "by <who>"`.
 4. All PASS → commit, one commit per logical unit referencing the task id:
    - first inspect the repo's `commit-msg` hook and follow its exact format
      (as /implement §1 step 4 — the hook, not recent history, decides);
+   - stage the changed files by name (`git -C <repo> add <files>`, never
+     `git add -A` / `git add .` — `work/` may sit inside the repo);
    - end each message with its evidence hash lines from
-     `ses checkpoint trailer <ws> <evidence files>`
-     (`git commit -m "<subject>" -m "<trailer lines>"`).
+     `ses checkpoint trailer <ws> <evidence files>` (it refuses while any
+     workspace file is staged) (`git commit -m "<subject>" -m "<trailer lines>"`).
    Then `ses status set <ws> verify=done`.
 
 ## 5. Deliver
 
 1. Self-check `<root>/checklists/change-request.md`. For
    multi-file changes, also run the audit procedure in
-   `<root>/agents/scope-auditor.md` against the mini contract
-   (subagent where supported, otherwise a separate fresh pass), passing
-   `analysis.md` as the contract.
+   `<root>/agents/scope-auditor.md` against the mini contract —
+   delegated per `<root>/core/reviewers.md` — passing `analysis.md` as the contract.
 2. Short release note (template: release-notes.md, trimmed): change, deploy
    step, rollback step, evidence table.
 3. Push the branch; report to the user; `ses status set <ws> deliver=done`; offer

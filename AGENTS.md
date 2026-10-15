@@ -10,7 +10,8 @@ Codex. Full docs: README.md.
 
 1. Every framework script runs as `ses <command>` (`bin/ses`; `ses help`
    lists them) and every framework file is `<root>/…`, where `<root>` is what
-   `ses root` prints. Never construct paths to the framework by guessing.
+   `ses root` prints. Without `ses` on PATH, run `bin/ses` from the plugin
+   folder the skill was loaded from. Never construct paths by guessing.
 2. Read `<root>/core/decision-protocol.md` first — it governs every unknown
    (check facts; proceed-and-log only narrow, reversible calls; otherwise ask)
    — and `<root>/core/repo-resolution.md`, which fixes where files are read
@@ -45,11 +46,16 @@ Codex. Full docs: README.md.
    and evidence hashes. Conversation history and in-session progress are the
    harness's job.
 5. The reviewers in `agents/` (scope-auditor, code-reviewer,
-   doc-fact-checker) run as subagents where the harness has them — the
-   Claude Code plugin ships them; `ses install copilot|codex` installs
-   wrappers — and as separate fresh passes held to their report formats
-   everywhere else.
-6. Framework changes: edit `skills/`, `agents/`, `templates/`,
-   `checklists/`, `core/`, `standards/`, `scripts/`, `bin/`; CI and
-   `.githooks/pre-commit` run `scripts/check_knowledge.py` and the tests in
-   `tests/`. Nothing is generated.
+   doc-fact-checker) run apart from the authoring session as
+   `<root>/core/reviewers.md` describes: the installed agent (Claude Code and
+   Copilot plugins ship them; Codex after `ses setup codex`), else a fresh
+   subagent, else a separate fresh pass held to the report format.
+6. Task workspaces never go into git: `ses new-task` excludes `work/`
+   locally when it sits inside a repo, commits stage files by name, and
+   `ses checkpoint` refuses or fails on workspace files.
+7. Framework changes: edit `skills/`, `agents/`, `templates/`,
+   `checklists/`, `core/`, `standards/`, `scripts/`, `bin/`; a reviewer edit
+   is copied to `com.github.copilot/agents/<name>.agent.md`; a release bumps
+   the version in all three plugin manifests. CI and `.githooks/pre-commit`
+   run `scripts/check_knowledge.py` and the tests in `tests/`. Nothing is
+   generated.

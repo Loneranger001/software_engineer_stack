@@ -31,8 +31,8 @@ from pathlib import Path
 
 CANONICAL_DIRS = ("skills", "agents", "templates", "checklists", "core", "bin",
                   "standards", "scripts", "knowledge", "docs", "examples", "tests", ".githooks",
-                  ".claude-plugin", ".github")
-CANONICAL_FILES = ("README.md", "AGENTS.md")
+                  ".claude-plugin", ".codex-plugin", ".agents", "com.github.copilot", ".github")
+CANONICAL_FILES = ("README.md", "AGENTS.md", "plugin.json")
 # install copies that framework versions up to 0.6 generated; an edit there never lasted
 GENERATED_PREFIXES = ("copilot/", ".github/prompts/", ".github/skills/", ".github/agents/",
                       ".github/copilot-instructions.md", ".github/se-stack/")

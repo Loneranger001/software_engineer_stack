@@ -22,11 +22,13 @@ resume — per changed repo: recorded vs checked-out branch, the last
 trailer — prints one `Evidence-SHA256: <sha256> <path>` line per file, path
   relative to <ws>. Add them as the last paragraph of the checkpoint commit
   message, so the hash of the step's evidence lives in git even though work/
-  may live outside any repository.
+  stays out of every repository. Refuses (exit 1) while any file under work/
+  is staged in a recorded repo: workspaces never go into git.
 
 verify — reads every Evidence-SHA256 line on each recorded task branch and
-  re-hashes the file. Exit 1 if any recorded evidence is missing or altered.
-  Evidence files with no recorded hash are listed as a warning, not a failure.
+  re-hashes the file. Exit 1 if any recorded evidence is missing or altered,
+  or if any file under work/ is committed on a task branch (it would be
+  pushed). Evidence files with no recorded hash are a warning, not a failure.
 """
 from __future__ import annotations
 
@@ -175,10 +177,29 @@ def cmd_resume(ws_arg: str) -> int:
     return 0
 
 
+def work_prefix(ws: Path, repo: Path) -> str | None:
+    """work/ relative to repo when the workspaces folder sits inside it, else None."""
+    rel = os.path.relpath(ws.resolve().parent, repo.resolve())
+    return None if rel.startswith("..") else rel.replace(os.sep, "/")
+
+
+def under(path: str, prefix: str) -> bool:
+    return prefix == "." or path == prefix or path.startswith(prefix + "/")
+
+
 def cmd_trailer(ws_arg: str, files: list[str]) -> int:
-    ws, _ = load(ws_arg)
+    ws, st = load(ws_arg)
     if not files:
         raise StatusError("trailer needs at least one evidence file")
+    for name, (repo, _) in sorted(changed_repos(st).items()):
+        prefix = work_prefix(ws, repo)
+        if prefix is None:
+            continue
+        staged = [p for p in git(repo, "diff", "--cached", "--name-only").splitlines() if under(p, prefix)]
+        if staged:
+            raise StatusError(f"{name}: workspace files are staged — unstage them "
+                              f"(git -C {repo} restore --staged {prefix}) and stage only the step's own "
+                              f"files; work/ never goes into git: {', '.join(staged[:5])}")
     for f in files:
         p = Path(f) if os.path.isabs(f) else (Path.cwd() / f)
         if not p.is_file():
@@ -199,10 +220,14 @@ def cmd_verify(ws_arg: str) -> int:
         print("no task branches recorded (e.g. a document task) — no checkpoint evidence to verify")
         return 0
     recorded: dict[str, str] = {}
+    bad = []
     for name, (repo, branch) in sorted(repos.items()):
         for digest, rel in TRAILER_RE.findall(git(repo, "log", "--format=%B", branch)):
             recorded.setdefault(rel, digest)  # newest commit first: its hash wins
-    bad = []
+        prefix = work_prefix(ws, repo)
+        if prefix is not None:
+            for p in git(repo, "ls-tree", "-r", "--name-only", branch, "--", prefix).splitlines():
+                bad.append(f"IN GIT   {name}:{p} (workspace file committed on {branch} — would be pushed)")
     for rel, digest in sorted(recorded.items()):
         p = ws / rel
         if not p.is_file():

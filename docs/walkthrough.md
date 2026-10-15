@@ -209,9 +209,9 @@ Analyze → draft from the matching template → fact-check pass → your format
   they're cheap. Rejecting a TDD costs minutes; rejecting a diff costs hours.
 - **Check ASSUMPTIONS.md when a gate presents it** — that's where the agent
   shows you what it decided on its own authority.
-- **In Copilot or Codex** the flow is identical once installed
-  (`ses install copilot` / `ses install codex`): the same skills, the same
-  workspace files, the reviewers as that harness's custom agents. Skills
+- **In Copilot or Codex** the flow is identical once the plugin is
+  installed (README → Installation): the same skills, the same workspace
+  files, the reviewers as that harness's agents or subagents. Skills
   load when your request matches a stage ("start a new task from this
   brief") or by name. A task started in one harness resumes in another —
   they all read `work/DEMO-1/`.

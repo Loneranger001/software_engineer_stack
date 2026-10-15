@@ -70,12 +70,34 @@ fi
 REPOS_FIELD=$(printf '%s\n' "$ANALYZED" | sed '/^$/d' | paste -sd, - | sed 's/,/, /g')
 
 DIR="$ABS_ROOT/work/$TASK_ID"
+
+# Task workspaces never go into git. When work/ lands inside a repository (a
+# standalone repo, or a parent folder that is itself a repo), exclude it there
+# through .git/info/exclude: local to this clone, never committed or pushed,
+# and the team's .gitignore is left alone.
+keep_out_of_git() {
+  TOP=$(git -C "$ABS_ROOT" rev-parse --show-toplevel 2>/dev/null) || return 0
+  TOP=$(cd "$TOP" && pwd)
+  REL_WORK="${ABS_ROOT#"$TOP"}/work"
+  if [ -n "$(git -C "$TOP" ls-files -- "${REL_WORK#/}")" ]; then
+    echo "WARNING: ${REL_WORK#/}/ is tracked in $TOP — remove it from git (git -C $TOP rm -r --cached ${REL_WORK#/}); ses checkpoint refuses to commit workspace files" >&2
+  fi
+  git -C "$TOP" check-ignore -q "${REL_WORK#/}/$TASK_ID/STATUS.md" 2>/dev/null && return 0
+  EXCLUDE=$(git -C "$TOP" rev-parse --git-path info/exclude)
+  case "$EXCLUDE" in /*) ;; *) EXCLUDE="$TOP/$EXCLUDE" ;; esac
+  mkdir -p "$(dirname "$EXCLUDE")"
+  printf '%s/\n' "$REL_WORK" >> "$EXCLUDE"
+  echo "kept out of git: added $REL_WORK/ to $EXCLUDE (local only, never committed)"
+}
+
 if [ -e "$DIR/STATUS.md" ]; then
+  keep_out_of_git
   echo "workspace already exists: $DIR (resume from its STATUS.md)" >&2
   exit 0
 fi
 
 mkdir -p "$DIR/evidence" "$DIR/deliverables"
+keep_out_of_git
 
 case "$PIPELINE" in
   full)
