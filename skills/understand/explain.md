@@ -4,7 +4,7 @@
 > (`map=done`). Same rules as the skill: every statement from the code, with
 > its source; `INFERRED` labelled; the code wins over names and comments.
 > `<ws>` = `<workspace-root>/work/<id>`; stage state is recorded with
-> `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/status.py`.
+> `ses status`.
 
 ## 4. Explain in layers
 
@@ -25,7 +25,7 @@ trust; a confident guess destroys it the first time the user checks.
 If the user opened with a specific question, answer that first — with its
 evidence — then offer the layers around it.
 
-`status.py set <ws> explain=done`.
+`ses status set <ws> explain=done`.
 
 ## 5. Q&A until the model holds
 
@@ -40,7 +40,7 @@ of the exercise, not an interruption.
   say clearly where the trace ends and reasoning beyond the evidence begins.
 - Business meanings confirmed along the way go into
   `<work-repo>/.domain-glossary.md` (marked `from-code`, template:
-  `${CLAUDE_PLUGIN_ROOT}/templates/domain-glossary.md`) so the next task
+  `<root>/templates/domain-glossary.md`) so the next task
   doesn't re-derive them.
 - Findings that suggest work — bugs, dead code, risky patterns — go to
   PARKED.md and are mentioned to the user; never act on them here.

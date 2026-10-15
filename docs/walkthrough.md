@@ -29,7 +29,7 @@ days, run `/grill`, and it picks up from `STATUS.md` exactly where you left off.
 
 There is no profiling step. Every stage follows the rules the repo's team
 already wrote — `AGENTS.md`, `CODING_STANDARDS.md`, `CONTRIBUTING.md` and
-similar files, as `scripts/repo-rules.sh <repo>` lists them — over the
+similar files, as `ses repo-rules <repo>` lists them — over the
 framework's own `standards/`. A repo with no such files gets the framework
 defaults plus the style of the code around each change.
 
@@ -209,12 +209,9 @@ Analyze → draft from the matching template → fact-check pass → your format
   they're cheap. Rejecting a TDD costs minutes; rejecting a diff costs hours.
 - **Check ASSUMPTIONS.md when a gate presents it** — that's where the agent
   shows you what it decided on its own authority.
-- **In Copilot** the flow is identical once installed; three ways in, by
-  effort: (1) `copilot plugin install ./copilot` (or the repo URL) — the
-  ready-made plugin folder, no generator needed; skills load when your
-  request matches a stage ("start a new task from this brief") and the
-  reviewers are available via `/agent`; re-run the install after updating
-  the checkout (components are cached); (2) generate the repo-scoped
-  adapter for VS Code Chat `/stage` commands:
-  `python3 scripts/build_copilot.py --target <your-repo>`; (3) any
-  AGENTS.md-aware tool can follow the root `AGENTS.md` directly.
+- **In Copilot or Codex** the flow is identical once installed
+  (`ses install copilot` / `ses install codex`): the same skills, the same
+  workspace files, the reviewers as that harness's custom agents. Skills
+  load when your request matches a stage ("start a new task from this
+  brief") or by name. A task started in one harness resumes in another —
+  they all read `work/DEMO-1/`.

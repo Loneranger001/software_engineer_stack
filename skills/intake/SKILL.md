@@ -6,9 +6,10 @@ argument-hint: <path-to-brief-or-pasted-requirements> [task-id]
 
 # /intake — brief to approved scope contract
 
-> Path note: `${CLAUDE_PLUGIN_ROOT}` is this framework's root — the ancestor
-> directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
-> it automatically; other harnesses resolve it from this file's location.
+> Framework files: `<root>` is what `ses root` prints — run it once. Every
+> framework script runs as `ses <command>` (`ses help` lists them). If `ses`
+> is not on PATH, stop and ask the user to install the framework (README →
+> Install) — never guess its location.
 
 You are starting a new task in the software-engineer-stack lifecycle. Your output
 is a task workspace containing a requirements summary and a **scope contract**
@@ -16,18 +17,18 @@ the user has explicitly approved. Nothing downstream may begin before that appro
 
 ## 0. Preamble (every stack skill starts this way)
 
-1. Load applicable lessons: `${CLAUDE_PLUGIN_ROOT}/scripts/lessons.sh intake`,
+1. Load applicable lessons: `ses lessons intake`,
    re-run with `--repo <work-repo name> --lang <languages>` once step 2 and
-   the brief tell you them. Apply them; don't read lessons.md whole.
+   the brief tell you them. Apply them; don't read the lesson files whole.
 2. Resolve `<work-repo>`, `<workspace-root>`, and the `<repo-set>` per
-   `${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md` — do NOT assume the current
+   `<root>/core/repo-resolution.md` — do NOT assume the current
    directory is the repo. If cwd is a parent folder holding several repos, ask
    which one this task is anchored in before creating anything, and enumerate
-   the rest with `${CLAUDE_PLUGIN_ROOT}/scripts/list-repos.sh <repos-folder>`:
+   the rest with `ses list-repos <repos-folder>`:
    they are all in ANALYSIS scope by default, because siblings in a workspace
    usually call each other. Show the user the list and confirm it; a repo they
    want excluded becomes an exclusion row, not a silent omission.
-3. Unknowns follow `${CLAUDE_PLUGIN_ROOT}/core/decision-protocol.md`: check
+3. Unknowns follow `<root>/core/decision-protocol.md`: check
    checkable facts; proceed only on high-confidence, reversible, in-scope
    calls logged to the workspace ASSUMPTIONS.md; stop and ask for everything
    else.
@@ -35,21 +36,21 @@ the user has explicitly approved. Nothing downstream may begin before that appro
 ## 1. Create the workspace
 
 1. Ask for a task id if none was given (Jira key or short slug).
-2. Run `${CLAUDE_PLUGIN_ROOT}/scripts/new-task.sh <task-id> auto full <work-repo> <repo-set>`
+2. Run `ses new-task <task-id> auto full <work-repo> <repo-set>`
    (`<repo-set>` comma-separated — it lands in STATUS.md as the recorded
    analysis scope every later stage searches).
    - Pass `auto` as `<workspace-root>`: `work/` goes in the folder holding
-     the repos (multi-repo workspace) or the repo itself (standalone) — see
-     `${CLAUDE_PLUGIN_ROOT}/scripts/workspace-root.sh`. Only when it lands
+     the repos (multi-repo workspace) or the repo itself (standalone) — as
+     `ses workspace-root <work-repo>` prints. Only when it lands
      inside a repo, remind the user to gitignore `work/` (don't edit
      .gitignore unasked).
    - Both paths land in STATUS.md absolutised; every later stage reads them
      from there instead of re-deriving from its own cwd.
    - If the workspace already exists, read it with
-     `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/status.py show <ws>`
+     `ses status show <ws>`
      (`<ws>` = `<workspace-root>/work/<id>`) and RESUME from the recorded
      state instead of starting over.
-   - Run `status.py validate <ws>`; a workspace that fails validation (e.g.
+   - Run `ses status validate <ws>`; a workspace that fails validation (e.g.
      one scaffolded by an older version, missing `workspace-root`) is fixed
      before anything else is written into it.
 
@@ -72,7 +73,7 @@ the user has explicitly approved. Nothing downstream may begin before that appro
 - **Nothing is silently invented**: do not add requirements the brief doesn't
   state. Improvements you spot go to open questions ("Should X also…?").
 - Ambiguity is never resolved by assumption. Collect open questions and ask the
-  user in one batch (use AskUserQuestion when available).
+  user in one batch (through the harness's ask-user tool where it has one).
 - **Term inventory**: list every business/functional term the brief leans on
   ("purchase order", "approved", "settlement"), then look each up in
   `<work-repo>/.domain-glossary.md`. Known terms: link the entry in the scope
@@ -81,7 +82,7 @@ the user has explicitly approved. Nothing downstream may begin before that appro
   question — the brief may be wrong or the glossary stale; never silently
   pick a side.
 - Do a first scan **across every repo in `<repo-set>`** for the objects the
-  brief names (`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/xsearch.py --ws <ws> --
+  brief names (`ses search --ws <ws> --
   <names>` — counts first, every repo), to populate the "interfaces & objects expected to change" table
   — each row carries its repo. A brief written against one repo routinely
   implicates others; finding that at intake is cheap, finding it during
@@ -89,20 +90,20 @@ the user has explicitly approved. Nothing downstream may begin before that appro
 - Fill the contract's "Repos" section: which repos are analyzed, which are
   expected to CHANGE (the write scope — everything else is read-only context),
   and any repo excluded from analysis with the user's reason.
-- Run `${CLAUDE_PLUGIN_ROOT}/scripts/repo-rules.sh <repo>` for each repo expected to change
+- Run `ses repo-rules <repo>` for each repo expected to change
   and note the rules files it lists in the contract's constraints; a repo with
   none falls back to framework `standards/` and its surrounding code.
 
 ## 4. Draft the scope contract
 
-1. Copy `${CLAUDE_PLUGIN_ROOT}/templates/scope-contract.md` to
+1. Copy `<root>/templates/scope-contract.md` to
    `<ws>/scope-contract.md` and fill every section.
 2. Each in-scope item must be checkable; each must have at least one acceptance
    criterion stating HOW it will be verified (query, test, run).
-3. Run `${CLAUDE_PLUGIN_ROOT}/checklists/intake.md` against your draft; fix gaps.
+3. Run `<root>/checklists/intake.md` against your draft; fix gaps.
 4. Write the **handoff summary** block last (one line per S#/N#/A#/Q#, the
    repos, the objects expected to change) and run
-   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/handoff.py check <ws>/scope-contract.md` — it must pass. Every
+   `ses handoff check <ws>/scope-contract.md` — it must pass. Every
    later stage reads this block instead of the whole contract.
 
 ## 5. Approval gate
@@ -113,13 +114,13 @@ the user has explicitly approved. Nothing downstream may begin before that appro
    for ratification (decision-protocol §4). Ask explicitly: "Approve this scope
    contract? Work will be limited to exactly this."
 2. Incorporate feedback and re-present until approved — every revision
-   updates the handoff summary in the same edit, and `handoff.py check` must
+   updates the handoff summary in the same edit, and `ses handoff check` must
    pass on the version the user approves. Record approver and date in the
    contract, set version 1. Any later scope change bumps the version
-   and updates the summary in the same edit (`handoff.py check` flags every
+   and updates the summary in the same edit (`ses handoff check` flags every
    downstream summary still on the old version).
 3. Only after approval:
-   `status.py set <ws> intake=approved --next "Run /research." --log "scope contract v1 approved by <who>"`.
+   `ses status set <ws> intake=approved --note "by <who>, contract v1" --next "Run /research."`.
 
 ## Fault tolerance
 

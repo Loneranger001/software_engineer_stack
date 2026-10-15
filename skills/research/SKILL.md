@@ -6,44 +6,45 @@ argument-hint: "[task-id]"
 
 # /research — source-referenced investigation
 
-> Path note: `${CLAUDE_PLUGIN_ROOT}` is this framework's root — the ancestor
-> directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
-> it automatically; other harnesses resolve it from this file's location.
+> Framework files: `<root>` is what `ses root` prints — run it once. Every
+> framework script runs as `ses <command>` (`ses help` lists them). If `ses`
+> is not on PATH, stop and ask the user to install the framework (README →
+> Install) — never guess its location.
 
 Produce `<ws>/research-notes.md`: everything /tech-design needs to design
 confidently, with every finding traceable to a source.
 
 ## 0. Preamble
 
-1. Load applicable lessons: `${CLAUDE_PLUGIN_ROOT}/scripts/lessons.sh research` — it prints only
-   the matching entries; don't read lessons.md whole.
+1. Load applicable lessons: `ses lessons research` — it prints only
+   the matching entries; don't read the lesson files whole.
 2. Locate the workspace: the given task-id, else the single
    `<workspace-root>/work/*/STATUS.md` with next action /research, else ask.
    Gate:
-   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/status.py require <ws> intake=approved`
+   `ses status require <ws> intake=approved`
    (`<ws>` = `<workspace-root>/work/<id>`) — a non-zero exit means stop and
    direct the user to /intake; never overrule it by reading the file yourself. Take `work-repo`,
-   `workspace-root`, and `repos-analyzed` from `status.py show <ws>`
-   (`${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md`): every repo-level path
+   `workspace-root`, and `repos-analyzed` from `ses status show <ws>`
+   (`<root>/core/repo-resolution.md`): every repo-level path
    below is relative to `<work-repo>`, never to your session's cwd.
 3. Read the contract's handoff summary
-   (`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/handoff.py show <ws>/scope-contract.md`), plus its full
+   (`ses handoff show <ws>/scope-contract.md`), plus its full
    "Interfaces & objects expected to change" table — the one you expand. It
    bounds the investigation: research serves the in-scope items; interesting
    adjacent findings go to PARKED.md.
-4. Unknowns follow `${CLAUDE_PLUGIN_ROOT}/core/decision-protocol.md` —
+4. Unknowns follow `<root>/core/decision-protocol.md` —
    research is the "check checkable facts" stage par excellence: read/run
    before assuming; judgment calls that pass §2 go to ASSUMPTIONS.md.
 5. **Cross-repo preflight (mandatory, before §1).** For EVERY repo in
    `<repo-set>` — not only the repo the contract nominates:
    - Refresh and search the mainline, not just the checkout:
      `git -C <repo> fetch origin <mainline>`, then run every search below
-     with `xsearch.py --ref origin/<mainline>` as well as without (the
+     with `ses search --ref origin/<mainline>` as well as without (the
      working tree). A nominated repo, a stale clone, or a feature branch can
      omit the tables, views, and consumers that mainline has. Record per repo
      the ref and SHA searched; a failed fetch is recorded as "searched a
      possibly-stale local ref", never silently skipped.
-   - Run `${CLAUDE_PLUGIN_ROOT}/scripts/repo-rules.sh <repo>` for each repo and record what it
+   - Run `ses repo-rules <repo>` for each repo and record what it
      lists. A repo with no rules files is noted in research notes (framework
      `standards/` and its surrounding code's style will apply).
 
@@ -62,7 +63,7 @@ expand it:
    — a caller in a sibling repo is exactly what this stage exists to find, and
    a search that never visited that repo reports the same "no callers" as a
    search that did. Use
-   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/xsearch.py --ws <ws> [--ref origin/<mainline>] --save
+   `ses search --ws <ws> [--ref origin/<mainline>] --save
    <ws>/evidence/research-search-<term>.txt -- <patterns>`: it searches every
    repo, prints counts and the top files, and ends with the rows for the
    Cross-repo search record (repo, ref@sha, command, result — including
@@ -73,9 +74,9 @@ expand it:
 3. **Data model**: for each touched table/view, capture relevant columns,
    constraints, indexes, and (if the dev DB is reachable via `$SES_DB_CONN`)
    row volumes. Run the queries through
-   `${CLAUDE_PLUGIN_ROOT}/scripts/capture.sh <ws>/evidence research-<name> --
+   `ses capture <ws>/evidence research-<name> --
    <command>` and keep their summaries in `evidence/research-*.txt`.
-4. **Repo rules**: read the rules files `repo-rules.sh` listed for each
+4. **Repo rules**: read the rules files `ses repo-rules` listed for each
    changed repo and note which rules bind this change (and any two files that
    contradict each other — an open question).
 5. **Term grounding**: for every business term intake marked as a research
@@ -84,7 +85,7 @@ expand it:
    ("approved" = which proc sets which status), entry points — each with
    evidence. Write/refresh the term's entry in
    `<work-repo>/.domain-glossary.md` (template:
-   `${CLAUDE_PLUGIN_ROOT}/templates/domain-glossary.md`), marked `from-code`;
+   `<root>/templates/domain-glossary.md`), marked `from-code`;
    pure business semantics the code can't prove stay open questions for the
    user.
 
@@ -111,16 +112,16 @@ platform (note the Oracle/ksh/Python versions if discoverable).
 
 ## 4. Write up and gate
 
-1. Fill `${CLAUDE_PLUGIN_ROOT}/templates/research-notes.md` →
+1. Fill `<root>/templates/research-notes.md` →
    `<ws>/research-notes.md`.
 2. Log out-of-scope findings to PARKED.md (never act on them).
 3. Batch remaining open questions to the user; blocking ones must be answered
    before /tech-design. Fold the answers into the notes.
 4. Only now write the **handoff summary** block — last, so it reflects the
    answers — and run
-   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/handoff.py check <ws>/research-notes.md`; it must pass.
+   `ses handoff check <ws>/research-notes.md`; it must pass.
 5. Record:
-   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/status.py set <ws> research=done --next "Run /tech-design."`
+   `ses status set <ws> research=done --next "Run /tech-design."`
 
 ## Fault tolerance
 

@@ -2,7 +2,7 @@
 
 Where every stack skill reads and writes. Resolve BEFORE touching files; none
 of these is "the current directory". Why each rule exists, and the failure it
-prevents: `${CLAUDE_PLUGIN_ROOT}/core/repo-resolution-rationale.md` — read
+prevents: `<root>/core/repo-resolution-rationale.md` — read
 it only when a case here is ambiguous.
 
 **Names**
@@ -10,7 +10,7 @@ it only when a case here is ambiguous.
   `.domain-glossary.md`).
 - `<workspace-root>` — directory holding `work/<task-id>/`: the folder holding
   the repos in a multi-repo workspace, else the repo itself — always what
-  `${CLAUDE_PLUGIN_ROOT}/scripts/workspace-root.sh <work-repo>` prints
+  `ses workspace-root <work-repo>` prints
   (`$SES_WORKSPACE_ROOT` pins it).
 - `<repos-folder>` — folder the repos sit in (parent of `<work-repo>` when
   repos are siblings; otherwise ask).
@@ -18,7 +18,7 @@ it only when a case here is ambiguous.
 - `<changed-repos>` — WRITE scope: starts as `[<work-repo>]`.
 - repo rules — a repo's own rules files (AGENTS.md, CLAUDE.md,
   CODING_STANDARDS.md, CONTRIBUTING.md, Copilot instructions, …), exactly as
-  `${CLAUDE_PLUGIN_ROOT}/scripts/repo-rules.sh <repo> [changed files]` lists
+  `ses repo-rules <repo> [changed files]` lists
   them. Follow them. Precedence: nested AGENTS.md nearest the file > the
   repo's root rules > the surrounding file's style (for what the rules leave
   open) > framework `standards/`. Never restyle untouched lines to satisfy a
@@ -28,18 +28,18 @@ it only when a case here is ambiguous.
 **Resolve**
 1. Workspace exists — `<workspace-root>/work/<id>/STATUS.md` (a workspace
    created before this rule may sit in `<work-repo>/work/`; look there too) →
-   `${CLAUDE_PLUGIN_ROOT}/scripts/status.py show <ws>`
+   `ses status show <ws>`
    (`work-repo`, `workspace-root`, `repos-analyzed`; `<ws>` =
    `<workspace-root>/work/<id>`). Recorded values win; never re-derive from
    cwd. Stop here.
 2. No workspace (or fields absent): `git rev-parse --show-toplevel` → that
    repo. Fails → child dirs with `.git`: one → use it and say so; several →
    ASK (decision-protocol §3); none → ask for the path.
-3. Repo set: `${CLAUDE_PLUGIN_ROOT}/scripts/list-repos.sh <repos-folder>`;
+3. Repo set: `ses list-repos <repos-folder>`;
    show the list and confirm. An exclusion is the user's call, recorded in
    the scope contract's out-of-scope table with the reason (scope-affecting).
 4. Record via
-   `${CLAUDE_PLUGIN_ROOT}/scripts/new-task.sh <task-id> auto <pipeline> <work-repo> <repo-set>`
+   `ses new-task <task-id> auto <pipeline> <work-repo> <repo-set>`
    (`auto` = the workspace-root rule above; paths land absolutised).
 
 **Paths**
@@ -52,7 +52,7 @@ it only when a case here is ambiguous.
 
 **Analysis covers every repo in `<repo-set>`**
 - Enumerate first and record the list (STATUS `repos-analyzed` + notes).
-- Search every repo with `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/xsearch.py --ws <ws>
+- Search every repo with `ses search --ws <ws>
   [--ref origin/<mainline>] -- <patterns>`: counts first, one command and
   sha recorded per repo, zero hits reported as "searched, no references
   found" — never omitted. Open only the files that matter (`git grep -n …

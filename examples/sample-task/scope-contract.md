@@ -77,7 +77,7 @@ reconciliation tool reports mismatches per currency.
 
 ## Constraints
 
-- Job stays restartable (brief §Constraints); follow sample-repo's rules files (scripts/repo-rules.sh).
+- Job stays restartable (brief §Constraints); follow sample-repo's rules files (ses repo-rules).
 
 ## History
 

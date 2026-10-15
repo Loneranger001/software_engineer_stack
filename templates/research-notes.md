@@ -10,7 +10,7 @@
 ## Handoff summary
 <!-- Written last, at this stage's gate, and updated in the same edit as any
      amendment. Later stages read ONLY this block unless they need a section's
-     detail. One line per ID; max 40 lines. Check: scripts/handoff.py check <file>. -->
+     detail. One line per ID; max 40 lines. Check: ses handoff check <file>. -->
 - Contract version: {n}
 - Recommended option: {one line} (decision lands in /tech-design)
 - Affected: {repo}:{path} — {role, one line}
@@ -39,7 +39,7 @@
 <!-- Every repo in the analysis scope, including those with no hits — a repo -->
 <!-- that was never searched and a repo with no callers look identical in a -->
 <!-- summary, and only this table tells them apart. Rows come from -->
-<!-- scripts/xsearch.py; later stages reuse a row while its sha is unchanged. -->
+<!-- ses search; later stages reuse a row while its sha is unchanged. -->
 | Repo | Ref@sha | Search command | Result |
 |---|---|---|---|
 | {repo-a} | {origin/main@1a2b3c4} | {git -C … grep -c -I -E -e PKG_X origin/main --} | {4 match(es) in 2 file(s) — see call graph} |
@@ -57,7 +57,7 @@ commands used to establish this, so the result is reproducible.}
 
 ### Repo rules that apply
 
-{Rules files per repo (scripts/repo-rules.sh output) and the relevant rules from them / standards/, e.g. naming, error handling,
+{Rules files per repo (ses repo-rules output) and the relevant rules from them / standards/, e.g. naming, error handling,
 logging, deployment layout.}
 
 ## External research

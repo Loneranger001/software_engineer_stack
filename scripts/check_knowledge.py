@@ -5,10 +5,11 @@ Two checks, both run in CI and the pre-commit hook:
 
 1. decisions.md "Applied changes": every entry must name at least one
    canonical framework file (repo-root path in backticks), every named file
-   must exist, and each must have a commit touching it on or after the
-   entry's date. This catches the failure where /retro records a change as
-   applied but the edit landed in a generated install copy (copilot/,
-   .github/se-stack/) and was lost on the next rebuild. Entries tagged
+   must exist (or have existed — a file removed by a later change keeps its
+   history), and each must have a commit touching it on or after the entry's
+   date. This catches the failure where /retro records a change as applied
+   but the edit landed in an installed copy (a plugin cache, or one of the
+   install copies older versions generated) and was lost. Entries tagged
    `[pending-upstream]` are approved-but-not-applied and skip the git check.
    Limitation: it proves the file was touched after the date, not that the
    touch was this change — it catches lost edits, not wrong ones.
@@ -28,12 +29,13 @@ import sys
 from datetime import date, timedelta
 from pathlib import Path
 
-CANONICAL_DIRS = ("skills", "agents", "templates", "checklists", "core",
+CANONICAL_DIRS = ("skills", "agents", "templates", "checklists", "core", "bin",
                   "standards", "scripts", "knowledge", "docs", "examples", "tests", ".githooks",
-                  ".claude-plugin")
-CANONICAL_FILES = ("README.md",)
+                  ".claude-plugin", ".github")
+CANONICAL_FILES = ("README.md", "AGENTS.md")
+# install copies that framework versions up to 0.6 generated; an edit there never lasted
 GENERATED_PREFIXES = ("copilot/", ".github/prompts/", ".github/skills/", ".github/agents/",
-                      ".github/copilot-instructions.md", ".github/se-stack/", "AGENTS.md")
+                      ".github/copilot-instructions.md", ".github/se-stack/")
 STAGES = ("intake", "research", "func-design", "tech-design", "grill", "impl-plan", "implement",
           "deliver", "change-request", "document", "understand", "verify", "any")
 ENTRY_RE = re.compile(r"^- \[(\d{4}-\d{2}-\d{2})\] (.*)$")
@@ -105,8 +107,9 @@ def check_decisions(root: Path) -> list[str]:
                                 f"{', '.join(CANONICAL_DIRS)})")
                 continue
             if not (root / p).exists():
-                problems.append(f"{label}: `{p}` does not exist")
-                continue
+                if not git(root, "log", "--format=%h", "-1", "--", p):
+                    problems.append(f"{label}: `{p}` does not exist")
+                continue  # removed by a later change; its history proves it existed
             # committed history first; a staged or modified file counts too, so the
             # pre-commit hook passes on the commit that carries the edit
             touched = git(root, "log", f"--since={since.isoformat()}", "--format=%h", "-1", "--", p)

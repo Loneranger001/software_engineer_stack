@@ -11,7 +11,7 @@
 ## Handoff summary
 <!-- Written last, at this stage's gate, and updated in the same edit as any
      amendment. Later stages read ONLY this block unless they need a section's
-     detail. One line per ID; max 40 lines. Check: scripts/handoff.py check <file>. -->
+     detail. One line per ID; max 40 lines. Check: ses handoff check <file>. -->
 - Contract version: {n}
 - Branches: {repo-a} → {branch}; {repo-b} → {branch}
 - step 1: {repo-a} {files} — verify {how}
@@ -28,7 +28,7 @@
 - [ ] Every repo this task changes is clean, with its branch created: `{repo → branch}`
 - [ ] Repos changed here match the scope contract's "May change" column
 - [ ] Dev environment reachable ({SES_DB_CONN / SES_KSH_HOST as applicable}) — or static-fallback mode acknowledged
-- [ ] Rules files of every changed repo read (scripts/repo-rules.sh <repo>) — or none exist and standards/ applies
+- [ ] Rules files of every changed repo read (ses repo-rules <repo>) — or none exist and standards/ applies
 
 ## 2. Implementation steps
 

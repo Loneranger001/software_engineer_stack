@@ -11,10 +11,10 @@
 {exact commands, connect strings redacted}
 ```
 
-## Output (capture.sh summary)
+## Output (ses capture summary)
 
 ```
-{scripts/capture.sh output per command: command (connect string redacted),
+{ses capture output per command: command (connect string redacted),
 exit code, line count, error-line matches, last lines — not the full log}
 ```
 

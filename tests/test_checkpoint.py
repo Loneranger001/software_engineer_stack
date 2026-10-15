@@ -61,7 +61,6 @@ class CheckpointTest(unittest.TestCase):
         trailer = self.cp("trailer", self.ws, "evidence/step1-ddl.txt").stdout.strip()
         git(self.repo, "add", "-A")
         git(self.repo, "commit", "-qm", "T-7 step 1: add column", "-m", trailer)
-        run(SCRIPTS / "status.py", "field", self.ws, "current-step", "1")
         return trailer
 
     def test_first_run_is_clean(self):
@@ -85,13 +84,6 @@ class CheckpointTest(unittest.TestCase):
         r = self.cp("resume", self.ws)
         self.assertEqual(r.returncode, 0, r.stdout)
         self.assertIn("CLEAN — resume at step 2", r.stdout)
-
-    def test_current_step_mismatch_needs_decision(self):
-        self.commit_step1()
-        run(SCRIPTS / "status.py", "field", self.ws, "current-step", "2")
-        r = self.cp("resume", self.ws)
-        self.assertEqual(r.returncode, 3)
-        self.assertIn("trust the commits", r.stdout)
 
     def test_wrong_branch_checked_out_needs_decision(self):
         git(self.repo, "checkout", "-qb", "other")

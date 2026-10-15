@@ -6,28 +6,29 @@ argument-hint: "[task-id]"
 
 # /deliver — audited, packaged handover
 
-> Path note: `${CLAUDE_PLUGIN_ROOT}` is this framework's root — the ancestor
-> directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
-> it automatically; other harnesses resolve it from this file's location.
+> Framework files: `<root>` is what `ses root` prints — run it once. Every
+> framework script runs as `ses <command>` (`ses help` lists them). If `ses`
+> is not on PATH, stop and ask the user to install the framework (README →
+> Install) — never guess its location.
 
 Turn a finished implementation (or document task) into a delivered package:
 audited against scope, evidenced, and converted to the formats the user needs.
 
 ## 0. Preamble
 
-1. Load applicable lessons: `${CLAUDE_PLUGIN_ROOT}/scripts/lessons.sh deliver` — it prints only
-   the matching entries; don't read lessons.md whole.
+1. Load applicable lessons: `ses lessons deliver` — it prints only
+   the matching entries; don't read the lesson files whole.
 2. Locate the workspace and gate on the prior stage:
-   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/status.py require <ws> implement=done`
+   `ses status require <ws> implement=done`
    (`<ws>` = `<workspace-root>/work/<id>`); for the document pipeline
-   (`status.py get <ws> pipeline`) gate on `fact-check=done` instead.
+   (`ses status get <ws> pipeline`) gate on `fact-check=done` instead.
    Non-zero exit = stop. Take `<work-repo>`,
    `<workspace-root>`, and the changed repos with their branches from STATUS.md
-   (`${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md`) — handover paths and git
+   (`<root>/core/repo-resolution.md`) — handover paths and git
    operations use them, not the session cwd. A change spanning repos is
    audited, released, and handed over as ONE delivery: per-repo branches and
    diffs, a single release note stating the deploy ORDER across them.
-3. Unknowns follow `${CLAUDE_PLUGIN_ROOT}/core/decision-protocol.md`; at this
+3. Unknowns follow `<root>/core/decision-protocol.md`; at this
    stage almost nothing qualifies for proceed-and-log — delivery questions
    (formats, handover targets) are cheap to ask, so ask.
 
@@ -36,12 +37,12 @@ audited against scope, evidenced, and converted to the formats the user needs.
 1. Resolve ASSUMPTIONS.md first: every `open` entry is presented to the user
    for ratification or correction (decision-protocol §4) — nothing ships on
    an unratified guess.
-2. Run the audit procedure in `${CLAUDE_PLUGIN_ROOT}/agents/scope-auditor.md`
+2. Run the audit procedure in `<root>/agents/scope-auditor.md`
    with: the scope contract, each changed repo's path, mainline and branch
-   (the auditor reads the diff itself via `review-diff.sh`) or the produced
+   (the auditor reads the diff itself via `ses review-diff`) or the produced
    documents,
    PARKED.md, ASSUMPTIONS.md, and the evidence directory (it runs
-   `checkpoint.py verify` against the hashes in the checkpoint commits) — as a subagent
+   `ses checkpoint verify` against the hashes in the checkpoint commits) — as a subagent
    where the harness supports it; otherwise execute the procedure yourself as
    a separate, fresh audit pass held to its report format.
 3. Outcomes:
@@ -57,22 +58,22 @@ The documents must match what was actually built:
 - tdd.md, impl-doc.md, and fdd.md (when present) vs the final diff — update
   stale sections and mark
   them `(updated at delivery: <reason>)`, updating each document's handoff
-  summary in the same edit (`handoff.py check <ws>` must pass); substantive
+  summary in the same edit (`ses handoff check <ws>` must pass); substantive
   divergence needs the user's ack since those documents were approved.
 - Every acceptance criterion → evidence file → PASS. Missing evidence means
   going back to /implement's verification, not papering over.
 
 ## 3. Package
 
-1. Fill `${CLAUDE_PLUGIN_ROOT}/templates/release-notes.md` →
+1. Fill `<root>/templates/release-notes.md` →
    `<ws>/release-notes.md` (deployment + rollback usable stand-alone).
 2. Convert deliverables per the user's needs using
-   `${CLAUDE_PLUGIN_ROOT}/scripts/md2docx.sh | md2pdf.sh | md2confluence.sh`
+   `ses md2docx | ses md2pdf | ses md2confluence`
    into `<ws>/deliverables/`. Ask once which formats are wanted unless
-   `status.py get <ws> formats` already answers it, and record the answer
-   (`status.py field <ws> formats "<docx,pdf,...>"`); verify each produced
+   `ses status get <ws> formats` already answers it, and record the answer
+   (`ses status field <ws> formats "<docx,pdf,...>"`); verify each produced
    file is non-empty. An `fdd.md` is converted through its audience view
-   (`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/fdd_view.py <ws>/fdd.md --audience <fdd-audience>`),
+   (`ses fdd-view <ws>/fdd.md --audience <fdd-audience>`),
    never directly.
 3. Push every changed repo's task branch (the `branch.<repo>` fields:
    `git -C <repo> push -u origin <branch>`; retry with backoff on network
@@ -80,10 +81,10 @@ The documents must match what was actually built:
 
 ## 4. Close
 
-1. Self-check with `${CLAUDE_PLUGIN_ROOT}/checklists/deliver.md`.
+1. Self-check with `<root>/checklists/deliver.md`.
 2. Report to the user: what was delivered, where (branch, deliverables/),
    evidence summary, PARKED.md follow-ups.
-3. Record: `status.py set <ws> deliver=done --next "Run /retro."`
+3. Record: `ses status set <ws> deliver=done --next "Run /retro."`
 4. Prompt the user to run /retro while the task is fresh — it is how the
    framework improves.
 
@@ -91,4 +92,5 @@ The documents must match what was actually built:
 
 Every sub-step is idempotent (re-running conversions overwrites, re-pushing is
 safe, the audit can re-run). On resume, check which of §1–§4 already completed
-via STATUS.md log entries and artifact existence.
+from the artifacts themselves: the audit report, release-notes.md, the files in
+deliverables/, and whether each branch is on its remote.

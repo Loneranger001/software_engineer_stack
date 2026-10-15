@@ -6,38 +6,39 @@ argument-hint: <howto|kb-article|understanding-doc> <interface/component/topic>
 
 # /document — code-verified documentation
 
-> Path note: `${CLAUDE_PLUGIN_ROOT}` is this framework's root — the ancestor
-> directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
-> it automatically; other harnesses resolve it from this file's location.
+> Framework files: `<root>` is what `ses root` prints — run it once. Every
+> framework script runs as `ses <command>` (`ses help` lists them). If `ses`
+> is not on PATH, stop and ask the user to install the framework (README →
+> Install) — never guess its location.
 
 Pipeline: `analyze → draft → fact-check → deliver`. The defining rule: this
 skill documents what the code DOES, not what anyone believes it does.
 
 ## 0. Preamble
 
-1. Load applicable lessons: `${CLAUDE_PLUGIN_ROOT}/scripts/lessons.sh document` — it prints only
-   the matching entries; don't read lessons.md whole.
+1. Load applicable lessons: `ses lessons document` — it prints only
+   the matching entries; don't read the lesson files whole.
 2. Determine the doc type; if not given, ask:
    - **howto** — a procedure someone performs (template: howto.md)
    - **kb-article** — answers a recurring question/problem (template: kb-article.md)
    - **understanding-doc** — explains how an interface/component works
      (template: understanding-doc.md)
 3. Resolve `<work-repo>`, `<workspace-root>`, and the `<repo-set>` per
-   `${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md` (enumerate with
-   `${CLAUDE_PLUGIN_ROOT}/scripts/list-repos.sh <repos-folder>` and confirm
+   `<root>/core/repo-resolution.md` (enumerate with
+   `ses list-repos <repos-folder>` and confirm
    the list with the user — the dependency map spans every repo in it), then
    create the workspace:
-   `${CLAUDE_PLUGIN_ROOT}/scripts/new-task.sh <task-id> auto document <work-repo> <repo-set>`
+   `ses new-task <task-id> auto document <work-repo> <repo-set>`
    (or resume, taking both paths from
-   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/status.py show <ws>`, where `<ws>` =
+   `ses status show <ws>`, where `<ws>` =
    `<workspace-root>/work/<id>`). Record doc type + target:
-   `status.py field <ws> doc-type <type>` and
-   `status.py field <ws> target "<target>"`.
+   `ses status field <ws> doc-type <type>` and
+   `ses status field <ws> target "<target>"`.
 4. Agree the scope with the user in two sentences (which component, which
    aspects, intended audience) and record it:
-   `status.py field <ws> doc-scope "<the two sentences>"` — even docs tasks
+   `ses status field <ws> doc-scope "<the two sentences>"` — even docs tasks
    get scope discipline.
-5. Unknowns follow `${CLAUDE_PLUGIN_ROOT}/core/decision-protocol.md`: for
+5. Unknowns follow `<root>/core/decision-protocol.md`: for
    documentation, "check checkable facts" means read/run the code — a claim
    you can't verify is labelled, never guessed confidently.
 
@@ -53,12 +54,12 @@ skill documents what the code DOES, not what anyone believes it does.
      job, online/API, data pipeline, report/extract, library) — the template
      defines which sections get depth per type, and the SAME type must always
      get the SAME emphasis so your documents stay consistent. If the repo's
-     rules files (`repo-rules.sh`) prescribe a documentation format, it wins;
-     a new format choice of yours goes in the workspace (`status.py field <ws>
+     rules files (`ses repo-rules`) prescribe a documentation format, it wins;
+     a new format choice of yours goes in the workspace (`ses status field <ws>
      doc-format "..."`), not into the team's rules files.
    - Build the **complete dependency map** both directions (upstream feeds,
      downstream consumers, associated packages/scripts, schedules, config) —
-     searched with `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/xsearch.py --ws <ws> -- <patterns>` (every
+     searched with `ses search --ws <ws> -- <patterns>` (every
      repo, counts first) and its per-repo rows recorded so the map is
      reproducible. "Nothing depends on this" requires showing the search
      that found nothing. Then
@@ -72,7 +73,7 @@ skill documents what the code DOES, not what anyone believes it does.
    execute are marked `⚠ UNVERIFIED` in the final doc.
 3. Build a fact table as you go: claim → source (`file:line` / run output).
    This becomes the doc's verification section.
-4. `status.py set <ws> analyze=done`.
+4. `ses status set <ws> analyze=done`.
 
 ## 2. Draft
 
@@ -81,27 +82,27 @@ skill documents what the code DOES, not what anyone believes it does.
 3. Every behavioural statement must trace to the fact table. Suspicions and
    folklore are either verified or explicitly labelled as open questions.
 4. Diagrams: use mermaid for flows (renders in Markdown, survives conversion).
-5. `status.py set <ws> draft=done`.
+5. `ses status set <ws> draft=done`.
 
 ## 3. Fact-check gate
 
 1. Run the fact-check procedure in
-   `${CLAUDE_PLUGIN_ROOT}/agents/doc-fact-checker.md` on the draft — as a
+   `<root>/agents/doc-fact-checker.md` on the draft — as a
    subagent where the harness supports it, otherwise as a separate fresh pass
    in its report format. It re-verifies each claim against the code; resolve
    every finding (fix the doc or the fact table).
-2. `status.py set <ws> fact-check=done`.
+2. `ses status set <ws> fact-check=done`.
 
 ## 4. Deliver
 
-1. Ask which output formats are needed (unless `status.py get <ws> formats`
-   already answers it) and record them: `status.py field <ws> formats
+1. Ask which output formats are needed (unless `ses status get <ws> formats`
+   already answers it) and record them: `ses status field <ws> formats
    "<docx,pdf,...>"`. Convert via
-   `${CLAUDE_PLUGIN_ROOT}/scripts/md2docx.sh | md2pdf.sh | md2confluence.sh`
+   `ses md2docx | ses md2pdf | ses md2confluence`
    into `<ws>/deliverables/`.
 2. Present the doc; note any `⚠ UNVERIFIED` steps and open questions so the
    user can close them.
-3. `status.py set <ws> deliver=done`.
+3. `ses status set <ws> deliver=done`.
 
 ## Fault tolerance
 

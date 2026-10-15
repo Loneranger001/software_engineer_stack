@@ -10,7 +10,7 @@ Run before presenting the scope contract for approval.
 - [ ] Ambiguities are recorded as open questions, not resolved by silent assumption
 - [ ] Affected interfaces/objects listed reflect the brief plus a first scan of EVERY repo in the analysis scope, each row naming its repo
 - [ ] Contract's Repos section is filled: which repos are analyzed, which may change, and any repo excluded with the user's reason
-- [ ] Applicable lessons were loaded (`scripts/lessons.sh intake --repo … --lang …`) and considered
+- [ ] Applicable lessons were loaded (`ses lessons intake --repo … --lang …`) and considered
 - [ ] ASSUMPTIONS.md reviewed — every open entry presented for ratification at this gate (decision-protocol §4)
-- [ ] `intake=approved` is set (status.py) only after the user's explicit approval — not before
-- [ ] Handoff summary written last and `scripts/handoff.py check` passes (every ID in the body is in the summary; contract version current)
+- [ ] `intake=approved` is set (`ses status`) only after the user's explicit approval — not before
+- [ ] Handoff summary written last and `ses handoff check` passes (every ID in the body is in the summary; contract version current)

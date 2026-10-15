@@ -6,9 +6,10 @@ argument-hint: "[task-id]"
 
 # /impl-plan — executable implementation document
 
-> Path note: `${CLAUDE_PLUGIN_ROOT}` is this framework's root — the ancestor
-> directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
-> it automatically; other harnesses resolve it from this file's location.
+> Framework files: `<root>` is what `ses root` prints — run it once. Every
+> framework script runs as `ses <command>` (`ses help` lists them). If `ses`
+> is not on PATH, stop and ask the user to install the framework (README →
+> Install) — never guess its location.
 
 Produce `<ws>/impl-doc.md` and get it user-approved. /implement will
 execute this document literally, so it must be executable by someone (or some
@@ -16,26 +17,26 @@ session) with no memory of this conversation.
 
 ## 0. Preamble
 
-1. Load applicable lessons: `${CLAUDE_PLUGIN_ROOT}/scripts/lessons.sh impl-plan` — it prints only
-   the matching entries; don't read lessons.md whole.
+1. Load applicable lessons: `ses lessons impl-plan` — it prints only
+   the matching entries; don't read the lesson files whole.
 2. Locate the workspace and gate:
-   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/status.py require <ws> tech-design=approved grill=done,waived`
+   `ses status require <ws> tech-design=approved grill=done,waived`
    (`<ws>` = `<workspace-root>/work/<id>`) — non-zero exit = stop. The impl
    doc plans a design that has survived the interrogation, not a first
    draft. A user who skips
    the grill at this point is recorded first
-   (`status.py set <ws> grill="waived by <who> <date>: <reason>"`), never
+   (`ses status set <ws> grill="waived by <who> <date>: <reason>"`), never
    assumed.
 3. Read the approved tdd.md fully (you decompose all of it) and the
    contract's handoff summary
-   (`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/handoff.py show <ws>/scope-contract.md`).
-4. Unknowns follow `${CLAUDE_PLUGIN_ROOT}/core/decision-protocol.md`:
+   (`ses handoff show <ws>/scope-contract.md`).
+4. Unknowns follow `<root>/core/decision-protocol.md`:
    planning calls passing §2 → ASSUMPTIONS.md; anything touching data,
    external contracts, or scope stops and asks.
 
 ## 1. Plan the steps
 
-1. Copy `${CLAUDE_PLUGIN_ROOT}/templates/impl-doc.md` → `<ws>/impl-doc.md`.
+1. Copy `<root>/templates/impl-doc.md` → `<ws>/impl-doc.md`.
 2. Decompose the TDD into ordered, commit-sized steps. Ordering rules:
    - The system stays consistent between steps (DDL before code that needs it;
      backward-compatible interface changes before caller updates).
@@ -50,7 +51,7 @@ session) with no memory of this conversation.
    rollback note naming the exact revert action. Rollback for a multi-repo
    change is per repo AND in reverse dependency order.
 4. Name a task branch **per changed repo**, each following that repo's
-   rules files (`repo-rules.sh`), else its existing branch naming (`git
+   rules files (`ses repo-rules`), else its existing branch naming (`git
    branch -r`), else ask — e.g. `feature/<task-id>`.
    Only repos the scope contract lists as changing get a branch; if planning
    reveals another repo must change, that is a scope-contract amendment with
@@ -61,7 +62,7 @@ session) with no memory of this conversation.
 - Map every acceptance criterion A# to at least one test T#. A criterion
   without a test is a planning failure.
 - Reuse the repo's existing test tooling (utPLSQL, pytest, script harnesses —
-  the rules files and `tooling:` lines from `repo-rules.sh`); only introduce
+  the rules files and `tooling:` lines from `ses repo-rules`); only introduce
   new tooling with user agreement.
 - Include regression: which existing behaviours are touched (from the TDD §6
   interface impact) and how each is re-checked.
@@ -76,17 +77,17 @@ session) with no memory of this conversation.
 
 ## 4. Gate
 
-1. Self-check with `${CLAUDE_PLUGIN_ROOT}/checklists/impl-plan.md`. Write the
+1. Self-check with `<root>/checklists/impl-plan.md`. Write the
    impl doc's **handoff summary** last — a `step <N>:` line per step, the
    branches, tests, deploy order — and run
-   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/handoff.py check <ws>` (all documents so far) — it must pass.
+   `ses handoff check <ws>` (all documents so far) — it must pass.
 2. Present to the user, starting from the summary: step table,
    test-to-criterion mapping, rollback summary — plus open ASSUMPTIONS.md
    entries for ratification (decision-protocol §4). Iterate until approved —
    each revision updates the summary in the same edit and re-runs the check.
    Record approval in the header.
 3. Record:
-   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/status.py set <ws> impl-plan=approved --next "Run /implement."`
+   `ses status set <ws> impl-plan=approved --next "Run /implement."`
 
 ## Fault tolerance
 

@@ -78,6 +78,19 @@ class CheckKnowledgeTest(unittest.TestCase):
         self.assertEqual(r.returncode, 1)
         self.assertIn("generated output", r.stderr)
 
+    def test_file_removed_later_keeps_its_entry_valid(self):
+        (self.repo / "scripts" / "old_tool.py").write_text("x\n")
+        self.write_decisions("- [2026-08-12] Added `scripts/old_tool.py` — task X\n")
+        git(self.repo, "add", "-A")
+        git(self.repo, "commit", "-qm", "add tool", date="2026-08-12T12:00:00")
+        git(self.repo, "rm", "-q", "scripts/old_tool.py")
+        git(self.repo, "commit", "-qm", "remove tool", date="2026-09-01T12:00:00")
+        self.assertEqual(self.check().returncode, 0, self.check().stderr)
+        self.write_decisions("- [2026-08-12] Added `scripts/never_existed.py` — task X\n")
+        r = self.check()
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("does not exist", r.stderr)
+
     def test_bare_skill_path_still_flagged(self):
         self.write_decisions("- [2026-08-12] Added preflight in `research/SKILL.md` — task X\n")
         r = self.check()

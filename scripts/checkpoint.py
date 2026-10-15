@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""checkpoint.py — crash safety for /implement and /change-request.
+"""checkpoint.py — crash safety for /implement and /change-request (run as `ses checkpoint`).
 
 Usage:
     checkpoint.py resume  <ws>            is it safe to continue from the recorded state?
@@ -8,11 +8,12 @@ Usage:
 
 <ws> is the task workspace (work/<task-id>). Changed repos and their branches
 come from STATUS.md `branch.<repo-name>` fields; a repo name resolves to the
-STATUS work-repo or "Repos analyzed" path with that basename.
+STATUS work-repo or repos-analyzed path with that basename.
 
 resume — per changed repo: recorded vs checked-out branch, the last
-  `<task-id> step <N>` checkpoint commit, STATUS `current-step`, and every
-  uncommitted file classified against the NEXT step's file list from
+  `<task-id> step <N>` checkpoint commit (the commits are the step record —
+  nothing else stores it), and every uncommitted file classified against the
+  NEXT step's file list from
   impl-doc.md §2 ("expected" = that step's own files, i.e. a half-done step;
   "unexpected" = anything else). It decides nothing: it shows the facts the
   user needs to choose keep-and-continue or discard-and-redo.
@@ -75,7 +76,7 @@ def changed_repos(st: Status) -> dict[str, tuple[Path, str]]:
             continue
         name = f[len("branch."):]
         if name not in by_name:
-            raise StatusError(f"STATUS {f}: no repo named '{name}' among work-repo / Repos analyzed")
+            raise StatusError(f"STATUS {f}: no repo named '{name}' among work-repo / repos-analyzed")
         out[name] = (by_name[name], st.field(f))
     return out
 
@@ -139,12 +140,7 @@ def cmd_resume(ws_arg: str) -> int:
         if head != branch:
             problems.append(f"{name}: checked out '{head}', STATUS records '{branch}' — switch or re-record")
     nxt = last + 1
-    recorded = st.field("current-step") if "current-step" in st.fields else None
-    print(f"task {task}: last checkpoint commit is step {last or '(none)'}; "
-          f"STATUS current-step: {recorded or '(unset)'}")
-    if recorded is not None and recorded != str(last):
-        problems.append(f"STATUS current-step is {recorded} but the commits end at step {last} — "
-                        f"trust the commits and re-record (status.py field <ws> current-step {last})")
+    print(f"task {task}: last checkpoint commit is step {last or '(none)'}")
     nxt_repo, nxt_tokens = steps.get(nxt, ("", []))
     if not steps:
         print("no impl-doc.md steps (change-request pipeline?) — uncommitted files are listed as-is")

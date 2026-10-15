@@ -1,0 +1,14 @@
+{
+  "name": "se-stack",
+  "description": "software-engineer-stack: the SDLC lifecycle framework for PL/SQL, SQL, KSH and Python codebases",
+  "owner": {
+    "name": "loneranger001"
+  },
+  "plugins": [
+    {
+      "name": "software-engineer-stack",
+      "source": "./",
+      "description": "Brief → research → design → grill → plan → verified code → audited delivery, plus change requests and documentation"
+    }
+  ]
+}

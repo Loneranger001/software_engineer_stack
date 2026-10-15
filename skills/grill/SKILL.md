@@ -6,9 +6,10 @@ argument-hint: "[task-id]"
 
 # /grill — the design survives the interview, or it changes
 
-> Path note: `${CLAUDE_PLUGIN_ROOT}` is this framework's root — the ancestor
-> directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
-> it automatically; other harnesses resolve it from this file's location.
+> Framework files: `<root>` is what `ses root` prints — run it once. Every
+> framework script runs as `ses <command>` (`ses help` lists them). If `ses`
+> is not on PATH, stop and ask the user to install the framework (README →
+> Install) — never guess its location.
 
 The tech-design gates prove the TDD's claims are TRUE (fact-checker) and that
 scope is covered (traceability). This stage attacks COMPLETENESS: the cases
@@ -17,29 +18,29 @@ proving which scenarios were confronted.
 
 ## 0. Preamble
 
-1. Load applicable lessons: `${CLAUDE_PLUGIN_ROOT}/scripts/lessons.sh grill` — prior corrected
+1. Load applicable lessons: `ses lessons grill` — prior corrected
    assumptions and missed edge cases are exactly the scenarios to re-run.
-2. Locate the workspace and gate, by pipeline (`status.py get <ws> pipeline`;
+2. Locate the workspace and gate, by pipeline (`ses status get <ws> pipeline`;
    `<ws>` = `<workspace-root>/work/<id>`):
-   - **full**: `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/status.py require <ws> tech-design=approved`.
-     Grilling an unapproved draft is fine if the user asks — record it:
-     `status.py log <ws> "grilling unapproved TDD at user request"`.
+   - **full**: `ses status require <ws> tech-design=approved`.
+     Grilling an unapproved draft is fine if the user asks — record it in
+     the grill log's header ("grilled an unapproved TDD at user request").
    - **change-request** (see "Use on change requests"):
-     `status.py require <ws> analyze=done`; the target is `analysis.md`.
+     `ses status require <ws> analyze=done`; the target is `analysis.md`.
 3. Read tdd.md and ASSUMPTIONS.md fully — they are what you attack. Read the
    contract and research handoff summaries
-   (`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/handoff.py show <ws>/<doc>`), opening a full section
+   (`ses handoff show <ws>/<doc>`), opening a full section
    when a scenario needs its detail. Also read the repo rules research
    recorded (`<work-repo>` from STATUS.md — see
-   `${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md`), and the affected code.
-4. Unknowns follow `${CLAUDE_PLUGIN_ROOT}/core/decision-protocol.md`. In this
+   `<root>/core/repo-resolution.md`), and the affected code.
+4. Unknowns follow `<root>/core/decision-protocol.md`. In this
    skill the bias flips: the whole point is to ASK — proceed-and-log is
    reserved for trivia.
 
 ## 1. Phase 1 — self-grill (no user interruption yet)
 
 Create `<ws>/grill-log.md` from
-`${CLAUDE_PLUGIN_ROOT}/templates/grill-log.md`.
+`<root>/templates/grill-log.md`.
 
 Instantiate CONCRETE scenarios against the TDD from every category below,
 using the task's real objects — "what if BALANCE_SNAPSHOT already has rows
@@ -52,7 +53,7 @@ category; a category that truly cannot apply is marked `n/a` with a reason.
   failure, concurrent execution, partial success/failure ordering
 - **Interface**: callers sending the old format, missing/extra fields,
   consumers NOT in the research call graph (search with broader patterns via
-  `xsearch.py`; reuse research's recorded rows for repos whose sha is
+  `ses search`; reuse research's recorded rows for repos whose sha is
   unchanged), contract version skew
 - **Temporal**: date boundaries, month/year-end, DST/timezone, late-arriving
   or backdated data
@@ -85,8 +86,8 @@ Take the `ask-user` list and interview the user until it is EMPTY:
 - Ask as concrete scenarios with the real objects and a proposed default
   ("The extract reruns for a date that already has GBP rows — replace them,
   reject the run, or merge? Current design silently replaces (tdd §4.2).").
-- Group by theme; one theme at a time (use AskUserQuestion where the harness
-  has it, up to 4 questions per round). Do not dump twenty questions at once,
+- Group by theme; one theme at a time (through the harness's ask-user tool
+  where it has one, up to 4 questions per round). Do not dump twenty questions at once,
   and do not stop at one round if answers spawn follow-ups — that's the
   grilling.
 - Every answer lands immediately: TDD design section updated, §7 row added
@@ -100,17 +101,17 @@ Take the `ask-user` list and interview the user until it is EMPTY:
 
 ## 3. Close the stage
 
-1. Self-check with `${CLAUDE_PLUGIN_ROOT}/checklists/grill.md`.
+1. Self-check with `<root>/checklists/grill.md`.
 2. Every TDD edit (`gap-fixed`, user answers) updates the TDD's handoff
-   summary in the same edit; re-run `handoff.py check <ws>/tdd.md` before
+   summary in the same edit; re-run `ses handoff check <ws>/tdd.md` before
    closing. If the grill materially changed the approved TDD, re-present the
    changed sections for approval (never silently edit an approved document).
 3. Record (full pipeline):
-   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/status.py set <ws> grill=done --next "Run /impl-plan."`
+   `ses status set <ws> grill=done --next "Run /impl-plan."`
    — or, if the user explicitly skipped it,
    `grill="waived by <who> <date>: <reason>"`. A change-request pipeline has
-   no grill stage: record `status.py log <ws> "grill done on analysis.md: <n>
-   scenarios, <m> answered by user"` instead.
+   no grill stage: the grill log's closing line records it instead ("grill
+   done on analysis.md: <n> scenarios, <m> answered by user").
 
 ## Use on change requests
 

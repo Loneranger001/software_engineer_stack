@@ -11,7 +11,7 @@ Usage:
     xsearch.py [--ws <ws> | --repos a,b,...] [--ref <ref>] [-i] [-F]
                [--top N] [--save FILE] -- <pattern> [<pattern> ...]
 
-    --ws     task workspace: repos come from STATUS.md "Repos analyzed"
+    --ws     task workspace: repos come from STATUS.md repos-analyzed
     --repos  comma-separated repo paths instead of a workspace
     --ref    search this ref in each repo (e.g. origin/main) instead of the
              working tree; a repo lacking the ref is reported, not skipped
@@ -93,7 +93,7 @@ def main(argv: list[str]) -> int:
             print(f"error: {e}", file=sys.stderr)
             return 2
         if not repos:
-            print("error: STATUS.md lists no repos under 'Repos analyzed'", file=sys.stderr)
+            print("error: STATUS.md has no repos-analyzed", file=sys.stderr)
             return 2
     else:
         repos = [Path(p) for p in a.repos.split(",") if p]

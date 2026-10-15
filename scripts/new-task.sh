@@ -1,5 +1,5 @@
 #!/bin/sh
-# new-task.sh — scaffold a task workspace with a STATUS.md resume point.
+# new-task.sh — scaffold a task workspace with a minimal STATUS.md (run as `ses new-task`).
 # Usage: new-task.sh <task-id> [workspace-root] [pipeline] [work-repo] [repo-set]
 #   task-id         e.g. PROJ-123 (no spaces)
 #   workspace-root  directory that holds work/, or `auto` (the default):
@@ -16,6 +16,9 @@
 #                   list from list-repos.sh <repos-folder>.
 set -eu
 
+case "${1:-}" in
+  -h|--help) sed -n '2,16p' "$0"; exit 0 ;;
+esac
 TASK_ID="${1:?usage: new-task.sh <task-id> [workspace-root] [pipeline] [work-repo] [repo-set]}"
 ROOT="${2:-auto}"
 PIPELINE="${3:-full}"
@@ -24,7 +27,7 @@ REPO_SET="${5:-}"
 HERE=$(cd "$(dirname "$0")" && pwd)
 
 case "$TASK_ID" in
-  *[!A-Za-z0-9._-]*) echo "error: task-id may only contain letters, digits, . _ -" >&2; exit 1 ;;
+  -*|*[!A-Za-z0-9._-]*) echo "error: task-id may only contain letters, digits, . _ - and not start with -" >&2; exit 1 ;;
 esac
 
 if [ -z "$REPO" ]; then
@@ -64,7 +67,7 @@ if [ -n "$REPO_SET" ]; then
   IFS=$OIFS
   ANALYZED=$(printf '%s' "$ANALYZED" | LC_ALL=C sort -u)
 fi
-REPO_LINES=$(printf '%s\n' "$ANALYZED" | sed 's/^/  - /')
+REPOS_FIELD=$(printf '%s\n' "$ANALYZED" | sed '/^$/d' | paste -sd, - | sed 's/,/, /g')
 
 DIR="$ABS_ROOT/work/$TASK_ID"
 if [ -e "$DIR/STATUS.md" ]; then
@@ -117,36 +120,22 @@ esac
 
 cat > "$DIR/STATUS.md" <<EOF
 # STATUS — $TASK_ID
+<!-- gates are read and set with \`ses status\`, never edited by hand -->
 
 - task-id: $TASK_ID
 - pipeline: $PIPELINE
-- created: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+- created: $(date -u +%Y-%m-%d)
 - work-repo: $ABS_REPO
 - workspace-root: $ABS_ROOT
-- branch: (set by /implement as branch.<repo> lines — scripts/status.py field)
-
-## Repos analyzed
-
-Analysis scope: every repo searched for callers and dependents. Impact
-analysis covers ALL of them; only repos the scope contract names may be
-changed (core/repo-resolution.md).
-
-$REPO_LINES
+- repos-analyzed: $REPOS_FIELD
 
 ## Stage gates
-
-Legend: pending | in-progress | done | approved (user sign-off) | waived (user, with reason)
-Read and update with scripts/status.py — never edit gate lines by hand.
 
 $STAGES
 
 ## Next action
 
 $NEXT
-
-## Log
-
-- $(date -u +%Y-%m-%dT%H:%M:%SZ) workspace created
 EOF
 
 cat > "$DIR/PARKED.md" <<EOF

@@ -15,8 +15,8 @@ Two things live here:
   research done, tech-design next), showing what the artifacts look like
   filled in: STATUS.md, an approved scope contract, and PARKED.md with a
   real-shaped entry. Its paths (`/home/you/workspace/…`) are illustrative, so
-  check it with `scripts/status.py validate examples/sample-task
-  --structure-only` and `scripts/handoff.py check examples/sample-task`; the
+  check it with `ses status validate examples/sample-task
+  --structure-only` and `ses handoff check examples/sample-task`; the
   test suite does both, keeping the example in the current format.
 
 The sample repo has no live database; verification there exercises the

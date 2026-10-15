@@ -9,10 +9,13 @@ code it describes. The framework's accuracy guarantee rests on you: a claim
 the code doesn't support must not survive. Read-only; Bash for read-only
 inspection only.
 
+> Framework scripts run as `ses <command>`; `<root>` is what `ses root` prints.
+> If `ses` is not on PATH, say so in your report instead of guessing paths.
+
 ## Inputs
 
 - The document path
-- The task workspace (`<ws>`): repo paths come from `status.py show <ws>`
+- The task workspace (`<ws>`): repo paths come from `ses status show <ws>`
   (`work-repo` and every repo under `repos-analyzed`), because references
   are `<repo>:<path>:<line>` and may point into a sibling repo; its
   `evidence/` directory holds the run outputs claims cite
@@ -44,7 +47,7 @@ inspection only.
    claim → source table. Change mode: "after" claims are checked at the
    head commit and "before" claims at the base commit (`change-head` /
    `change-base` in the workspace), and every changed file in
-   `review-diff.sh <repo> <base> <head>` must be reflected somewhere in the
+   `ses review-diff <repo> <base> <head>` must be reflected somewhere in the
    FDD — a business-visible change the FDD omits is an OMISSION. Every
    existing table, column, and code value it
    names must exist with that meaning; ones marked `new` must not collide

@@ -1,6 +1,6 @@
 # Software Engineer Stack
 
-A Claude Code skill framework covering the full software engineering lifecycle for codebases spanning **PL/SQL, SQL, KSH, and Python**. It turns a solution design document or requirement brief into researched, designed, implemented, verified, and packaged deliverables — while staying **accurate, fault-tolerant, self-improving, and scope-disciplined**.
+A skill framework for **Claude Code, GitHub Copilot and Codex** covering the full software engineering lifecycle for codebases spanning **PL/SQL, SQL, KSH, and Python**. It turns a solution design document or requirement brief into researched, designed, implemented, verified, and packaged deliverables — while staying **accurate, fault-tolerant, self-improving, and scope-disciplined**.
 
 ## The lifecycle
 
@@ -39,73 +39,43 @@ flowchart LR
 
 ## Installation
 
-Option A — install as a plugin (recommended):
+The same `skills/` and `agents/` run in all three harnesses — nothing is generated or copied per harness. Skills reach the framework only through the `ses` command (`bin/ses`): every script is `ses <command>`, every framework file is `<root>/…` where `<root>` is what `ses root` prints. Requirements: `python3` (3.9+), `git`, a POSIX `sh`; `pandoc` for document conversion.
+
+**Claude Code — plugin:**
 
 ```sh
-claude plugin marketplace add <this-repo-url-or-path>
-claude plugin install software-engineer-stack
+claude plugin marketplace add Loneranger001/software_engineer_stack   # or a local checkout path
+claude plugin install software-engineer-stack@se-stack
 ```
 
-Option B — clone next to your work repos and add it to a session with `claude --add-dir /path/to/software_engineer_stack`, or symlink `skills/` into your project's `.claude/skills/`.
+The plugin ships the 14 skills, the three reviewer agents, and `bin/`, which Claude Code puts on PATH — so `ses` just works. Skills are namespaced: `/software-engineer-stack:intake`.
 
-Then open Claude Code **inside the work repo** you're changing and run the commands above. New here? Read the [narrated walkthrough](docs/walkthrough.md) of a full task first.
-
-## Using with GitHub Copilot
-
-Three tiers, by effort. Canonical content is always `skills/`/`agents/` —
-everything Copilot-facing is generated from it (never edit generated files).
-
-**Tier A — install as a plugin (recommended, zero setup).** The ready-made
-[`copilot/`](copilot/) folder is a self-contained Copilot-native
-[plugin](https://docs.github.com/en/copilot/concepts/agents/about-plugins):
-`plugin.json`, the 14 stages as skills, the 3 reviewers as `.agent.md` custom
-agents, and the bundled templates/checklists/protocol they use.
+**GitHub Copilot or Codex — install from a checkout:**
 
 ```sh
-copilot plugin install ./copilot     # from a local checkout
-copilot plugin install <repo-url>    # or straight from the repository
+git clone https://github.com/Loneranger001/software_engineer_stack ~/src/software_engineer_stack
+python3 ~/src/software_engineer_stack/bin/ses install copilot     # or: codex  (or: claude, without the plugin)
 ```
 
-No generator run needed. Components are cached — re-run the install after
-updating. For the Copilot coding agent, enable the plugin via the work repo's
-`.github/copilot/settings.json`. (Installing this repo's root also works:
-Copilot reads `.claude-plugin/plugin.json` for Claude Code compatibility and
-defaults skills to `skills/` — but only the `copilot/` folder carries the
-reviewers as custom agents, since plugin agents require `.agent.md` naming.)
+| | Skills (symlinks) | Reviewer agents | `ses` |
+|---|---|---|---|
+| `copilot` | `~/.copilot/skills/<name>` | `~/.copilot/agents/<name>.agent.md` | `~/.local/bin/ses` |
+| `codex` | `~/.agents/skills/<name>` | `~/.codex/agents/<name>.toml` (read-only sandbox) | `~/.local/bin/ses` |
+| `claude` | `~/.claude/skills/<name>` | `~/.claude/agents/<name>.md` | `~/.local/bin/ses` |
 
-**Tier B — generate the adapter into a work repo** (adds VS Code Chat
-`/stage` commands and repo-scoped discovery):
+`~/.local/bin` must be on PATH (the installer says so if it isn't). Skills are symlinks into the checkout, so `git pull` updates every harness at once; the agent files point at the canonical procedures in `agents/`. `--dry-run` shows the plan; the installer never replaces a file it didn't create; `ses uninstall <harness>` removes only its own links. Pick one route per harness — the Claude Code plugin *and* `ses install claude` would register every skill twice.
 
-```sh
-python3 scripts/build_copilot.py --target /path/to/your/work-repo
-```
+Then open the harness **inside the work repo** you're changing (or the folder holding several repos) and run the commands above — by name, or by describing the work ("start a new task from this brief"). New here? Read the [narrated walkthrough](docs/walkthrough.md) of a full task first.
 
-This writes `.github/prompts/<stage>.prompt.md` (explicit `/intake`,
-`/implement`, … in Copilot Chat — enable prompt files, prefer agent mode),
-`.github/skills/<stage>/SKILL.md` (model-invoked
-[agent skills](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills)),
-`.github/agents/<name>.agent.md` (the reviewers as
-[custom agents](https://docs.github.com/en/copilot/reference/custom-agents-configuration)),
-and `.github/copilot-instructions.md` (shared rules). Path references point
-back at this repo — keep it checked out at a stable location and regenerate
-after skill edits. Add **`--self-contained`** to instead bundle the framework
-data (templates, checklists, protocol, standards, scripts, knowledge) into
-`.github/se-stack/` and point every reference there — the work repo then
-needs no framework checkout at all, and `/stage` commands still work in
-VS Code Chat. (The bundled `knowledge/` is a per-install copy — sync lessons
-back to this repo's canonical `knowledge/`.)
-
-**Tier C — any other tool**: the generated root `AGENTS.md` explains the
-lifecycle and how to execute the stage instructions directly (opencode and
-other AGENTS.md-aware tools).
+**Cloud agents** (Copilot coding agent, Codex cloud) check out only the repo, so a `work/` folder in its parent doesn't exist there: set `SES_WORKSPACE_ROOT` to a path inside the repo for those runs.
 
 ## Task workspaces
 
-Every engagement (task, change request, doc request) lives in its own workspace directory, `work/<task-id>/`, created by `/intake` (or `scripts/new-task.sh`):
+Every engagement (task, change request, doc request) lives in its own workspace directory, `work/<task-id>/`, created by `/intake` (or `ses new-task`):
 
 ```
 work/PROJ-123/
-├── STATUS.md          # stage, gate states, next action — the resume point
+├── STATUS.md          # minimal: repos, one line per stage gate, next action
 ├── scope-contract.md  # approved at intake; the single source of scope truth
 ├── research-notes.md
 ├── fdd.md             # optional functional design (/func-design)
@@ -117,21 +87,45 @@ work/PROJ-123/
 └── deliverables/      # converted docx / pdf / Confluence outputs
 ```
 
-`STATUS.md` is the resume point: if a session dies mid-stage, rerun the same command and the skill picks up from the recorded state. In a multi-repo workspace `work/` sits in the folder holding the repos, beside them rather than inside one (`scripts/workspace-root.sh`; pin it with `SES_WORKSPACE_ROOT`). Because that workspace sits outside every repo, each `/implement` checkpoint commit carries `Evidence-SHA256: <hash> <path>` lines for its evidence (`scripts/checkpoint.py trailer`), and `scripts/checkpoint.py verify` — run by the scope auditor at `/deliver` — fails if any recorded evidence file is missing or was edited afterwards. On resume, `scripts/checkpoint.py resume` reports the last checkpoint step, branch mismatches, and every uncommitted file (the next step's own files vs anything unexpected), so a half-done step is kept or discarded by your choice, never folded silently into the next commit. A standalone repo keeps `work/` inside itself — add it to that repo's `.gitignore` if workspaces shouldn't be committed. Workspaces created before this rule keep the root recorded in their `STATUS.md`; to move one, move the directory and run `scripts/status.py field <ws> workspace-root <new-root>`.
+**Who keeps which state.** The harness owns the *session*: conversation history, its own resume (`claude --resume`, `codex resume`, `copilot --resume`), compaction, and in-session progress (todo/plan tools). The workspace owns the *task*: what was approved and when, what is in scope, what was assumed, what was built and proven. Nothing about the task lives only in chat, and nothing git or a stage document already records is duplicated into `STATUS.md` — it has no log and no step counter. A task started in one harness resumes in another.
 
-Skills never judge a gate by reading `STATUS.md` themselves — they call `scripts/status.py`, which exits non-zero when a gate isn't met and rewrites the file atomically on every transition:
+`STATUS.md` is a dozen lines you can read at a glance:
 
-```sh
-scripts/status.py require work/PROJ-123 impl-plan=approved   # exit 3 = gate not met, stop
-scripts/status.py set     work/PROJ-123 implement=done --next "Run /deliver."
-scripts/status.py field   work/PROJ-123 branch.repo-a feature/PROJ-123
-scripts/status.py show    work/PROJ-123                      # header + gates + next action, no log
-scripts/status.py validate work/PROJ-123                     # structure + skipped-gate check
+```
+# STATUS — DEMO-1
+- task-id: DEMO-1
+- pipeline: full
+- work-repo: /home/you/workspace/sample-repo
+- workspace-root: /home/you/workspace
+- repos-analyzed: /home/you/workspace/sample-repo
+- branch.sample-repo: feature/DEMO-1          (added by /implement)
+
+## Stage gates
+intake: approved (2026-07-11; by you, contract v1)
+research: done (2026-07-11)
+tech-design: pending
+…
+## Next action
+Run /tech-design.
 ```
 
-**Handoff summaries.** The scope contract, research notes, FDD (when there is one), TDD and impl doc each open with a bounded summary (≤ 40 lines, one line per ID) between `<!-- handoff:start -->` / `<!-- handoff:end -->`, written last at that stage's gate. Later stages read the summary (`scripts/handoff.py show <doc>`) and open full sections only when they need the detail — except where judging the whole document is the job: `/tech-design` on the contract, `/grill` and `/impl-plan` on the TDD, the scope auditor on everything. `scripts/handoff.py check <ws>` fails a summary that is missing an ID the body defines (S#, N#, A#, Q#, T#, numbered steps), runs over length, or names an older contract version than `scope-contract.md` — so a summary can't drift silently, and stale research is caught by a script rather than by eye.
+Skills never judge a gate by reading it themselves — they call `ses status`, which exits non-zero when a gate isn't met and rewrites the file atomically, stamping each transition with its date and note:
 
-States are `pending | in-progress | done | approved | waived` (a waiver carries who/when/why as free text after the state).
+```sh
+ses status require work/PROJ-123 impl-plan=approved          # exit 3 = gate not met, stop
+ses status set     work/PROJ-123 intake=approved --note "by asif, contract v1" --next "Run /research."
+ses status field   work/PROJ-123 branch.repo-a feature/PROJ-123
+ses status show    work/PROJ-123
+ses status validate work/PROJ-123                            # structure + skipped-gate check
+```
+
+States are `pending | in-progress | done | approved | waived` (a waiver carries who/why as free text after the state).
+
+**Step record and evidence live in git.** Each `/implement` step is one checkpoint commit `<task-id> step <N>: …` ending with `Evidence-SHA256: <hash> <path>` lines (`ses checkpoint trailer`). On resume, `ses checkpoint resume` reports the last checkpoint step, branch mismatches, and every uncommitted file (the next step's own files vs anything unexpected), so a half-done step is kept or discarded by your choice, never folded silently into the next commit. `ses checkpoint verify` — run by the scope auditor at `/deliver` — fails if any recorded evidence file is missing or was edited afterwards.
+
+**Where `work/` goes.** In a multi-repo workspace it sits in the folder holding the repos, beside them rather than inside one (`ses workspace-root`; pin it with `SES_WORKSPACE_ROOT`). A standalone repo keeps `work/` inside itself — add it to that repo's `.gitignore` if workspaces shouldn't be committed. To move a workspace, move the directory and run `ses status field <ws> workspace-root <new-root>`.
+
+**Handoff summaries — the context management.** The scope contract, research notes, FDD (when there is one), TDD and impl doc each open with a bounded summary (≤ 40 lines, one line per ID) between `<!-- handoff:start -->` / `<!-- handoff:end -->`, written last at that stage's gate. Later stages read the summary (`ses handoff show <doc>`) and open full sections only when they need the detail — except where judging the whole document is the job: `/tech-design` on the contract, `/grill` and `/impl-plan` on the TDD, the scope auditor on everything. `ses handoff check <ws>` fails a summary that is missing an ID the body defines (S#, N#, A#, Q#, T#, numbered steps), runs over length, or names an older contract version than `scope-contract.md`. This works the same in every harness and survives any harness's compaction, because it is on disk.
 
 ### Which repo is "the repo"
 
@@ -141,7 +135,7 @@ This matters when your editor workspace is a **parent folder containing several 
 
 ### Each repo's own rules files
 
-Stages follow the rules a repo's team already wrote instead of a framework-generated cache. `scripts/repo-rules.sh <repo> [changed files]` lists them: `AGENTS.md`, `CLAUDE.md`, `CODING_STANDARDS.md`, `STANDARDS.md`, `STYLEGUIDE.md`, `CONVENTIONS.md`, `CONTRIBUTING.md` (case-insensitive, at the root or under `docs/`), `.github/copilot-instructions.md` and `.github/instructions/*.instructions.md`, plus nested `AGENTS.md`/`CLAUDE.md` above each changed file. It also lists tooling configs (`pyproject.toml`, `.shellcheckrc`, `.pre-commit-config.yaml`, …) for `/verify-code` to run. Files this framework generated are skipped.
+Stages follow the rules a repo's team already wrote instead of a framework-generated cache. `ses repo-rules <repo> [changed files]` lists them: `AGENTS.md`, `CLAUDE.md`, `CODING_STANDARDS.md`, `STANDARDS.md`, `STYLEGUIDE.md`, `CONVENTIONS.md`, `CONTRIBUTING.md` (case-insensitive, at the root or under `docs/`), `.github/copilot-instructions.md` and `.github/instructions/*.instructions.md`, plus nested `AGENTS.md`/`CLAUDE.md` above each changed file. It also lists tooling configs (`pyproject.toml`, `.shellcheckrc`, `.pre-commit-config.yaml`, …) for `/verify-code` to run. Adapter files generated by framework versions up to 0.6 are skipped.
 
 Precedence: nested `AGENTS.md` nearest the file > the repo's root rules > the surrounding file's style (for what the rules leave open) > framework `standards/`. Untouched lines are never restyled to satisfy a rule, and two rules files that contradict each other are raised as a question. The framework never edits a repo's rules files; `/retro` proposes additions for you to commit.
 
@@ -149,18 +143,18 @@ Precedence: nested `AGENTS.md` nearest the file > the repo's root rules > the su
 
 Repos share a workspace because they talk to each other, so a task's **analysis** scope is wider than its **write** scope:
 
-- **`<repo-set>`** — every repo under the workspace folder (enumerated by `scripts/list-repos.sh`, recorded in `STATUS.md`). Impact analysis, caller/dependent searches, call graphs, and dependency maps run across ALL of them. A repo searched with no hits is reported as *searched, no references found*, with the command — because a repo nobody searched and a repo with no callers produce the same silence. References are qualified `<repo>:<path>:<line>`.
+- **`<repo-set>`** — every repo under the workspace folder (enumerated by `ses list-repos`, recorded in `STATUS.md`). Impact analysis, caller/dependent searches, call graphs, and dependency maps run across ALL of them. A repo searched with no hits is reported as *searched, no references found*, with the command — because a repo nobody searched and a repo with no callers produce the same silence. References are qualified `<repo>:<path>:<line>`.
 - **`<changed-repos>`** — the subset the scope contract says may be modified. It starts as the primary repo and grows only with the user's approval at a gate. Each changed repo gets its own branch and follows its own rules files; the impl doc names a repo per step and states the cross-repo deploy order.
 
-Searches go through `scripts/xsearch.py --ws <ws> [--ref origin/<mainline>] -- <patterns>`: one command per repo, counts and top files first (full per-file list with `--save`), and ready-made rows for the research notes' search record, each carrying the commit searched — so a later stage reuses a row while that repo hasn't moved and re-searches only the repos that have. Reviews go through `scripts/review-diff.sh <repo> <mainline> <branch>`: a `--stat`-style plan first, then one file at a time with `--file`, with workspace, evidence, framework-generated and lockfiles listed but not read.
+Searches go through `ses search --ws <ws> [--ref origin/<mainline>] -- <patterns>`: one command per repo, counts and top files first (full per-file list with `--save`), and ready-made rows for the research notes' search record, each carrying the commit searched — so a later stage reuses a row while that repo hasn't moved and re-searches only the repos that have. Reviews go through `ses review-diff <repo> <mainline> <branch>`: a `--stat`-style plan first, then one file at a time with `--file`, with workspace, evidence, framework-generated and lockfiles listed but not read.
 
 Excluding a repo from analysis is a user decision recorded in the contract, never an inference from a repo looking unrelated. See [Q&A #22](docs/QA.md).
 
 ## The four guarantees
 
 - **Accurate** — every factual claim in a generated document must carry a source reference (`file:line`, doc section, or captured run output). Code is verified by running it (`/verify-code`), the `doc-fact-checker` agent re-verifies documents against the code before a stage closes, and `/grill` attacks the design's *completeness* — the edge cases nobody wrote down — before implementation is planned.
-- **Fault-tolerant** — stages are idempotent and resumable via `STATUS.md`; implementation happens on a branch with checkpoint commits; every impl doc has a rollback section.
-- **Self-improving** — `/retro` appends structured lessons to `knowledge/lessons.md`; every skill loads only the lessons matching its stage/language/repo (`scripts/lessons.sh`) before starting. Retro can also propose edits to templates/checklists, applied only with your approval. Each work repo additionally accumulates a `.domain-glossary.md` — business terms ("purchase order", "approved") mapped to their system reality (tables, states, code paths, confirmed semantics) — so a term explained once is never re-asked.
+- **Fault-tolerant** — stages are idempotent and resumable from the workspace on disk, in any harness; gates are checked by `ses status`, never by eye; implementation happens on a branch with evidence-hashed checkpoint commits; every impl doc has a rollback section.
+- **Self-improving** — `/retro` appends structured lessons to your `~/.ses/lessons.md` (outside every install, shared by every harness); every skill loads only the lessons matching its stage/language/repo — yours plus the framework's `knowledge/lessons.md` — through `ses lessons` before starting. Retro can also propose edits to templates/checklists, applied only with your approval. Each work repo additionally accumulates a `.domain-glossary.md` — business terms ("purchase order", "approved") mapped to their system reality (tables, states, code paths, confirmed semantics) — so a term explained once is never re-asked.
 - **Scope-disciplined** — `/intake` produces a scope contract you approve; every later skill re-reads it. Anything discovered out of scope goes to `PARKED.md`, never into the change. The `scope-auditor` agent gates `/deliver`.
 
 ## When the agent doesn't know
@@ -188,7 +182,7 @@ The short version:
 
 ## Environment configuration for live verification
 
-Connection details are **never stored in this framework**. Verification recipes read them from the environment of the machine you run Claude Code on:
+Connection details are **never stored in this framework**. Verification recipes read them from the environment of the machine your harness (Claude Code, Copilot, Codex) runs on:
 
 | Variable | Used for | Example |
 |---|---|---|
@@ -201,48 +195,43 @@ If a variable is unset or the environment is unreachable, `/verify-code` falls b
 ## Repository layout
 
 ```
-skills/       one directory per lifecycle command (SKILL.md each)
+bin/ses       the one command skills use: dispatches to scripts/, prints the root, installs per harness
+skills/       one directory per lifecycle command (SKILL.md each) — identical in every harness
 agents/       scope-auditor, code-reviewer, doc-fact-checker (read-only reviewers)
 templates/    canonical Markdown templates for every document type
 core/         decision-protocol.md (what to do when unknown), repo-resolution.md (where the files are —
               the rules card skills load; repo-resolution-rationale.md holds the why)
 standards/    default coding standards per language (a repo's own rules files override them)
 checklists/   per-stage quality gates
-knowledge/    lessons.md (self-improvement memory), decisions.md (framework decision log)
+knowledge/    lessons.md (shipped lessons; yours go to ~/.ses/lessons.md), decisions.md (framework decision log)
 docs/         QA.md (design Q&A + testing guide), walkthrough.md (narrated example task)
-scripts/      new-task.sh, status.py (gate checks + transitions), list-repos.sh (analysis scope),
-              workspace-root.sh (where work/ goes), repo-rules.sh (a repo's rules files + tooling),
-              handoff.py (read/check the handoff summary atop each stage document),
-              fdd_lint.py (flags code-level content in a functional design),
-              fdd_view.py (renders a functional design for a business or technical audience),
-              checkpoint.py (resume + evidence hashes), xsearch.py (count-first search across
-              every analyzed repo), review-diff.sh (stat-first, file-by-file review of a branch),
-              lessons.sh (stage-filtered lessons), capture.sh (bounded evidence capture, raw logs on disk),
-              md2docx.sh, md2pdf.sh, md2confluence.sh; build_copilot.py + check_knowledge.py (maintenance)
-tests/        unittest suite for the scripts (run by CI and the pre-commit hook)
-examples/     sample work repo + a fully worked example task workspace
+scripts/      what `ses` runs: status.py (gates), new-task.sh, list-repos.sh, workspace-root.sh,
+              repo-rules.sh, handoff.py, checkpoint.py, xsearch.py, review-diff.sh, lessons.sh,
+              capture.sh, fdd_lint.py, fdd_view.py, md2docx.sh, md2pdf.sh, md2confluence.sh;
+              check_knowledge.py (maintenance)
+tests/        unittest suite for ses, the scripts, and the skill wiring (run by CI and the pre-commit hook)
+examples/     sample work repo + a worked example task workspace
+.claude-plugin/  plugin.json + marketplace.json (Claude Code)
 ```
 
 ## Maintaining the framework
 
-Edit only the canonical sources (`skills/`, `agents/`, `templates/`, `checklists/`, `core/`, `standards/`, `scripts/`, `knowledge/`). `AGENTS.md`, `.github/{prompts,skills,agents}/`, `.github/copilot-instructions.md`, and `copilot/` are generated — regenerate with `python3 scripts/build_copilot.py` and commit the result.
+Edit the canonical files — there is nothing generated to regenerate. Checks, in CI (`.github/workflows/framework-checks.yml`) and locally via the pre-commit hook (`git config core.hooksPath .githooks`, once per clone):
 
-Three checks keep that honest, in CI (`.github/workflows/framework-checks.yml`) and locally via the pre-commit hook (`git config core.hooksPath .githooks`, once per clone):
+- `python3 -m unittest discover -s tests` — includes `tests/test_skill_flow.py`, which fails on any instruction file that names a harness-specific path (`${CLAUDE_PLUGIN_ROOT}`) or a raw script path instead of `ses <command>`, references a `ses` command or `<root>/` file that doesn't exist, or breaks the stage wiring.
+- `python3 scripts/check_knowledge.py` — fails if a `knowledge/decisions.md` "Applied changes" entry names a file that has no commit on or after the entry's date (an edit recorded as applied but lost), or if a lesson line doesn't match the tag format skills filter on.
+- `claude plugin validate .` — the plugin and marketplace manifests, where the Claude Code CLI is available.
 
-- `python3 scripts/build_copilot.py --check` — fails if any generated file is stale, missing, or orphaned.
-- `python3 scripts/check_knowledge.py` — fails if a `knowledge/decisions.md` "Applied changes" entry names a file that has no commit on or after the entry's date (an edit recorded as applied but made in an install copy and lost), or if a lesson line doesn't match the tag format skills filter on.
-- `python3 -m unittest discover -s tests`.
-
-`/retro` follows the same rule: framework edits go into this repo, never into a generated install copy (`copilot/`, a work repo's `.github/se-stack/`), where the next rebuild would erase them.
+`/retro` follows the same rule: framework edits go into your checkout, never into an installed copy (a marketplace plugin cache is replaced on update); lessons go to `~/.ses/lessons.md`.
 
 ## Document conversion
 
 Deliverables are authored in Markdown and converted on `/deliver`:
 
 ```sh
-scripts/md2docx.sh work/PROJ-123/tdd.md          # → deliverables/tdd.docx
-scripts/md2pdf.sh  work/PROJ-123/tdd.md          # → deliverables/tdd.pdf
-scripts/md2confluence.sh work/PROJ-123/tdd.md    # → deliverables/tdd.confluence.txt
+ses md2docx work/PROJ-123/tdd.md          # → deliverables/tdd.docx
+ses md2pdf  work/PROJ-123/tdd.md          # → deliverables/tdd.pdf
+ses md2confluence work/PROJ-123/tdd.md    # → deliverables/tdd.confluence.txt
 ```
 
 The scripts require [pandoc](https://pandoc.org) (and a LaTeX engine for PDF); they print install instructions if it's missing.

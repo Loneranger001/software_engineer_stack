@@ -1,0 +1,222 @@
+#!/usr/bin/env python3
+"""ses — the software-engineer-stack command line.
+
+Skills reach every framework script through this one command, so the same
+SKILL.md works in Claude Code, GitHub Copilot and Codex without knowing where
+the framework is installed. It finds its root by resolving its own real path
+(symlinks followed): a plugin cache, a checkout, or a link in ~/.local/bin.
+
+Usage:
+  ses root                         print the framework root (templates/, core/, checklists/, ...)
+  ses <command> [args...]          run a framework script (commands below)
+  ses install <harness> [options]  link the skills, reviewer agents and `ses` itself into
+                                   claude | copilot | codex (user level)
+  ses uninstall <harness> [--home DIR]
+  ses help
+
+Install options:
+  --home DIR      base directory instead of $HOME (for testing)
+  --bin-dir DIR   where to link `ses` (default: <home>/.local/bin)
+  --dry-run       print what would change, change nothing
+"""
+from __future__ import annotations
+
+import json
+import os
+import re
+import shutil
+import sys
+from pathlib import Path
+
+ROOT = Path(os.path.realpath(__file__)).parent.parent
+
+COMMANDS = {
+    "status": ("status.py", "gate checks and transitions in a task's STATUS.md"),
+    "new-task": ("new-task.sh", "scaffold a task workspace"),
+    "handoff": ("handoff.py", "show / check the handoff summary atop a stage document"),
+    "checkpoint": ("checkpoint.py", "resume report, evidence trailers, evidence verification"),
+    "search": ("xsearch.py", "count-first search across every analyzed repo"),
+    "review-diff": ("review-diff.sh", "stat-first, file-by-file review of a branch"),
+    "capture": ("capture.sh", "run a command, keep the full log, print a bounded summary"),
+    "repo-rules": ("repo-rules.sh", "a repo's own rules files and tooling configs"),
+    "list-repos": ("list-repos.sh", "every repo under a folder (analysis scope)"),
+    "workspace-root": ("workspace-root.sh", "where a task's work/ folder goes"),
+    "lessons": ("lessons.sh", "lessons for a stage; --add appends one"),
+    "fdd-lint": ("fdd_lint.py", "flag code-level content in a functional design"),
+    "fdd-view": ("fdd_view.py", "render a functional design for its audience"),
+    "md2docx": ("md2docx.sh", "Markdown → Word"),
+    "md2pdf": ("md2pdf.sh", "Markdown → PDF"),
+    "md2confluence": ("md2confluence.sh", "Markdown → Confluence wiki markup"),
+}
+
+# where each harness discovers user-level skills and custom agents
+HARNESSES = {
+    "claude": {"skills": ".claude/skills", "agents": ".claude/agents", "agent_fmt": "link"},
+    "copilot": {"skills": ".copilot/skills", "agents": ".copilot/agents", "agent_fmt": "copilot"},
+    "codex": {"skills": ".agents/skills", "agents": ".codex/agents", "agent_fmt": "codex"},
+}
+WRAPPER_MARK = "installed by `ses install`"
+
+
+def usage(code: int = 0) -> int:
+    print(__doc__.strip())
+    print("\nCommands:")
+    for name, (_, desc) in COMMANDS.items():
+        print(f"  {name:<15} {desc}")
+    return code
+
+
+def run_script(name: str, args: list[str]) -> int:
+    script = ROOT / "scripts" / COMMANDS[name][0]
+    if script.suffix == ".py":
+        argv = [sys.executable, str(script), *args]
+    else:
+        argv = [shutil.which("sh") or "/bin/sh", str(script), *args]
+    sys.stdout.flush()
+    os.execv(argv[0], argv)
+    return 127  # not reached
+
+
+def frontmatter(path: Path) -> dict[str, str]:
+    m = re.match(r"^---\n(.*?)\n---\n", path.read_text(encoding="utf-8"), re.S)
+    out = {}
+    for line in (m.group(1) if m else "").splitlines():
+        if ":" in line:
+            k, v = line.split(":", 1)
+            out[k.strip()] = v.strip().strip('"').strip("'")
+    return out
+
+
+def agent_wrapper(fmt: str, src: Path) -> str:
+    fm = frontmatter(src)
+    name, desc = fm["name"], fm["description"]
+    body = (f"You are software-engineer-stack's {name} agent. You are read-only: report "
+            f"findings in your defined format and never modify files or repository state (shell "
+            f"only for read-only commands).\n\nYour procedure is {src}. Read it in full now and "
+            f"follow it exactly.")
+    if fmt == "copilot":
+        return (f"---\nname: {name}\ndescription: {json.dumps(desc, ensure_ascii=False)}\n---\n"
+                f"<!-- {WRAPPER_MARK}; re-run it if the framework moves -->\n{body}\n")
+    return (f"# {WRAPPER_MARK}; re-run it if the framework moves\n"
+            f"name = {json.dumps(name)}\n"
+            f"description = {json.dumps(desc, ensure_ascii=False)}\n"
+            f"sandbox_mode = \"read-only\"\n"
+            f"developer_instructions = {json.dumps(body, ensure_ascii=False)}\n")
+
+
+def ours(path: Path) -> bool:
+    """A path `ses install` may replace or remove: a symlink, or a wrapper it wrote."""
+    if path.is_symlink():
+        return True
+    if path.is_file():
+        try:
+            return WRAPPER_MARK in path.read_text(encoding="utf-8", errors="ignore")
+        except OSError:
+            return False
+    return False
+
+
+def plan(harness: str, home: Path, bin_dir: Path) -> list[tuple[Path, str, object]]:
+    """[(destination, kind, payload)] — kind is 'link' (payload: target) or 'file' (text)."""
+    h = HARNESSES[harness]
+    items: list[tuple[Path, str, object]] = []
+    for skill in sorted(p for p in (ROOT / "skills").iterdir() if (p / "SKILL.md").is_file()):
+        items.append((home / h["skills"] / skill.name, "link", skill))
+    for agent in sorted((ROOT / "agents").glob("*.md")):
+        name = frontmatter(agent)["name"]
+        if h["agent_fmt"] == "link":
+            items.append((home / h["agents"] / f"{name}.md", "link", agent))
+        elif h["agent_fmt"] == "copilot":
+            items.append((home / h["agents"] / f"{name}.agent.md", "file", agent_wrapper("copilot", agent)))
+        else:
+            items.append((home / h["agents"] / f"{name}.toml", "file", agent_wrapper("codex", agent)))
+    items.append((bin_dir / "ses", "link", ROOT / "bin" / "ses"))
+    return items
+
+
+def parse_opts(argv: list[str]) -> tuple[str, Path, Path, bool]:
+    if not argv or argv[0] not in HARNESSES:
+        raise SystemExit(f"error: harness must be one of {', '.join(HARNESSES)}")
+    harness, home, bin_dir, dry = argv[0], Path.home(), None, False
+    rest = argv[1:]
+    while rest:
+        opt = rest.pop(0)
+        if opt == "--dry-run":
+            dry = True
+        elif opt in ("--home", "--bin-dir") and rest:
+            val = Path(rest.pop(0)).expanduser().resolve()
+            if opt == "--home":
+                home = val
+            else:
+                bin_dir = val
+        else:
+            raise SystemExit(f"error: unknown or incomplete option {opt}")
+    return harness, home, bin_dir or home / ".local" / "bin", dry
+
+
+def install(argv: list[str]) -> int:
+    harness, home, bin_dir, dry = parse_opts(argv)
+    blocked = [d for d, _, _ in plan(harness, home, bin_dir)
+               if (d.exists() or d.is_symlink()) and not ours(d)]
+    if blocked:
+        for d in blocked:
+            print(f"error: {d} exists and was not installed by ses — move it aside first", file=sys.stderr)
+        return 1
+    for dest, kind, payload in plan(harness, home, bin_dir):
+        print(f"{'would link' if dry else 'linked'} {dest} -> {payload}" if kind == "link"
+              else f"{'would write' if dry else 'wrote'} {dest}")
+        if dry:
+            continue
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        if dest.is_symlink() or dest.exists():
+            dest.unlink()
+        if kind == "link":
+            dest.symlink_to(payload, target_is_directory=Path(payload).is_dir())
+        else:
+            dest.write_text(str(payload), encoding="utf-8")
+    on_path = any(Path(p).resolve() == bin_dir for p in os.environ.get("PATH", "").split(os.pathsep) if p)
+    if not on_path:
+        print(f"note: {bin_dir} is not on PATH — add it, or skills cannot run `ses`")
+    print(f"{harness}: {'dry run, nothing changed' if dry else 'installed'} from {ROOT}")
+    return 0
+
+
+def installed(harness: str, home: Path) -> bool:
+    d = home / HARNESSES[harness]["skills"]
+    return d.is_dir() and any(p.is_symlink() and Path(os.path.realpath(p)).parent == ROOT / "skills"
+                              for p in d.iterdir())
+
+
+def uninstall(argv: list[str]) -> int:
+    harness, home, bin_dir, dry = parse_opts(argv)
+    keep_cli = any(installed(h, home) for h in HARNESSES if h != harness)
+    for dest, _, _ in plan(harness, home, bin_dir):
+        if dest == bin_dir / "ses" and keep_cli:
+            print(f"kept {dest} (another harness still uses it)")
+            continue
+        if (dest.is_symlink() or dest.exists()) and ours(dest):
+            print(f"{'would remove' if dry else 'removed'} {dest}")
+            if not dry:
+                dest.unlink()
+    return 0
+
+
+def main(argv: list[str]) -> int:
+    if not argv or argv[0] in ("help", "-h", "--help"):
+        return usage(0)
+    cmd, rest = argv[0], argv[1:]
+    if cmd == "root":
+        print(ROOT)
+        return 0
+    if cmd == "install":
+        return install(rest)
+    if cmd == "uninstall":
+        return uninstall(rest)
+    if cmd in COMMANDS:
+        return run_script(cmd, rest)
+    print(f"error: unknown command '{cmd}'", file=sys.stderr)
+    return usage(2)
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
