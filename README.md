@@ -58,32 +58,34 @@ everything Copilot-facing is generated from it (never edit generated files).
 **Tier A — install as a plugin (recommended, zero setup).** The ready-made
 [`copilot/`](copilot/) folder is a self-contained Copilot-native
 [plugin](https://docs.github.com/en/copilot/concepts/agents/about-plugins):
-`plugin.json`, the 14 stages as skills, the 3 reviewers as `.agent.md` custom
-agents, and the bundled templates/checklists/protocol they use.
+`plugin.json`, every stage as a skill, the 3 reviewers as `.agent.md` custom
+agents, and the bundled templates/checklists/protocol they use. It works in
+Copilot CLI, VS Code and the Copilot app.
 
 ```sh
-copilot plugin install ./copilot     # from a local checkout
-copilot plugin install <repo-url>    # or straight from the repository
+copilot plugin install ./copilot                                     # from a local checkout
+copilot plugin install Loneranger001/software_engineer_stack:copilot # or from GitHub
 ```
 
-No generator run needed. Components are cached — re-run the install after
-updating. For the Copilot coding agent, enable the plugin via the work repo's
-`.github/copilot/settings.json`. (Installing this repo's root also works:
-Copilot reads `.claude-plugin/plugin.json` for Claude Code compatibility and
-defaults skills to `skills/` — but only the `copilot/` folder carries the
-reviewers as custom agents, since plugin agents require `.agent.md` naming.)
+No generator run needed. Install the `copilot/` folder, not the repository
+root: the root's `.claude-plugin/plugin.json` is the Claude Code flavor, whose
+skills keep unresolved `${CLAUDE_PLUGIN_ROOT}` paths and whose reviewers are
+not custom agents. Components are cached — re-run the install after updating;
+the reinstall replaces the cached copy, so upstream any lessons `/retro`
+appended to the installed `knowledge/` first. For the Copilot cloud agent,
+enable the plugin via `enabledPlugins` in the work repo's
+`.github/copilot/settings.json`.
 
-**Tier B — generate the adapter into a work repo** (adds VS Code Chat
-`/stage` commands and repo-scoped discovery):
+**Tier B — generate the adapter into a work repo** (repo-scoped skills and
+agents, no plugin install):
 
 ```sh
 python3 scripts/build_copilot.py --target /path/to/your/work-repo
 ```
 
-This writes `.github/prompts/<stage>.prompt.md` (explicit `/intake`,
-`/implement`, … in Copilot Chat — enable prompt files, prefer agent mode),
-`.github/skills/<stage>/SKILL.md` (model-invoked
-[agent skills](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills)),
+This writes `.github/skills/<stage>/SKILL.md`
+([agent skills](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills),
+model-invoked, or run as `/intake`, `/implement`, … in VS Code chat),
 `.github/agents/<name>.agent.md` (the reviewers as
 [custom agents](https://docs.github.com/en/copilot/reference/custom-agents-configuration)),
 and `.github/copilot-instructions.md` (shared rules). Path references point
@@ -91,9 +93,11 @@ back at this repo — keep it checked out at a stable location and regenerate
 after skill edits. Add **`--self-contained`** to instead bundle the framework
 data (templates, checklists, protocol, standards, scripts, knowledge) into
 `.github/se-stack/` and point every reference there — the work repo then
-needs no framework checkout at all, and `/stage` commands still work in
-VS Code Chat. (The bundled `knowledge/` is a per-install copy — sync lessons
-back to this repo's canonical `knowledge/`.)
+needs no framework checkout at all. (The bundled `knowledge/` is a per-install copy — sync lessons
+back to this repo's canonical `knowledge/`.) Prompt files
+(`.github/prompts/`) are no longer generated — skills cover the same stages
+and prompt files are deprecated in VS Code's Copilot harness; regenerating
+removes the ones earlier versions wrote and leaves hand-written ones alone.
 
 **Tier C — any other tool**: the generated root `AGENTS.md` explains the
 lifecycle and how to execute the stage instructions directly (opencode and
@@ -225,7 +229,7 @@ examples/     sample work repo + a fully worked example task workspace
 
 ## Maintaining the framework
 
-Edit only the canonical sources (`skills/`, `agents/`, `templates/`, `checklists/`, `core/`, `standards/`, `scripts/`, `knowledge/`). `AGENTS.md`, `.github/{prompts,skills,agents}/`, `.github/copilot-instructions.md`, and `copilot/` are generated — regenerate with `python3 scripts/build_copilot.py` and commit the result.
+Edit only the canonical sources (`skills/`, `agents/`, `templates/`, `checklists/`, `core/`, `standards/`, `scripts/`, `knowledge/`). `AGENTS.md`, `.github/{skills,agents}/`, `.github/copilot-instructions.md`, and `copilot/` are generated — regenerate with `python3 scripts/build_copilot.py` and commit the result.
 
 Three checks keep that honest, in CI (`.github/workflows/framework-checks.yml`) and locally via the pre-commit hook (`git config core.hooksPath .githooks`, once per clone):
 
