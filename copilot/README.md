@@ -27,7 +27,7 @@ Copilot cloud agent, enable the plugin via `enabledPlugins` in the work repo's
 
 ## Contents
 
-- `skills/` — the 13 lifecycle stages (model-invoked; describe what you want,
+- `skills/` — the 14 lifecycle stages (model-invoked; describe what you want,
   e.g. "start a new task from this brief", and the matching stage loads)
 - `agents/` — scope-auditor, code-reviewer, doc-fact-checker as custom agents
 - `templates/ checklists/ core/ standards/ scripts/` — the data the skills use

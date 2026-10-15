@@ -5,7 +5,8 @@
 #   workspace-root  directory that holds work/, or `auto` (the default):
 #                   resolved by workspace-root.sh from work-repo — the folder
 #                   holding the repos in a multi-repo workspace, else the repo
-#   pipeline        full | change-request | document | understand  (default: full)
+#   pipeline        full | change-request | document | understand | func-design
+#                   (default: full)
 #   work-repo       repo whose code the task changes (default: the git repo
 #                   containing the current directory; with an explicit
 #                   workspace-root, that directory). See core/repo-resolution.md —
@@ -104,7 +105,14 @@ deliver: pending" ;;
 trace: pending
 map: pending
 explain: pending" ;;
-  *) echo "error: unknown pipeline '$PIPELINE' (full|change-request|document|understand)" >&2; exit 1 ;;
+  func-design)
+    NEXT="Run /func-design with the brief or the component to describe (starts at analyze)."
+    STAGES="analyze: pending
+draft: pending
+fact-check: pending
+approval: pending
+deliver: pending" ;;
+  *) echo "error: unknown pipeline '$PIPELINE' (full|change-request|document|understand|func-design)" >&2; exit 1 ;;
 esac
 
 cat > "$DIR/STATUS.md" <<EOF
