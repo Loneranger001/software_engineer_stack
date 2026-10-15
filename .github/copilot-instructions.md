@@ -2,11 +2,10 @@
 # software-engineer-stack — Copilot instructions
 
 This repository is worked on with the software-engineer-stack lifecycle
-framework rooted at `.`. Each stage (`/change-request`, `/deliver`, `/document`, `/grill`, `/impl-plan`, `/implement`, `/intake`, `/meeting-minutes`, `/research`, `/retro`, `/tech-design`, `/understand`, `/verify-code`) ships twice with the
-same instructions: as an agent skill in `.github/skills/` — loaded
-automatically when a request matches its description, or invoked as a slash
-command, in VS Code, Copilot CLI, the Copilot app and the cloud agent — and
-as a prompt file in `.github/prompts/` for IDEs without skill support.
+framework rooted at `.`. Each stage (`/change-request`, `/deliver`, `/document`, `/grill`, `/impl-plan`, `/implement`, `/intake`, `/meeting-minutes`, `/research`, `/retro`, `/tech-design`, `/understand`, `/verify-code`) is an agent skill
+in `.github/skills/`, loaded automatically when a request matches its
+description (VS Code, Copilot CLI, the Copilot app, the cloud agent) and
+invocable by name as a slash command in VS Code chat.
 
 Rules that apply to ALL work here:
 
@@ -28,7 +27,7 @@ Rules that apply to ALL work here:
    `STATUS.md` — with a multi-repo workspace it is NOT your current
    directory, and task workspaces live in the folder holding the repos.
 4. **Verification**: code claims require evidence — run it (see the
-   verify-code prompt) and capture output to the workspace `evidence/`
+   verify-code skill) and capture output to the workspace `evidence/`
    directory. Fallback static checks must be labelled as such.
 5. **Resumability**: the task workspace `STATUS.md` records stage state.
    Read and write it only through `./scripts/status.py`: gate with
@@ -36,7 +35,7 @@ Rules that apply to ALL work here:
    starting a stage, and record every transition with `status.py set`.
 6. The review procedures (scope-auditor, code-reviewer, doc-fact-checker)
    are installed as Copilot custom agents in `.github/agents/` — where a
-   prompt says to run one, delegate to the matching custom agent (VS Code,
+   skill says to run one, delegate to the matching custom agent (VS Code,
    Copilot CLI `/agent`, or the cloud agent). On a surface without
    custom-agent support, execute the procedure from `./agents/`
    yourself as a separate, fresh review pass held to its report format.

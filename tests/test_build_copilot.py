@@ -27,7 +27,6 @@ class YamlStrTest(unittest.TestCase):
 
 class PruneTest(unittest.TestCase):
     def test_removes_only_generated_orphans(self):
-        import tempfile
         with tempfile.TemporaryDirectory() as tmp:
             gh = Path(tmp)
             for name, generated in (("kept", True), ("gone", True), ("handmade", False)):
@@ -42,8 +41,18 @@ class PruneTest(unittest.TestCase):
             self.assertTrue((gh / "skills" / "kept" / "SKILL.md").exists())
             self.assertFalse((gh / "skills" / "gone").exists())
             self.assertTrue((gh / "skills" / "handmade" / "helper.py").exists())
+            # prompt files are retired output: every generated one goes, hand-made ones stay
             self.assertFalse((gh / "prompts" / "gone.prompt.md").exists())
+            self.assertFalse((gh / "prompts" / "kept.prompt.md").exists())
             self.assertTrue((gh / "prompts" / "handmade.prompt.md").exists())
+
+    def test_empty_prompts_dir_removed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            gh = Path(tmp)
+            (gh / "prompts").mkdir()
+            (gh / "prompts" / "intake.prompt.md").write_text(f"<!-- {bc.MARKER} -->\n")
+            bc.prune_generated(gh, ["intake"], [])
+            self.assertFalse((gh / "prompts").exists())
 
 
 class MergeKnowledgeTest(unittest.TestCase):
