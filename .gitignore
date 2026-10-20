@@ -1,2 +1,5 @@
 __pycache__/
 *.pyc
+.DS_Store
+# task workspaces never belong in git (a stray work/--help/ once slipped onto main)
+/work/
