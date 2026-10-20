@@ -39,22 +39,38 @@ flowchart LR
 
 ## Installation
 
-The framework is a **GitHub Copilot plugin**. One install serves both the Copilot CLI and VS Code's Copilot harness. Requirements: `python3` (3.9+), `git`, and a POSIX shell (macOS or Linux); `pandoc` only if you convert documents to Word/PDF/Confluence.
+The framework is a **GitHub Copilot plugin**: one install serves both the Copilot CLI and VS Code's Copilot harness. Setup is once per machine; nothing goes into your work repos.
 
-```sh
-copilot plugin marketplace add Loneranger001/software_engineer_stack
-copilot plugin install software-engineer-stack@se-stack
-```
+### One-time setup
 
-That is the whole setup. Check it with `copilot skill list` (14 plugin skills) and `/agent` in a session (the three reviewers: `scope-auditor`, `code-reviewer`, `doc-fact-checker`).
+1. **Prerequisites:** `python3` (3.9+), `git`, a POSIX shell (macOS or Linux), and the GitHub Copilot CLI or VS Code with GitHub Copilot. Optional: `pandoc` to convert documents to Word/PDF/Confluence; `sqlplus` or SQLcl for live SQL and PL/SQL verification.
+2. **Install the plugin:**
+   ```sh
+   copilot plugin marketplace add Loneranger001/software_engineer_stack
+   copilot plugin install software-engineer-stack@se-stack
+   ```
+   **VS Code:** turn on the `chat.plugins.enabled` setting. Plugins installed with the CLI live in `~/.copilot/installed-plugins/` and then appear under Extensions → **Agent Plugins - Installed**. Or run the same two commands as `/plugin marketplace add …` and `/plugin install …` in a Copilot chat.
+3. **Check it:** `copilot skill list` shows the 14 plugin skills, and `/agent` in a session lists the three reviewers (`scope-auditor`, `code-reviewer`, `doc-fact-checker`).
+4. **Optional — `ses` in your own terminal.** Skills don't need it: Copilot doesn't put plugin executables on PATH, so each skill runs `bin/ses` from its own plugin folder. It's handy for inspecting a task by hand:
+   ```sh
+   ln -s ~/.copilot/installed-plugins/se-stack/software-engineer-stack/bin/ses ~/.local/bin/ses
+   ```
+5. **Optional — environment variables.** Put them in your shell profile (`~/.zshrc`, `~/.bashrc`) so every session sees the same values, then restart Copilot / VS Code:
+   ```sh
+   export SES_DB_CONN='scott@//devdb:1521/DEVPDB'   # live SQL/PL/SQL verification (password via wallet or prompt)
+   export SES_KSH_HOST='devuser@unixdev01'          # run KSH scripts over ssh
+   export SES_PY="$HOME/.venvs/proj/bin/python"     # the work repo's Python interpreter
+   export SES_WORKSPACE_ROOT="$HOME/ses-work"       # only to move task workspaces; the directory must exist
+   ```
+   Without the verification variables, `/verify-code` falls back to static checks and says so ([details](#environment-configuration-for-live-verification)). Leave `SES_WORKSPACE_ROOT` unset unless you want workspaces somewhere other than the folder holding your repos ([where workspaces go](#task-workspaces)).
 
-- **VS Code:** plugins installed with the Copilot CLI live in `~/.copilot/installed-plugins/`, and VS Code picks them up automatically (Extensions view → **Agent Plugins - Installed**; agent plugins must be enabled with the `chat.plugins.enabled` setting). You can also install from inside VS Code by running the same two commands as `/plugin marketplace add …` and `/plugin install …` in a Copilot harness chat.
-- **Nothing else to set up.** Skills run framework scripts as `ses <command>`; Copilot doesn't put plugin executables on PATH, so each skill runs `bin/ses` from its own plugin folder. To use `ses` in your own terminal too: `ln -s ~/.copilot/installed-plugins/se-stack/software-engineer-stack/bin/ses ~/.local/bin/ses`.
-- **Nothing per work repo.** Nothing is copied into your repos, and task workspaces are kept out of git automatically ([details](#keeping-work-out-of-git)). Open Copilot in the repo you're changing — or in the folder holding several repos — and start with `/intake`, `/change-request`, `/understand`, … New here? Read the [narrated walkthrough](docs/walkthrough.md).
+That's it — nothing per work repo. Nothing is copied into your repos, and task workspaces are kept out of git automatically ([details](#keeping-work-out-of-git)). Open Copilot in the repo you're changing — or in the folder holding several repos — and start with `/intake`, `/change-request`, `/understand`, … New here? Read the [narrated walkthrough](docs/walkthrough.md).
+
+### After setup
 
 **Updating:** `copilot plugin update software-engineer-stack` (in VS Code: the Agent Plugins view, or `/plugin update`).
 
-**Working on the framework itself:** install from your clone instead — `copilot plugin marketplace add ~/src/software_engineer_stack`, then the same install command. Copilot then loads the plugin live from the clone, so edits apply from the next session with no update step (VS Code doesn't see such local installs; use the CLI while developing).
+**Working on the framework itself:** install from your clone instead — `copilot plugin marketplace add ~/src/software_engineer_stack`, then the same install command — and turn on the checks once per clone with `git config core.hooksPath .githooks`. Copilot then loads the plugin live from the clone, so edits apply from the next session with no update step (VS Code doesn't see such local installs; use the CLI while developing).
 
 **Cloud agents** (Copilot coding agent) check out only the repo and start fresh each time: the workspace is created inside the repo (and kept out of git), but it doesn't outlive the session — run lifecycle tasks locally.
 
