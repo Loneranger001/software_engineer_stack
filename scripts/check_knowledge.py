@@ -109,7 +109,8 @@ def check_decisions(root: Path) -> list[str]:
                 continue
             if not (root / p).exists():
                 if not git(root, "log", "--format=%h", "-1", "--", p):
-                    problems.append(f"{label}: `{p}` does not exist")
+                    problems.append(f"{label}: `{p}` does not exist and has no history — if it "
+                                    "moved (a squash merge keeps no record of the old path), name its current path")
                 continue  # removed by a later change; its history proves it existed
             # committed history first; a staged or modified file counts too, so the
             # pre-commit hook passes on the commit that carries the edit
