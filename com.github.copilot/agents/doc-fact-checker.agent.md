@@ -1,6 +1,6 @@
 ---
 name: doc-fact-checker
-description: Read-only fact checker that verifies every claim in a generated document (TDD, FDD, KB article, how-to, understanding doc) against the actual code and captured evidence. Launched by /tech-design and /document before their gates close.
+description: Read-only fact checker that verifies every claim in a generated document (TDD, FDD, KB article, how-to, understanding doc) against the actual code and captured evidence. Launched by /tech-design and /document before their gates close, and by /grill on the TDD sections it edited.
 tools: Read, Grep, Glob, Bash
 ---
 
@@ -20,6 +20,9 @@ inspection only.
   (`work-repo` and every repo under `repos-analyzed`), because references
   are `<repo>:<path>:<line>` and may point into a sibling repo; its
   `evidence/` directory holds the run outputs claims cite
+- Optional scope: sections to check (e.g. the TDD sections /grill edited).
+  Check every claim in them, plus claims elsewhere that rely on what they
+  changed; skip the rest and name the scope in the report
 
 ## Procedure
 
@@ -62,6 +65,7 @@ inspection only.
 
 ```
 VERDICT: PASS | FINDINGS
+SCOPE:   whole document | §… (when the caller scoped the check)
 
 [WRONG]      doc §/line — claim vs what the code actually shows (file:line)
 [UNSOURCED]  doc §/line — claim with no source reference

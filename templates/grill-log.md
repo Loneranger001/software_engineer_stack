@@ -8,6 +8,7 @@
 
 - TDD version grilled: tdd.md as of {date/commit}
 - Grilled: {date} — phase 2 rounds: {n}
+- TDD edits: {n} — fact-check {PASS | findings resolved}; re-approved {date, by whom | not needed}
 
 ## Scenarios
 

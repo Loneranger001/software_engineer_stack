@@ -137,12 +137,24 @@ Take the `ask-user` list and interview the user until it is EMPTY:
 ## 3. Close the stage
 
 1. Self-check with `<root>/checklists/grill.md`.
-2. Every TDD edit (`gap-fixed`, user answers) updates the TDD's handoff
-   summary in the same edit — its Verification line names every `G#` row,
-   which `ses handoff check <ws>/tdd.md` enforces like A#; re-run it before
-   closing. If the grill materially changed the approved TDD, re-present the
-   changed sections for approval (never silently edit an approved document).
-3. Record (full pipeline):
+2. If the grill edited the TDD (`gap-fixed`, user answers), fact-check the
+   edits: run the procedure in
+   `<root>/com.github.copilot/agents/doc-fact-checker.agent.md` on tdd.md,
+   scoped to the edited sections — delegated per `<root>/core/reviewers.md`.
+   A fix that adds a claim about existing behaviour is exactly what the
+   tech-design fact-check never saw. Resolve all findings.
+3. Every TDD edit updates the TDD's handoff summary in the same edit — its
+   Verification line names every `G#` row, which
+   `ses handoff check <ws>/tdd.md` enforces like A#; re-run it before closing.
+4. An approved TDD the grill edited is re-approved, never silently changed —
+   whatever the size of the edits. Present ONE change list built from the
+   grill log's TDD-changing rows (`#n · TDD § · before → after`, one line
+   each) with the fact-check verdict; one approval covers it. Record it as a
+   TDD header note (`re-approved after /grill <date>: <n> edits`) and with
+   `ses status set <ws> tech-design=approved --note "re-approved after grill, <n> edits"`.
+   An edit the user rejects is reverted and its row goes back to `ask-user`.
+   No TDD edits, or an unapproved TDD, needs no re-approval.
+5. Record (full pipeline):
    `ses status set <ws> grill=done --next "Run /impl-plan."`
    — or, if the user explicitly skipped it,
    `grill="waived by <who> <date>: <reason>"`. A change-request pipeline has
