@@ -199,6 +199,8 @@ Connection details are **never stored in this framework**. Verification recipes 
 
 If a variable is unset or the environment is unreachable, `/verify-code` falls back to static checks and says so in the evidence file.
 
+One more variable, not for verification: `SES_WORKSPACE_ROOT` (an existing directory, e.g. `~/ses-work`) pins where `ses new-task` puts every new `work/<task-id>/`, overriding the folder-holding-the-repos / the-repo rule. Nothing sets it for you — export it in your shell profile so every session sees the same value: a later session that resolves a different root looks for its tasks in the wrong place. `ses new-task` prints the root it used and where it came from, and stops for your decision (exit 3) when the task id already has a workspace for another repo or pipeline, or under the old root.
+
 ## Repository layout
 
 ```

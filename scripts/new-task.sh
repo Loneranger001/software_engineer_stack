@@ -14,10 +14,13 @@
 #   repo-set        comma-separated repos in ANALYSIS scope, i.e. searched for
 #                   callers and dependents (default: work-repo only). Get the
 #                   list from list-repos.sh <repos-folder>.
+# Exit: 0 created, or resumed (same work-repo and pipeline); 1 error; 3 the user
+#   must decide — the task id already has a workspace recorded for another
+#   work-repo or pipeline, or one under another root. Nothing is created.
 set -eu
 
 case "${1:-}" in
-  -h|--help) sed -n '2,16p' "$0"; exit 0 ;;
+  -h|--help) sed -n '2,19p' "$0"; exit 0 ;;
 esac
 TASK_ID="${1:?usage: new-task.sh <task-id> [workspace-root] [pipeline] [work-repo] [repo-set]}"
 ROOT="${2:-auto}"
@@ -39,8 +42,11 @@ if [ -z "$REPO" ]; then
   fi
 fi
 [ -d "$REPO" ] || { echo "error: not a directory: $REPO" >&2; exit 1; }
+ROOT_FROM="passed explicitly"
 if [ "$ROOT" = auto ]; then
   ROOT=$("$HERE/workspace-root.sh" "$REPO") || exit 1
+  if [ -n "${SES_WORKSPACE_ROOT:-}" ]; then ROOT_FROM="pinned by SES_WORKSPACE_ROOT"
+  else ROOT_FROM="auto, from ses workspace-root"; fi
 fi
 
 for d in "$ROOT" "$REPO"; do
@@ -90,15 +96,6 @@ keep_out_of_git() {
   echo "kept out of git: added $REL_WORK/ to $EXCLUDE (local only, never committed)"
 }
 
-if [ -e "$DIR/STATUS.md" ]; then
-  keep_out_of_git
-  echo "workspace already exists: $DIR (resume from its STATUS.md)" >&2
-  exit 0
-fi
-
-mkdir -p "$DIR/evidence" "$DIR/deliverables"
-keep_out_of_git
-
 case "$PIPELINE" in
   full)
     NEXT="Run /intake with the requirement brief."
@@ -139,6 +136,44 @@ approval: pending
 deliver: pending" ;;
   *) echo "error: unknown pipeline '$PIPELINE' (full|change-request|document|understand|func-design)" >&2; exit 1 ;;
 esac
+
+# A shared work/ folder makes task-id collisions possible, so an existing
+# workspace is resumed silently only when it is plainly the same task; anything
+# else is the user's call (decision-protocol §3), never this script's.
+ask_user() {
+  {
+    echo "ASK THE USER — task id $TASK_ID: $1"
+    echo "  Same task → resume from the existing STATUS.md (recorded values win)."
+    echo "  Different task → choose another task id. Nothing was created."
+  } >&2
+  exit 3
+}
+recorded() { sed -n "s/^- $1: //p" "$DIR/STATUS.md" | head -n 1; }
+
+if [ -e "$DIR/STATUS.md" ]; then
+  keep_out_of_git
+  OLD_REPO=$(recorded work-repo)
+  OLD_PIPELINE=$(recorded pipeline)
+  if { [ -n "$OLD_REPO" ] && [ "$OLD_REPO" != "$ABS_REPO" ]; } \
+     || { [ -n "$OLD_PIPELINE" ] && [ "$OLD_PIPELINE" != "$PIPELINE" ]; }; then
+    ask_user "$DIR already exists for work-repo $OLD_REPO, pipeline $OLD_PIPELINE;
+  this run asked for work-repo $ABS_REPO, pipeline $PIPELINE."
+  fi
+  echo "workspace already exists: $DIR (resume from its STATUS.md)" >&2
+  exit 0
+fi
+
+# The same id under another root usually means the root resolves differently
+# than when the task began (SES_WORKSPACE_ROOT set since, or a pre-parent-folder
+# workspace inside the repo): creating here would start an empty duplicate.
+for ALT in "$(SES_WORKSPACE_ROOT='' "$HERE/workspace-root.sh" "$ABS_REPO" 2>/dev/null || true)" "$ABS_REPO"; do
+  [ -n "$ALT" ] && [ "$ALT" != "$ABS_ROOT" ] && [ -e "$ALT/work/$TASK_ID/STATUS.md" ] || continue
+  ask_user "a workspace exists at $ALT/work/$TASK_ID, but this run resolves the
+  workspace root to $ABS_ROOT ($ROOT_FROM) and would create an empty one there."
+done
+
+mkdir -p "$DIR/evidence" "$DIR/deliverables"
+keep_out_of_git
 
 cat > "$DIR/STATUS.md" <<EOF
 # STATUS — $TASK_ID
@@ -181,4 +216,5 @@ with an open entry is a scope-audit finding.
 |---|---|---|---|---|---|---|---|
 EOF
 
+echo "workspace root: $ABS_ROOT ($ROOT_FROM)"
 echo "created $DIR"
