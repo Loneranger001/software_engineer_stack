@@ -13,7 +13,7 @@ Four things to resolve, and none of them is "the current directory":
 
 - **`<work-repo>`** — the repository whose code the task changes: the directory
   containing its `.git`. Its own rules files (AGENTS.md, CODING_STANDARDS.md,
-  … — listed by `scripts/repo-rules.sh`) and the framework's
+  … — listed by `ses repo-rules`) and the framework's
   `.domain-glossary.md` live in it.
 - **`<workspace-root>`** — the directory holding `work/<task-id>/`. In a
   multi-repo workspace it is the folder holding the repos, so task state sits
@@ -21,11 +21,11 @@ Four things to resolve, and none of them is "the current directory":
   several repos, and putting its workspace in one repo would make that repo
   look like the owner, pollute its `git status`, and need a gitignore entry
   in every repo. A standalone repo keeps `work/` inside itself.
-  `scripts/workspace-root.sh` applies the rule; `$SES_WORKSPACE_ROOT` pins it.
+  `ses workspace-root <work-repo>` applies the rule; `$SES_WORKSPACE_ROOT` pins it.
 - **`<repos-folder>`** — the folder the repos sit in (the editor workspace
   folder). The parent of `<work-repo>` when repos are siblings.
 - **`<repo-set>`** — every repo in ANALYSIS scope: by default all repos under
-  `<repos-folder>`, enumerated by `scripts/list-repos.sh <repos-folder>`. This
+  `<repos-folder>`, enumerated by `ses list-repos <repos-folder>`. This
   is the search space for impact analysis, call graphs, and dependency mapping.
   It is not the write scope.
 
@@ -72,20 +72,20 @@ below and neither is guessed.
      - None → ask the user for the repo path.
 3. **The repo set** (analysis scope): `repos-analyzed:` from STATUS.md if
    recorded; otherwise enumerate with
-   `${CLAUDE_PLUGIN_ROOT}/scripts/list-repos.sh <repos-folder>`, where
+   `ses list-repos <repos-folder>`, where
    `<repos-folder>` is the folder holding the repos (the parent of
    `<work-repo>` when they are siblings, else ask). Show the user the list and
    confirm it before analysis — including any repo they want excluded, which
    is recorded as an exclusion rather than silently dropped.
 4. Record all of it in `STATUS.md` as soon as the workspace exists —
-   `scripts/new-task.sh <task-id> auto <pipeline> <work-repo> <repo-set>`
+   `ses new-task <task-id> auto <pipeline> <work-repo> <repo-set>`
    writes the paths absolutised (`auto` applies the workspace-root rule). Later stages read them back per step 1.
 
 ## Using them
 
 - Repo-level files are ALWAYS addressed with the prefix:
   `<work-repo>/.domain-glossary.md`, and rules files through
-  `scripts/repo-rules.sh <work-repo>`. Never bare
+  `ses repo-rules <work-repo>`. Never bare
   relative — the bare form is only correct when cwd happens to be the repo,
   which is exactly the assumption that breaks.
 - Task artifacts are always `<workspace-root>/work/<task-id>/…`.
@@ -110,7 +110,7 @@ detect.
 
 Rules for cross-repo analysis:
 
-1. **Enumerate before searching.** Run `scripts/list-repos.sh <repos-folder>`
+1. **Enumerate before searching.** Run `ses list-repos <repos-folder>`
    and record the resulting list in the workspace (STATUS.md `repos-analyzed:`
    and the analysis/research notes). An analysis whose repo list isn't written
    down cannot be audited later.

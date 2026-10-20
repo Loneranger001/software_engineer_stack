@@ -35,13 +35,29 @@ class StatusTest(unittest.TestCase):
         self.assertEqual(r.returncode, 3)
         self.assertIn("GATE NOT MET", r.stderr)
 
-    def test_set_then_require_passes_and_logs(self):
-        self.assertEqual(run("set", self.ws, "intake=approved", "--next", "Run /research.").returncode, 0)
+    def test_set_then_require_passes_with_dated_note(self):
+        r = run("set", self.ws, "intake=approved", "--note", "by asif, contract v1", "--next", "Run /research.")
+        self.assertEqual(r.returncode, 0, r.stderr)
         self.assertEqual(run("require", self.ws, "intake=approved").returncode, 0)
-        text = self.status_md.read_text()
-        self.assertIn("intake: approved", text)
-        self.assertIn("intake: pending -> approved", text)
+        self.assertRegex(self.status_md.read_text(),
+                         r"\nintake: approved \(\d{4}-\d{2}-\d{2}; by asif, contract v1\)\n")
         self.assertEqual(run("get", self.ws, "next").stdout.strip(), "Run /research.")
+
+    def test_status_stays_minimal(self):
+        run("set", self.ws, "intake=approved")
+        run("field", self.ws, "branch.repo", "feature/T-1")
+        text = self.status_md.read_text()
+        self.assertNotIn("## Log", text)
+        self.assertLess(len(text.splitlines()), 30)
+        self.assertEqual(run("set", self.ws, "research=done", "--log", "x").returncode, 1)
+
+    def test_legacy_repos_section_still_read(self):
+        text = self.status_md.read_text()
+        repo = run("get", self.ws, "repos-analyzed").stdout.strip()
+        legacy = "\n".join(l for l in text.splitlines() if not l.startswith("- repos-analyzed:"))
+        legacy = legacy.replace("## Stage gates", f"## Repos analyzed\n\n  - {repo}\n\n## Stage gates")
+        self.status_md.write_text(legacy + "\n")
+        self.assertEqual(run("get", self.ws, "repos-analyzed").stdout.strip(), repo)
 
     def test_approved_satisfies_done_but_not_reverse(self):
         run("set", self.ws, "intake=approved")

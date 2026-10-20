@@ -30,12 +30,14 @@ class LessonsTest(unittest.TestCase):
         shutil.copy(ROOT / "scripts" / "lessons.sh", root / "scripts")
         (root / "knowledge" / "lessons.md").write_text(LESSONS)
         self.script = str(root / "scripts" / "lessons.sh")
+        self.home = root / "ses-home"   # SES_HOME: the user's own lessons, outside the install
 
     def tearDown(self):
         self.tmp.cleanup()
 
     def run_lessons(self, *args):
-        return subprocess.run(["sh", self.script, *args], capture_output=True, text=True)
+        return subprocess.run(["sh", self.script, *args], capture_output=True, text=True,
+                              env=dict(os.environ, SES_HOME=str(self.home)))
 
     def test_stage_plus_any(self):
         out = self.run_lessons("implement").stdout
@@ -60,11 +62,33 @@ class LessonsTest(unittest.TestCase):
         out = self.run_lessons("grill").stdout
         self.assertIn("Any-stage lesson", out)
         out = subprocess.run(["sh", "-c", f"sh {self.script} grill | tail -1"],
-                             capture_output=True, text=True).stdout
+                             capture_output=True, text=True,
+                             env=dict(os.environ, SES_HOME=str(self.home))).stdout
         self.assertIn("(1 lesson(s) for stage:grill)", out)
 
     def test_bad_stage_rejected(self):
         self.assertEqual(self.run_lessons("x;rm").returncode, 2)
+
+    def test_add_writes_user_file_and_is_read_back(self):
+        line = "- [2026-10-15] [stage:grill] [lang:sql] [repo:-] User lesson. (task E)"
+        r = self.run_lessons("--add", line)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        user_file = self.home / "lessons.md"
+        self.assertEqual(self.run_lessons("--path").stdout.strip(), str(user_file))
+        self.assertIn(line, user_file.read_text())
+        self.assertIn("already recorded", self.run_lessons("--add", line).stdout)
+        self.assertEqual(user_file.read_text().count(line), 1)
+        out = self.run_lessons("grill").stdout
+        self.assertIn("User lesson", out)
+        self.assertIn("Any-stage lesson", out)
+        self.assertIn("(2 lesson(s) for stage:grill)", out)
+
+    def test_add_rejects_malformed_lines(self):
+        for bad in ("- [2026-10-15] [stage:bogus] [lang:-] [repo:-] x (task E)",
+                    "- [2026-10-15] [stage:grill] [lang:-] [repo:-] no task id",
+                    "free text"):
+            self.assertEqual(self.run_lessons("--add", bad).returncode, 2, bad)
+        self.assertFalse((self.home / "lessons.md").exists())
 
 
 class CaptureTest(unittest.TestCase):

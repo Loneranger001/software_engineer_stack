@@ -9,11 +9,11 @@ Run before marking the implement stage done.
 - [ ] Every acceptance criterion has PASS evidence (criterion → evidence file mapping exists)
 - [ ] Diff reviewed against the scope contract: every changed file maps to an in-scope item
 - [ ] Out-of-scope discoveries went to PARKED.md, not into the diff
-- [ ] code-reviewer agent ran on every changed repo's branch (via review-diff.sh, every review file read) and its findings were resolved or consciously waived
-- [ ] Code follows the conventions of the repo it lives in (its rules files per repo-rules.sh / standards defaults: naming, error handling, logging)
+- [ ] code-reviewer agent ran on every changed repo's branch (via `ses review-diff`, every review file read) and its findings were resolved or consciously waived
+- [ ] Code follows the conventions of the repo it lives in (its rules files per `ses repo-rules` / standards defaults: naming, error handling, logging)
 - [ ] Commits exist only in repos the scope contract lists as changing; each step's commit is in exactly one repo
 - [ ] No secrets, connect strings, or environment-specific paths hardcoded
 - [ ] New assumptions made while coding are in ASSUMPTIONS.md (not just in commit messages or memory)
-- [ ] status.py records `implement=done`, `branch.<repo>` and `final-commit.<repo>` for every changed repo
-- [ ] Every checkpoint commit ends with its `Evidence-SHA256` lines (`scripts/checkpoint.py trailer`), and `scripts/checkpoint.py verify` passes
-- [ ] Any resume ran `scripts/checkpoint.py resume`; uncommitted work found there was kept or discarded by the user's explicit choice
+- [ ] `ses status` records `implement=done` and `branch.<repo>` for every changed repo
+- [ ] Every checkpoint commit ends with its `Evidence-SHA256` lines (`ses checkpoint trailer`), and `ses checkpoint verify` passes
+- [ ] Any resume ran `ses checkpoint resume`; uncommitted work found there was kept or discarded by the user's explicit choice

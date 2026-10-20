@@ -6,9 +6,12 @@ argument-hint: "<task-id> | brief <path> | as-built <component> | change <repo> 
 
 # /func-design — functional design document
 
-> Path note: `${CLAUDE_PLUGIN_ROOT}` is this framework's root — the ancestor
-> directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
-> it automatically; other harnesses resolve it from this file's location.
+> Framework files: `<root>` is what `ses root` prints — run it once. Every
+> framework script runs as `ses <command>` (`ses help` lists them). If `ses`
+> is not on PATH, use `python3 <skill-dir>/../../bin/ses` in its place —
+> `<skill-dir>` is the folder this SKILL.md was loaded from — here and for
+> every `ses` below. If neither runs, stop and ask the user (README →
+> Install); never guess another path.
 
 Produce `<ws>/fdd.md`, get it user-approved, and render it for its audience.
 The FDD tells stakeholders WHAT the solution does, in their language; the TDD
@@ -28,7 +31,7 @@ Append `audience=technical` to keep developer detail in the rendered
 document; the default `audience=business` is for non-technical stakeholders.
 With no arguments, show this table and ask which case applies.
 
-One template for all modes (`${CLAUDE_PLUGIN_ROOT}/templates/fdd.md`):
+One template for all modes (`<root>/templates/fdd.md`):
 - **forward** — requirements come from the scope contract or a brief;
   existing behaviour it relies on is still read from the code.
 - **as-built** — a component as it stands, every statement verified against
@@ -41,55 +44,55 @@ One template for all modes (`${CLAUDE_PLUGIN_ROOT}/templates/fdd.md`):
 
 ## 0. Preamble
 
-1. Load applicable lessons: `${CLAUDE_PLUGIN_ROOT}/scripts/lessons.sh func-design` — it prints only
-   the matching entries; don't read lessons.md whole.
+1. Load applicable lessons: `ses lessons func-design` — it prints only
+   the matching entries; don't read the lesson files whole.
 2. Workspace and gate (`<ws>` = `<workspace-root>/work/<id>`):
-   - **Attached** (a task-id): take `<work-repo>` from `status.py get <ws> work-repo`
-     (`${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md`) and the mode from the
-     task's pipeline (`status.py get <ws> pipeline`) and progress:
-     - `full`, `status.py get <ws> implement` not done — **forward**. Gate:
-       `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/status.py require <ws> research=done`.
+   - **Attached** (a task-id): take `<work-repo>` from `ses status get <ws> work-repo`
+     (`<root>/core/repo-resolution.md`) and the mode from the
+     task's pipeline (`ses status get <ws> pipeline`) and progress:
+     - `full`, `ses status get <ws> implement` not done — **forward**. Gate:
+       `ses status require <ws> research=done`.
        Read scope-contract.md fully (every in-scope S# becomes at least one
        FR#, every A# a scenario) and research's handoff summary
-       (`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/handoff.py show <ws>/research-notes.md`), opening
+       (`ses handoff show <ws>/research-notes.md`), opening
        sections when designing the component they concern. If `tech-design`
        is approved, the TDD is an input too and the FDD must agree with it —
        a disagreement goes to the user, never resolved silently in either.
-     - `full`, implemented — **change**. Gate: `status.py require <ws> implement=done`.
+     - `full`, implemented — **change**. Gate: `ses status require <ws> implement=done`.
        The change is each `branch.<repo>` field against that repo's mainline;
        contract and TDD are context.
-     - `change-request` — **change**. Gate: `status.py require <ws> verify=done`.
+     - `change-request` — **change**. Gate: `ses status require <ws> verify=done`.
        The change is the CR branch; `analysis.md` (its mini contract) is
        context.
      No stage is added to the task; progress is recorded in the `fdd` field (§3).
    - **Standalone** (`brief`, `as-built`, `change`): resolve `<work-repo>`,
      `<workspace-root>`, and the `<repo-set>` per
-     `${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md` (enumerate with
-     `${CLAUDE_PLUGIN_ROOT}/scripts/list-repos.sh <repos-folder>` and confirm
+     `<root>/core/repo-resolution.md` (enumerate with
+     `ses list-repos <repos-folder>` and confirm
      the list with the user — actors and interfaces are searched across all
      of them), then create the workspace:
-     `${CLAUDE_PLUGIN_ROOT}/scripts/new-task.sh <task-id> auto func-design <work-repo> <repo-set>`
-     (or resume from `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/status.py show <ws>`).
-     Record `status.py field <ws> fdd-mode <forward|as-built|change>` and
-     `status.py field <ws> source "<brief path | component(s) | repo base..head>"`.
+     `ses new-task <task-id> auto func-design <work-repo> <repo-set>`
+     (or resume from `ses status show <ws>`).
+     Record `ses status field <ws> fdd-mode <forward|as-built|change>` and
+     `ses status field <ws> source "<brief path | component(s) | repo base..head>"`.
    - **Change mode, either way**: pin the refs, which move —
-     `git -C <repo> rev-parse <base> <head>` → `status.py field <ws> change-base <sha>`
-     and `status.py field <ws> change-head <sha>` (one pair per repo for a
+     `git -C <repo> rev-parse <base> <head>` → `ses status field <ws> change-base <sha>`
+     and `ses status field <ws> change-head <sha>` (one pair per repo for a
      multi-repo change: `change-base.<repo>`, `change-head.<repo>`).
 3. Audience: from the invocation, else `business`. Record it:
-   `status.py field <ws> fdd-audience <business|technical>`. Agree the scope
+   `ses status field <ws> fdd-audience <business|technical>`. Agree the scope
    in two sentences — which function, change, or components; which aspects;
-   who will read it — and record it (`status.py field <ws> doc-scope "..."`).
+   who will read it — and record it (`ses status field <ws> doc-scope "..."`).
    Attached forward mode inherits the contract's scope instead.
 4. Read `<work-repo>/.domain-glossary.md` (business terms are referenced, not
-   re-defined) and the rules files `${CLAUDE_PLUGIN_ROOT}/scripts/repo-rules.sh <work-repo>`
+   re-defined) and the rules files `ses repo-rules <work-repo>`
    lists. If they — or the user, with a client-mandated FDD template —
    prescribe a format, map the content onto it and record the choice
-   (`status.py field <ws> doc-format "..."`); the abstraction rules still
+   (`ses status field <ws> doc-format "..."`); the abstraction rules still
    apply. If that format requires content the lint flags (a data-type column,
-   say), record the kinds (`status.py field <ws> fdd-lint-allow "DATATYPE"`)
+   say), record the kinds (`ses status field <ws> fdd-lint-allow "DATATYPE"`)
    and pass them as `--allow` — never otherwise.
-5. Unknowns follow `${CLAUDE_PLUGIN_ROOT}/core/decision-protocol.md`.
+5. Unknowns follow `<root>/core/decision-protocol.md`.
    Existing behaviour is checked in the code, never estimated. A business rule
    the brief or contract does not settle is the user's call — it becomes a
    Q# and is asked at the stage boundary (immediately if it blocks the
@@ -130,7 +133,7 @@ Developer-only detail that the fact-checker needs but stakeholders don't —
 component input tables, Appendix A — sits between `<!-- technical:start -->`
 and `<!-- technical:end -->`; the business view drops it (§4).
 
-`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/fdd_lint.py <ws>/fdd.md` flags code-level content
+`ses fdd-lint <ws>/fdd.md` flags code-level content
 mechanically (non-mermaid code blocks, SQL/PL/SQL/shell/Python constructs,
 data types). It is a floor, not the judgment: a finding is fixed by lifting
 the content to the functional level, never by rewording around the pattern,
@@ -149,7 +152,7 @@ and a clean lint does not excuse a step that fails the litmus test.
      for it (`<workspace-root>/work/*/interface-map.md`), start from it — check its recorded
      commit for staleness, then deepen rather than re-derive.
    - change — read the diff stat-first and file by file:
-     `${CLAUDE_PLUGIN_ROOT}/scripts/review-diff.sh <repo> <change-base> <change-head>`, then
+     `ses review-diff <repo> <change-base> <change-head>`, then
      `--file <path>` for each file in its review list. For each changed
      component, read the code at both ends (`git -C <repo> show <sha>:<path>`)
      — a diff hunk alone hides the surrounding flow that gives it meaning.
@@ -160,23 +163,23 @@ and a clean lint does not excuse a step that fails the litmus test.
    folklore: entry points, callers and schedules (§3 actors), data read and
    changed (§7), outputs and their consumers (§8), error paths (§9). Search
    every repo in `<repo-set>` with
-   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/xsearch.py --ws <ws> -- <patterns>` (counts first) and
+   `ses search --ws <ws> -- <patterns>` (counts first) and
    keep its per-repo rows in evidence — "no other consumer" needs the search
    that found none. Attached mode reuses research's rows while a repo's sha
    is unchanged.
 3. Confirm every existing table, column, and code value the FDD will name
    against the schema — DDL in the repo, or the live data dictionary where
    `$SES_DB_CONN` is reachable (read-only queries, output captured with
-   `${CLAUDE_PLUGIN_ROOT}/scripts/capture.sh` into `evidence/`). New ones are
+   `ses capture` into `evidence/`). New ones are
    marked `new` in §7.1 and must not collide with an existing name.
 4. Build Appendix A (claim → source) as you go — it is the fact-checker's
    input and the resume point. Change mode cites the head commit for "after"
    claims and the base commit for "before" claims.
-5. Standalone: `status.py set <ws> analyze=done`.
+5. Standalone: `ses status set <ws> analyze=done`.
 
 ## 2. Draft
 
-1. Copy `${CLAUDE_PLUGIN_ROOT}/templates/fdd.md` → `<ws>/fdd.md`.
+1. Copy `<root>/templates/fdd.md` → `<ws>/fdd.md`.
 2. Fill §2.1 FIRST. Every FR# must land in at least one §5 step and one §14
    scenario; attached forward mode, every A# appears in §14 too. An FR# with
    no natural home in §5 means the design is incomplete.
@@ -195,24 +198,23 @@ and a clean lint does not excuse a step that fails the litmus test.
 5. Write for the recorded audience; for `business`, a sentence that needs
    the technical regions to make sense is rewritten. No section is dropped:
    "None" is stated, with the reason where it is not obvious.
-6. Run `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/fdd_lint.py [--allow <kinds>] <ws>/fdd.md`
-   (kinds from `status.py get <ws> fdd-lint-allow`, if recorded) and fix
+6. Run `ses fdd-lint [--allow <kinds>] <ws>/fdd.md`
+   (kinds from `ses status get <ws> fdd-lint-allow`, if recorded) and fix
    every finding per the abstraction rules.
-7. Standalone: `status.py set <ws> draft=done`.
+7. Standalone: `ses status set <ws> draft=done`.
 
 ## 3. Quality gates
 
-1. Self-check with `${CLAUDE_PLUGIN_ROOT}/checklists/func-design.md`.
+1. Self-check with `<root>/checklists/func-design.md`.
 2. Run the fact-check procedure in
-   `${CLAUDE_PLUGIN_ROOT}/agents/doc-fact-checker.md` on fdd.md — as a
-   subagent where the harness supports it, otherwise as a separate fresh pass
-   in its report format; pass the mode and, in change mode, the repo with
+   `<root>/com.github.copilot/agents/doc-fact-checker.agent.md` on fdd.md —
+   delegated per `<root>/core/reviewers.md`; pass the mode and, in change mode, the repo with
    `change-base`/`change-head`. Resolve every finding; fixes keep the
    functional level (a WRONG step is corrected in plain language, not
    replaced by the code it summarises). Standalone:
-   `status.py set <ws> fact-check=done`.
+   `ses status set <ws> fact-check=done`.
 3. Write the **handoff summary** block now — after the fact-check fixes —
-   then run `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/handoff.py check <ws>/fdd.md` and the lint
+   then run `ses handoff check <ws>/fdd.md` and the lint
    again; both must pass.
 4. Render the audience view (§4 step 1) and present the FDD from it, then
    the summary: requirements and traceability, before vs after, business
@@ -222,29 +224,29 @@ and a clean lint does not excuse a step that fails the litmus test.
    approved — each revision updates the summary in the same edit and re-runs
    the handoff check and lint. Record approval + date in the FDD header.
 5. Record:
-   - Attached: `status.py field <ws> fdd "approved <date>" --log "FDD approved"`.
+   - Attached: `ses status field <ws> fdd "approved <date> by <who>"`.
      Forward mode while `tech-design` is pending:
-     `status.py next <ws> "Run /tech-design — the TDD realises the approved FDD."`
-   - Standalone (gate first: `status.py require <ws> fact-check=done`):
-     `status.py set <ws> approval=approved --next "Deliver the FDD (/func-design §4)."`
+     `ses status next <ws> "Run /tech-design — the TDD realises the approved FDD."`
+   - Standalone (gate first: `ses status require <ws> fact-check=done`):
+     `ses status set <ws> approval=approved --next "Deliver the FDD (/func-design §4)."`
 
 ## 4. Deliver
 
 1. Render the view for the recorded audience:
-   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/fdd_view.py <ws>/fdd.md --audience <fdd-audience>`
+   `ses fdd-view <ws>/fdd.md --audience <fdd-audience>`
    → `<ws>/fdd.<audience>.md`. `business` drops the handoff summary, the
    technical regions, and Appendix A; `technical` keeps them. Both drop
    template guidance. Never hand stakeholders `fdd.md` itself.
-2. Ask which output formats are needed unless `status.py get <ws> formats`
-   answers it, and record them (`status.py field <ws> formats "<docx,pdf,...>"`).
+2. Ask which output formats are needed unless `ses status get <ws> formats`
+   answers it, and record them (`ses status field <ws> formats "<docx,pdf,...>"`).
    Convert the view (not fdd.md) via
-   `${CLAUDE_PLUGIN_ROOT}/scripts/md2docx.sh | md2pdf.sh | md2confluence.sh`
+   `ses md2docx | ses md2pdf | ses md2confluence`
    into `<ws>/deliverables/`; verify each file is non-empty. Attached
    forward mode can leave conversion to the task's /deliver package — it
    converts the same view.
 3. Present the FDD and where it is; list deferred Q# items so the user can
    close them.
-4. Standalone: `status.py set <ws> deliver=done`.
+4. Standalone: `ses status set <ws> deliver=done`.
 
 ## Changes after approval
 
@@ -258,4 +260,4 @@ the code changes after approval, re-pin `change-head` and re-run from §1.
 
 Write incrementally. On resume, diff §2.1 against §5 and §14 to find FR#
 without a home, and Appendix A against §5 to find unsourced steps; standalone
-stage state comes from `status.py show <ws>`.
+stage state comes from `ses status show <ws>`.

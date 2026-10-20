@@ -13,8 +13,8 @@
      file names, numbered plain-language steps, decision tables, mermaid
      business flows. Not allowed: code, SQL, pseudocode, DDL, data types,
      indexes, hints, commit points, variable names, error codes.
-     Mechanical floor: scripts/fdd_lint.py <file>.
-     Stakeholders get a rendered view (scripts/fdd_view.py): the business
+     Mechanical floor: ses fdd-lint <file>.
+     Stakeholders get a rendered view (ses fdd-view): the business
      audience drops the handoff summary, every technical:start/end region,
      and Appendix A — keep the markers around developer-only detail. -->
 
@@ -23,7 +23,7 @@
 <!-- Written last, at this stage's gate, and updated in the same edit as any
      amendment. /tech-design reads ONLY this block unless it needs a section's
      detail. Every FR/BR/EX/TS/Q ID in the body appears here; max 40 lines —
-     group IDs on one line where needed. Check: scripts/handoff.py check <file>. -->
+     group IDs on one line where needed. Check: ses handoff check <file>. -->
 - Contract version: {n | none (standalone or change request)}
 - Purpose: {one line}
 - Requirements: FR1 {…}; FR2 {…}

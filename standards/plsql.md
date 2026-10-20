@@ -1,6 +1,6 @@
 # PL/SQL default standards
 
-> Framework defaults. A work repo's rules files (scripts/repo-rules.sh) ALWAYS override these;
+> Framework defaults. A work repo's rules files (ses repo-rules) ALWAYS override these;
 > and the file being edited overrides both — match what's around your change.
 
 ## Naming

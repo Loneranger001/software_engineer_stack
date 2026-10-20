@@ -6,21 +6,24 @@ argument-hint: <file(s) or directory to verify> [--task <task-id>]
 
 # /verify-code — run it, don't trust it
 
-> Path note: `${CLAUDE_PLUGIN_ROOT}` is this framework's root — the ancestor
-> directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
-> it automatically; other harnesses resolve it from this file's location.
+> Framework files: `<root>` is what `ses root` prints — run it once. Every
+> framework script runs as `ses <command>` (`ses help` lists them). If `ses`
+> is not on PATH, use `python3 <skill-dir>/../../bin/ses` in its place —
+> `<skill-dir>` is the folder this SKILL.md was loaded from — here and for
+> every `ses` below. If neither runs, stop and ask the user (README →
+> Install); never guess another path.
 
 Per-language verification recipes. Live mode proves the code works; static
 fallback proves it parses and conforms. Every run produces an evidence file
-(`${CLAUDE_PLUGIN_ROOT}/templates/test-evidence.md`) into the task's
+(`<root>/templates/test-evidence.md`) into the task's
 `evidence/` directory (or `./verify-evidence/` when standalone).
 
 ## Lessons and output capture (all recipes)
 
 - Load applicable lessons:
-  `${CLAUDE_PLUGIN_ROOT}/scripts/lessons.sh verify --lang <languages of the files>`.
-- Run every command below through `${CLAUDE_PLUGIN_ROOT}/scripts/capture.sh`:
-  `capture.sh <evidence-dir> <file>-<check> --grep '<errors>' -- <command>`.
+  `ses lessons verify --lang <languages of the files>`.
+- Run every command below through `ses capture`:
+  `ses capture <evidence-dir> <file>-<check> --grep '<errors>' -- <command>`.
   It keeps the full output in `<evidence-dir>/raw/` and prints exit code,
   line count, matching error lines, and the last 40 lines. That summary is
   what goes into the evidence file and your context. Open a raw log only to
@@ -31,14 +34,14 @@ fallback proves it parses and conforms. Every run produces an evidence file
 ## Environment resolution (all recipes)
 
 Resolve `<work-repo>` first, per
-`${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md` (`status.py get <ws> work-repo`
+`<root>/core/repo-resolution.md` (`ses status get <ws> work-repo`
 when invoked inside a task, else the enclosing git repo of the current
 directory).
 Run every recipe with the working directory set to the repo the file under
 verification lives in — a test runner launched from a parent folder picks up
 the wrong config, or none, and in a multi-repo change each repo has its own
 tooling, its own venv, and its own rules files. Evidence files name the
-repo per result. `${CLAUDE_PLUGIN_ROOT}/scripts/repo-rules.sh <repo> <files>` lists that repo's
+repo per result. `ses repo-rules <repo> <files>` lists that repo's
 rules files and its tooling configs (`tooling:` lines) — run that tooling
 first.
 
@@ -56,7 +59,7 @@ first.
 - Only run against DEV/test environments. If `SES_DB_CONN` looks production-like
   (name contains prod/prd), stop and confirm with the user first.
 - Uncertainty about what is safe to run follows
-  `${CLAUDE_PLUGIN_ROOT}/core/decision-protocol.md`: execution against a live
+  `<root>/core/decision-protocol.md`: execution against a live
   environment is a dangerous surface — when in doubt about a statement's
   effect, ask; never proceed-and-log a data-changing run.
 
@@ -73,7 +76,7 @@ first.
    queries/anonymous blocks.
 
 **Static fallback**: careful read-through against the repo rules
-(`repo-rules.sh`) + `standards/plsql.md`: balanced blocks, exception handling present, no implicit
+(`ses repo-rules`) + `standards/plsql.md`: balanced blocks, exception handling present, no implicit
 commits in unexpected places, object/parameter naming. State clearly this did
 not compile anything.
 
@@ -109,7 +112,7 @@ through pipes, cleanup traps.
 
 **Live**:
 1. Interpreter: `$SES_PY` else the repo's venv else `python3`.
-2. Repo tooling first (the `tooling:` lines from `repo-rules.sh`, plus what
+2. Repo tooling first (the `tooling:` lines from `ses repo-rules`, plus what
    the rules files say to run): its pytest config, ruff/flake8, mypy. Run the narrowest test selection covering the change, then the
    broader suite if fast.
 3. No repo tooling: `python -m py_compile <files>`, `ruff check` if available,
@@ -121,7 +124,7 @@ import-graph sanity and standards review.
 ## Output contract
 
 For each file verified, append to the evidence file: recipe used, mode
-(live/static-fallback), the `capture.sh` summary per command (command, exit
+(live/static-fallback), the `ses capture` summary per command (command, exit
 code, error-line matches, tail — plus the raw log path), PASS/FAIL/PARTIAL,
 and the assertion that justifies the verdict. Never paste a full raw log
 into the evidence file. /implement and /change-request treat

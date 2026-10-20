@@ -1,6 +1,6 @@
 # KSH default standards
 
-> Framework defaults; the repo's rules files (scripts/repo-rules.sh) and the surrounding script win.
+> Framework defaults; the repo's rules files (ses repo-rules) and the surrounding script win.
 
 ## Structure
 

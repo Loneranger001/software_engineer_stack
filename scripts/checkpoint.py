@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""checkpoint.py — crash safety for /implement and /change-request.
+"""checkpoint.py — crash safety for /implement and /change-request (run as `ses checkpoint`).
 
 Usage:
     checkpoint.py resume  <ws>            is it safe to continue from the recorded state?
@@ -8,11 +8,12 @@ Usage:
 
 <ws> is the task workspace (work/<task-id>). Changed repos and their branches
 come from STATUS.md `branch.<repo-name>` fields; a repo name resolves to the
-STATUS work-repo or "Repos analyzed" path with that basename.
+STATUS work-repo or repos-analyzed path with that basename.
 
 resume — per changed repo: recorded vs checked-out branch, the last
-  `<task-id> step <N>` checkpoint commit, STATUS `current-step`, and every
-  uncommitted file classified against the NEXT step's file list from
+  `<task-id> step <N>` checkpoint commit (the commits are the step record —
+  nothing else stores it), and every uncommitted file classified against the
+  NEXT step's file list from
   impl-doc.md §2 ("expected" = that step's own files, i.e. a half-done step;
   "unexpected" = anything else). It decides nothing: it shows the facts the
   user needs to choose keep-and-continue or discard-and-redo.
@@ -21,11 +22,13 @@ resume — per changed repo: recorded vs checked-out branch, the last
 trailer — prints one `Evidence-SHA256: <sha256> <path>` line per file, path
   relative to <ws>. Add them as the last paragraph of the checkpoint commit
   message, so the hash of the step's evidence lives in git even though work/
-  may live outside any repository.
+  stays out of every repository. Refuses (exit 1) while any file under work/
+  is staged in a recorded repo: workspaces never go into git.
 
 verify — reads every Evidence-SHA256 line on each recorded task branch and
-  re-hashes the file. Exit 1 if any recorded evidence is missing or altered.
-  Evidence files with no recorded hash are listed as a warning, not a failure.
+  re-hashes the file. Exit 1 if any recorded evidence is missing or altered,
+  or if any file under work/ is committed on a task branch (it would be
+  pushed). Evidence files with no recorded hash are a warning, not a failure.
 """
 from __future__ import annotations
 
@@ -75,7 +78,7 @@ def changed_repos(st: Status) -> dict[str, tuple[Path, str]]:
             continue
         name = f[len("branch."):]
         if name not in by_name:
-            raise StatusError(f"STATUS {f}: no repo named '{name}' among work-repo / Repos analyzed")
+            raise StatusError(f"STATUS {f}: no repo named '{name}' among work-repo / repos-analyzed")
         out[name] = (by_name[name], st.field(f))
     return out
 
@@ -139,12 +142,7 @@ def cmd_resume(ws_arg: str) -> int:
         if head != branch:
             problems.append(f"{name}: checked out '{head}', STATUS records '{branch}' — switch or re-record")
     nxt = last + 1
-    recorded = st.field("current-step") if "current-step" in st.fields else None
-    print(f"task {task}: last checkpoint commit is step {last or '(none)'}; "
-          f"STATUS current-step: {recorded or '(unset)'}")
-    if recorded is not None and recorded != str(last):
-        problems.append(f"STATUS current-step is {recorded} but the commits end at step {last} — "
-                        f"trust the commits and re-record (status.py field <ws> current-step {last})")
+    print(f"task {task}: last checkpoint commit is step {last or '(none)'}")
     nxt_repo, nxt_tokens = steps.get(nxt, ("", []))
     if not steps:
         print("no impl-doc.md steps (change-request pipeline?) — uncommitted files are listed as-is")
@@ -179,10 +177,29 @@ def cmd_resume(ws_arg: str) -> int:
     return 0
 
 
+def work_prefix(ws: Path, repo: Path) -> str | None:
+    """work/ relative to repo when the workspaces folder sits inside it, else None."""
+    rel = os.path.relpath(ws.resolve().parent, repo.resolve())
+    return None if rel.startswith("..") else rel.replace(os.sep, "/")
+
+
+def under(path: str, prefix: str) -> bool:
+    return prefix == "." or path == prefix or path.startswith(prefix + "/")
+
+
 def cmd_trailer(ws_arg: str, files: list[str]) -> int:
-    ws, _ = load(ws_arg)
+    ws, st = load(ws_arg)
     if not files:
         raise StatusError("trailer needs at least one evidence file")
+    for name, (repo, _) in sorted(changed_repos(st).items()):
+        prefix = work_prefix(ws, repo)
+        if prefix is None:
+            continue
+        staged = [p for p in git(repo, "diff", "--cached", "--name-only").splitlines() if under(p, prefix)]
+        if staged:
+            raise StatusError(f"{name}: workspace files are staged — unstage them "
+                              f"(git -C {repo} restore --staged {prefix}) and stage only the step's own "
+                              f"files; work/ never goes into git: {', '.join(staged[:5])}")
     for f in files:
         p = Path(f) if os.path.isabs(f) else (Path.cwd() / f)
         if not p.is_file():
@@ -203,10 +220,14 @@ def cmd_verify(ws_arg: str) -> int:
         print("no task branches recorded (e.g. a document task) — no checkpoint evidence to verify")
         return 0
     recorded: dict[str, str] = {}
+    bad = []
     for name, (repo, branch) in sorted(repos.items()):
         for digest, rel in TRAILER_RE.findall(git(repo, "log", "--format=%B", branch)):
             recorded.setdefault(rel, digest)  # newest commit first: its hash wins
-    bad = []
+        prefix = work_prefix(ws, repo)
+        if prefix is not None:
+            for p in git(repo, "ls-tree", "-r", "--name-only", branch, "--", prefix).splitlines():
+                bad.append(f"IN GIT   {name}:{p} (workspace file committed on {branch} — would be pushed)")
     for rel, digest in sorted(recorded.items()):
         p = ws / rel
         if not p.is_file():

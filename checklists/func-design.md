@@ -3,7 +3,7 @@
 Run before presenting the FDD for approval.
 
 - [ ] Functional level throughout: no code, SQL, pseudocode, DDL, data types, commit points, or error codes; every step passes the litmus test (a business reader follows it; two implementations could both satisfy it)
-- [ ] `scripts/fdd_lint.py` passes — any `--allow` kinds are the ones recorded in `fdd-lint-allow` for a prescribed format, nothing more
+- [ ] `ses fdd-lint` passes — any `--allow` kinds are the ones recorded in `fdd-lint-allow` for a prescribed format, nothing more
 - [ ] Every FR# lands in at least one §5 step and one §14 scenario (no orphans either way)
 - [ ] Attached forward mode: every in-scope S# is the source of at least one FR#, every A# appears in §14, and no FR# lacks an S# (nothing designed outside the contract)
 - [ ] Change mode: base and head SHAs pinned in the workspace; every changed file in the review-diff plan is reflected in the FDD; new/changed steps marked; departures from the contract/TDD raised as Q#, not smoothed over
@@ -20,6 +20,6 @@ Run before presenting the FDD for approval.
 - [ ] Open Q# items answered, or explicitly deferred by the user and recorded in §13
 - [ ] doc-fact-checker ran on the FDD and its findings were resolved at the functional level
 - [ ] ASSUMPTIONS.md reviewed — open entries presented for ratification (decision-protocol §4)
-- [ ] Handoff summary written last and `scripts/handoff.py check` passes
-- [ ] Stakeholders get the `fdd_view.py` rendering for the recorded audience, never `fdd.md` itself
+- [ ] Handoff summary written last and `ses handoff check` passes
+- [ ] Stakeholders get the `ses fdd-view` rendering for the recorded audience, never `fdd.md` itself
 - [ ] Approval recorded only after the user's explicit approval (`fdd` field when attached, `approval=approved` when standalone), with the date in the FDD header

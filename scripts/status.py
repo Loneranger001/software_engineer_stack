@@ -1,22 +1,27 @@
 #!/usr/bin/env python3
-"""status.py — read, check, and update a task workspace's STATUS.md.
+"""status.py — read, check, and update a task workspace's STATUS.md (run as `ses status`).
 
-STATUS.md is the resume point every stage depends on. Reading it by eye lets a
-gate check pass on a misread line; editing it by hand lets a log entry or a
-stage line get lost. This tool makes both deterministic: skills call it to
-CHECK a gate (non-zero exit = do not proceed) and to RECORD a transition
-(atomic rewrite, log line appended automatically).
+STATUS.md is the small, human-readable record of where a task stands: its
+repos, one line per stage gate, and the next action. Reading it by eye lets a
+gate check pass on a misread line; editing it by hand lets a stage line get
+lost. This tool makes both deterministic: skills call it to CHECK a gate
+(non-zero exit = do not proceed) and to RECORD a transition (atomic rewrite).
+
+Everything else a session needs lives where it is already recorded: commits
+(checkpoint steps, evidence hashes), the stage documents and their handoff
+summaries, ASSUMPTIONS.md, PARKED.md. Conversation history and in-session
+progress are the harness's job.
 
 Usage:
-    status.py show     <ws>                          fields, stages, next action (no log)
+    status.py show     <ws>                          fields, stages, next action
     status.py get      <ws> <field-or-stage>         one value; repos-analyzed prints one path per line
     status.py require  <ws> <stage>=<state>[,<state>...] ...
                                                      exit 3 unless every stage is in an allowed state
-    status.py set      <ws> <stage>=<state> [--next TEXT] [--log TEXT]
-    status.py field    <ws> <name> <value> [--log TEXT]
-                                                     set a header field (branch.<repo>, current-step, ...)
+    status.py set      <ws> <stage>=<state> [--note TEXT] [--next TEXT]
+                                                     the gate line gets today's date and the note:
+                                                     "intake: approved (2026-07-11; by asif, contract v1)"
+    status.py field    <ws> <name> <value>           set a header field (branch.<repo>, doc-type, ...)
     status.py next     <ws> TEXT                     replace the Next action paragraph
-    status.py log      <ws> TEXT                     append a timestamped log line
     status.py validate <ws> [--structure-only]       check structure; exit 1 on problems
                                                      (--structure-only: skip path existence, for
                                                      illustrative workspaces like examples/)
@@ -36,7 +41,7 @@ import os
 import re
 import sys
 import tempfile
-from datetime import datetime, timezone
+from datetime import date
 
 STATES = ("pending", "in-progress", "done", "approved", "waived")
 FIELD_RE = re.compile(r"^- ([A-Za-z0-9][A-Za-z0-9._-]*): ?(.*)$")
@@ -46,10 +51,6 @@ GATE_NOT_MET = 3
 
 class StatusError(Exception):
     pass
-
-
-def now() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def resolve(ws: str) -> str:
@@ -110,6 +111,9 @@ class Status:
         return raw.split()[0] if raw else ""
 
     def repos_analyzed(self) -> list[str]:
+        if "repos-analyzed" in self.fields:
+            return [r.strip() for r in self.field("repos-analyzed").split(",") if r.strip()]
+        # workspaces scaffolded before repos-analyzed became a field list them in a section
         if "repos analyzed" not in self.sections:
             return []
         out = []
@@ -151,16 +155,6 @@ class Status:
         self.lines[start:end] = ["", text.strip(), ""]
         self._index()
 
-    def append_log(self, text: str) -> None:
-        if "log" not in self.sections:
-            self.lines += ["", "## Log", ""]
-            self._index()
-        end = self.section_end("log")
-        while end > self.sections["log"] + 1 and not self.lines[end - 1].strip():
-            end -= 1
-        self.lines.insert(end, f"- {now()} {' '.join(text.split())}")
-        self._index()
-
     def save(self) -> None:
         # atomic: a crash mid-write leaves the previous STATUS.md, never half of one
         d = os.path.dirname(os.path.abspath(self.path))
@@ -188,7 +182,7 @@ class Status:
                     out.append(f"{f} is not an absolute path: {v}")
                 elif not os.path.isdir(v):
                     out.append(f"{f} does not exist: {v}")
-        for s in ("stage gates", "next action", "log"):
+        for s in ("stage gates", "next action"):
             if s not in self.sections:
                 out.append(f"missing section '## {s.capitalize()}'")
         if not self.stages:
@@ -241,11 +235,8 @@ def main(argv: list[str]) -> int:
     if cmd == "show":
         for f in st.fields:
             print(f"{f}: {st.field(f)}")
-        repos = st.repos_analyzed()
-        if repos:
-            print("repos-analyzed:")
-            for r in repos:
-                print(f"  - {r}")
+        if "repos-analyzed" not in st.fields and st.repos_analyzed():
+            print(f"repos-analyzed: {', '.join(st.repos_analyzed())}")
         print("stages:")
         for s in st.stages:
             print(f"  {s}: {st.stage(s)}")
@@ -294,28 +285,26 @@ def main(argv: list[str]) -> int:
 
     if cmd == "set":
         nxt = take_opt(rest, "--next")
-        log = take_opt(rest, "--log")
+        note = take_opt(rest, "--note")
         if len(rest) != 1:
-            raise StatusError("usage: set <ws> <stage>=<state> [--next TEXT] [--log TEXT]")
+            raise StatusError("usage: set <ws> <stage>=<state> [--note TEXT] [--next TEXT]")
         name, value = parse_pair(rest[0])
         if not value or value.split()[0] not in STATES:
             raise StatusError(f"state must start with one of {', '.join(STATES)}; got '{value}'")
-        old = st.stage(name) if name in st.stages else None
+        if value.split()[0] != "pending":
+            stamp = date.today().isoformat()
+            value = f"{value} ({stamp}" + (f"; {' '.join(note.split())}" if note else "") + ")"
         st.set_stage(name, value)
         if nxt:
             st.set_next(nxt)
-        st.append_log(log or f"{name}: {old} -> {value}")
         st.save()
         print(f"{name}: {value}")
         return 0
 
     if cmd == "field":
-        log = take_opt(rest, "--log")
         if len(rest) != 2:
-            raise StatusError("usage: field <ws> <name> <value> [--log TEXT]")
+            raise StatusError("usage: field <ws> <name> <value>")
         st.set_field(rest[0], rest[1])
-        if log:
-            st.append_log(log)
         st.save()
         print(f"{rest[0]}: {rest[1]}")
         return 0
@@ -324,13 +313,6 @@ def main(argv: list[str]) -> int:
         if len(rest) != 1:
             raise StatusError("usage: next <ws> TEXT")
         st.set_next(rest[0])
-        st.save()
-        return 0
-
-    if cmd == "log":
-        if len(rest) != 1:
-            raise StatusError("usage: log <ws> TEXT")
-        st.append_log(rest[0])
         st.save()
         return 0
 

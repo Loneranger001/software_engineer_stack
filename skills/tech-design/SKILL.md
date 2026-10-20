@@ -6,50 +6,53 @@ argument-hint: "[task-id]"
 
 # /tech-design — traceable technical design document
 
-> Path note: `${CLAUDE_PLUGIN_ROOT}` is this framework's root — the ancestor
-> directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
-> it automatically; other harnesses resolve it from this file's location.
+> Framework files: `<root>` is what `ses root` prints — run it once. Every
+> framework script runs as `ses <command>` (`ses help` lists them). If `ses`
+> is not on PATH, use `python3 <skill-dir>/../../bin/ses` in its place —
+> `<skill-dir>` is the folder this SKILL.md was loaded from — here and for
+> every `ses` below. If neither runs, stop and ask the user (README →
+> Install); never guess another path.
 
 Produce `<ws>/tdd.md` and get it user-approved. The TDD is the contract
 for HOW the scope will be met.
 
 ## 0. Preamble
 
-1. Load applicable lessons: `${CLAUDE_PLUGIN_ROOT}/scripts/lessons.sh tech-design` — it prints only
-   the matching entries; don't read lessons.md whole.
+1. Load applicable lessons: `ses lessons tech-design` — it prints only
+   the matching entries; don't read the lesson files whole.
 2. Locate the workspace and gate:
-   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/status.py require <ws> research=done`
+   `ses status require <ws> research=done`
    (`<ws>` = `<workspace-root>/work/<id>`) — non-zero exit = stop. Take
-   `<work-repo>` from `status.py get <ws> work-repo`
-   (`${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md`) — repo-level files below
+   `<work-repo>` from `ses status get <ws> work-repo`
+   (`<root>/core/repo-resolution.md`) — repo-level files below
    hang off it, not off your cwd.
 3. Read scope-contract.md fully — traceability must cover every S# and A#.
    For research, read its handoff summary
-   (`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/handoff.py show <ws>/research-notes.md`) and open a
+   (`ses handoff show <ws>/research-notes.md`) and open a
    research section only when designing the component it concerns.
-   `handoff.py check <ws>/research-notes.md` reporting an older contract
+   `ses handoff check <ws>/research-notes.md` reporting an older contract
    version means research is stale: send the user back to /research.
    If the task has an approved functional design (`<ws>/fdd.md`; approval in
-   `status.py get <ws> fdd`), read its handoff summary
-   (`handoff.py show <ws>/fdd.md`): the TDD realises it — every FR# joins the
+   `ses status get <ws> fdd`), read its handoff summary
+   (`ses handoff show <ws>/fdd.md`): the TDD realises it — every FR# joins the
    S# items in §2 traceability, its business rules (BR#) and exceptions
    (EX#) are honoured, and a design that has to depart from it goes back to
    the user as an FDD amendment, re-approved before the TDD diverges.
-4. Unknowns follow `${CLAUDE_PLUGIN_ROOT}/core/decision-protocol.md`: design
+4. Unknowns follow `<root>/core/decision-protocol.md`: design
    judgment calls that pass §2 (high confidence, reversible, in-scope, no
    dangerous surface) go to ASSUMPTIONS.md; anything else stops and asks.
 
 ## 1. Design
 
-1. Copy `${CLAUDE_PLUGIN_ROOT}/templates/tdd.md` → `<ws>/tdd.md`.
+1. Copy `<root>/templates/tdd.md` → `<ws>/tdd.md`.
 2. Choose the implementation option (from research §Options) and justify it in
    §10 Alternatives; if you deviate from the research recommendation, say why.
 3. Fill §2 traceability FIRST: every in-scope item → the design section that
    will satisfy it. If an item has no natural home, the design is incomplete.
 4. Design each component against the rules of the repo it lands in
-   (its rules files per `repo-rules.sh` — a component designed for a sibling
+   (its rules files per `ses repo-rules` — a component designed for a sibling
    repo follows that repo's rules, not the primary repo's; else
-   `${CLAUDE_PLUGIN_ROOT}/standards/<language>.md`): naming, error
+   `<root>/standards/<language>.md`): naming, error
    handling, logging, transaction boundaries. Business terms in the TDD
    reference their `<work-repo>/.domain-glossary.md` entries (§1 Overview lists the terms
    relied on) rather than re-defining them.
@@ -77,14 +80,13 @@ for HOW the scope will be met.
 
 ## 2. Quality gates
 
-1. Self-check with `${CLAUDE_PLUGIN_ROOT}/checklists/tech-design.md`.
+1. Self-check with `<root>/checklists/tech-design.md`.
 2. Run the fact-check procedure in
-   `${CLAUDE_PLUGIN_ROOT}/agents/doc-fact-checker.md` on tdd.md (it verifies
-   every claim against the code) — as a subagent where the harness supports
-   it, otherwise as a separate fresh pass in its report format. Resolve all
+   `<root>/com.github.copilot/agents/doc-fact-checker.agent.md` on tdd.md (it verifies
+   every claim against the code) — delegated per `<root>/core/reviewers.md`. Resolve all
    findings.
 3. Write the TDD's **handoff summary** block now — after the fact-check
-   fixes — and run `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/handoff.py check <ws>/tdd.md`; it must pass.
+   fixes — and run `ses handoff check <ws>/tdd.md`; it must pass.
 4. Present the TDD to the user for approval, starting from the summary: key
    decisions, traceability table, risks — plus open ASSUMPTIONS.md entries
    for ratification (decision-protocol §4); promote design-shaping ones into
@@ -92,7 +94,7 @@ for HOW the scope will be met.
    the same edit and re-runs the check. Record approval + date in the TDD
    header.
 5. Record:
-   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/status.py set <ws> tech-design=approved --next "Run /grill."`
+   `ses status set <ws> tech-design=approved --next "Run /grill."`
    (the
    adversarial completeness interrogation runs before any implementation
    planning).

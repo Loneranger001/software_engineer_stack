@@ -6,9 +6,12 @@ argument-hint: "<interface/integration name, entry point, or question about it>"
 
 # /understand — build a working model of an existing interface
 
-> Path note: `${CLAUDE_PLUGIN_ROOT}` is this framework's root — the ancestor
-> directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
-> it automatically; other harnesses resolve it from this file's location.
+> Framework files: `<root>` is what `ses root` prints — run it once. Every
+> framework script runs as `ses <command>` (`ses help` lists them). If `ses`
+> is not on PATH, use `python3 <skill-dir>/../../bin/ses` in its place —
+> `<skill-dir>` is the folder this SKILL.md was loaded from — here and for
+> every `ses` below. If neither runs, stop and ask the user (README →
+> Install); never guess another path.
 
 The deliverable is understanding, not a document: a layered, source-referenced
 explanation the user can interrogate until their mental model matches the code.
@@ -21,17 +24,17 @@ what anyone (comments, wikis, the user, folklore) believes it does.
 
 ## 0. Preamble
 
-1. Load applicable lessons: `${CLAUDE_PLUGIN_ROOT}/scripts/lessons.sh understand` — it prints only
-   the matching entries; don't read lessons.md whole.
+1. Load applicable lessons: `ses lessons understand` — it prints only
+   the matching entries; don't read the lesson files whole.
 2. Resolve `<work-repo>`, `<workspace-root>`, and the `<repo-set>` per
-   `${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md` — with a parent folder as
+   `<root>/core/repo-resolution.md` — with a parent folder as
    cwd, ask which repo the interface lives in; enumerate the rest with
-   `${CLAUDE_PLUGIN_ROOT}/scripts/list-repos.sh <repos-folder>` and confirm
+   `ses list-repos <repos-folder>` and confirm
    the list (§3 maps dependencies across all of them) — then create the
    workspace:
-   `${CLAUDE_PLUGIN_ROOT}/scripts/new-task.sh <task-id> auto understand <work-repo> <repo-set>`.
+   `ses new-task <task-id> auto understand <work-repo> <repo-set>`.
    Stage state is read and recorded with
-   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/status.py` (`<ws>` =
+   `ses status` (`<ws>` =
    `<workspace-root>/work/<id>`).
    If a previous run already mapped this interface (an existing
    `<workspace-root>/work/*/interface-map.md` naming it), offer to resume/refresh that map
@@ -39,17 +42,17 @@ what anyone (comments, wikis, the user, folklore) believes it does.
 3. Agree the target and intent in one or two sentences: which interface, and
    what the user is trying to learn — general orientation, a specific
    question, or reconnaissance before a change. Record it:
-   `status.py field <ws> intent "<target — what the user wants to learn>"`.
+   `ses status field <ws> intent "<target — what the user wants to learn>"`.
    A specific question focuses where to go deep; it does not skip the trace,
    because answers given without the surrounding flow are how folklore starts.
 4. Read `<work-repo>/.domain-glossary.md` if present and the rules files
-   `${CLAUDE_PLUGIN_ROOT}/scripts/repo-rules.sh <work-repo>` lists — they hold knowledge
+   `ses repo-rules <work-repo>` lists — they hold knowledge
    already confirmed; never re-derive or re-ask what is established there.
    Use the full path / the script, not a bare filename: run from a parent
    folder, a bare check reports "absent" for a file that exists, and
    re-asking answered questions is exactly the failure this stage exists to
    prevent.
-5. Unknowns follow `${CLAUDE_PLUGIN_ROOT}/core/decision-protocol.md`:
+5. Unknowns follow `<root>/core/decision-protocol.md`:
    anything the code or a reachable environment can answer gets checked, not
    guessed; what only people can answer goes to open questions.
 
@@ -62,14 +65,14 @@ what anyone (comments, wikis, the user, folklore) believes it does.
    they mean before investing in a trace.
 2. Classify the interface type — **batch job | online/API | data pipeline |
    report/extract | library** — using the same emphasis map as
-   `${CLAUDE_PLUGIN_ROOT}/templates/understanding-doc.md`. The type decides
+   `<root>/templates/understanding-doc.md`. The type decides
    where depth matters (a batch job's schedule and recovery, an API's entry
    points and error contract, a pipeline's lineage and restartability). The
    SAME type always gets the SAME emphasis, so explanations of different
    interfaces stay comparable.
 3. Start `<ws>/interface-map.md` from
-   `${CLAUDE_PLUGIN_ROOT}/templates/interface-map.md` and fill the identity
-   section now. `status.py set <ws> classify=done`.
+   `<root>/templates/interface-map.md` and fill the identity
+   section now. `ses status set <ws> classify=done`.
 
 ## 2. Trace one real flow end-to-end
 
@@ -94,12 +97,12 @@ Accuracy rules (same as /research): every finding gets a source; inferences
 are labelled `INFERRED` with their evidence and an open question to confirm;
 when a name or comment disagrees with the code, the code wins.
 
-`status.py set <ws> trace=done`.
+`ses status set <ws> trace=done`.
 
 ## 3. Map the dependencies both directions
 
 Search **every repo in `<repo-set>`**, not just the one the interface lives
-in (`status.py get <ws> repos-analyzed`). Consumers in a
+in (`ses status get <ws> repos-analyzed`). Consumers in a
 sibling repo are the ones nobody remembers at change time — which is precisely
 why they belong on the map.
 
@@ -108,7 +111,7 @@ why they belong on the map.
 2. **Downstream**: what consumes or depends on it — grep for its outputs,
    its package/proc names, its file names, its table writes.
 3. **Associated objects**: wrappers, shared packages, DDL, monitoring hooks.
-4. Search with `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/xsearch.py --ws <ws> -- <patterns>` (counts
+4. Search with `ses search --ws <ws> -- <patterns>` (counts
    first, every repo, then open the hits that matter) and record its per-repo
    rows — command and sha — so the map is reproducible
    — "nothing depends on this" requires showing the search that found nothing,
@@ -119,12 +122,12 @@ why they belong on the map.
    downstream subgraphs, labelled edges). Diagram and tables must agree in
    both directions — a node without a table row, or vice versa, is a gap.
 
-`status.py set <ws> map=done`.
+`ses status set <ws> map=done`.
 
 ## 4–6. Explain, Q&A, close — load `explain.md`
 
 When `map=done`, read `explain.md` in this skill's directory
-(`${CLAUDE_PLUGIN_ROOT}/skills/understand/explain.md`) and follow it: §4
+(`<root>/skills/understand/explain.md`) and follow it: §4
 explain in layers, §5 Q&A until the model holds, §6 close and hand off. It is
 kept separate so the investigation stages above load without it; a run that
 stops at the map never needs it. If the user opened with a specific question,

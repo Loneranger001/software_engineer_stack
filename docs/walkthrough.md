@@ -29,7 +29,7 @@ days, run `/grill`, and it picks up from `STATUS.md` exactly where you left off.
 
 There is no profiling step. Every stage follows the rules the repo's team
 already wrote — `AGENTS.md`, `CODING_STANDARDS.md`, `CONTRIBUTING.md` and
-similar files, as `scripts/repo-rules.sh <repo>` lists them — over the
+similar files, as `ses repo-rules <repo>` lists them — over the
 framework's own `standards/`. A repo with no such files gets the framework
 defaults plus the style of the code around each change.
 
@@ -48,7 +48,7 @@ open questions in ONE batch — the sample brief is ambiguous on purpose, so
 expect something like:
 
 ```
-claude>  Q1: Where does an account's currency come from — is there a
+copilot>  Q1: Where does an account's currency come from — is there a
          customers.currency_code, or does it need deriving?
          Q2: "Backward-compatible if possible" — is appending a 4th
          pipe-delimited field acceptable to the datamart loader?
@@ -59,7 +59,7 @@ You answer; it drafts the scope contract (in-scope table S1..Sn, exclusions
 N1..Nn, acceptance criteria A1..An each with "how verified") and presents it:
 
 ```
-claude>  Approve this scope contract? Work will be limited to exactly this.
+copilot>  Approve this scope contract? Work will be limited to exactly this.
 you>     approve
 ```
 
@@ -91,10 +91,10 @@ graph, data model changes with migration + rollback, verification approach
 doc-fact-checker pass runs before you ever see it. Then:
 
 ```
-claude>  TDD ready: [summary, key decisions, 2 open assumptions to ratify]
+copilot>  TDD ready: [summary, key decisions, 2 open assumptions to ratify]
          Approve?
 you>     change §4.2 to keep the old file name; otherwise fine
-claude>  [updates, re-presents]
+copilot>  [updates, re-presents]
 you>     approve
 ```
 
@@ -112,13 +112,13 @@ security/ops) — fixing what the evidence can answer, logging everything to
 `grill-log.md`. Phase 2 is your interview; expect several short rounds:
 
 ```
-claude>  Lifecycle: the extract reruns for a date that already has GBP rows —
+copilot>  Lifecycle: the extract reruns for a date that already has GBP rows —
          replace, reject, or merge? Design currently replaces silently (§4.1).
 you>     replace is correct, that's the restart behaviour
-claude>  Temporal: a backdated transaction arrives after the snapshot was
+copilot>  Temporal: a backdated transaction arrives after the snapshot was
          extracted — is regeneration for past dates ever expected?
 you>     yes, ops reruns up to 7 days back
-claude>  Then §4.1's delete+insert covers it, but the extract FILE for the old
+copilot>  Then §4.1's delete+insert covers it, but the extract FILE for the old
          date gets overwritten — is the datamart tolerant of re-delivery?
 you>     good catch — ask the datamart team; defer as a risk for now
 ```
@@ -209,12 +209,8 @@ Analyze → draft from the matching template → fact-check pass → your format
   they're cheap. Rejecting a TDD costs minutes; rejecting a diff costs hours.
 - **Check ASSUMPTIONS.md when a gate presents it** — that's where the agent
   shows you what it decided on its own authority.
-- **In Copilot** the flow is identical once installed; three ways in, by
-  effort: (1) `copilot plugin install ./copilot` (or the repo URL) — the
-  ready-made plugin folder, no generator needed; skills load when your
-  request matches a stage ("start a new task from this brief") and the
-  reviewers are available via `/agent`; re-run the install after updating
-  the checkout (components are cached); (2) generate the repo-scoped
-  adapter for VS Code Chat `/stage` commands:
-  `python3 scripts/build_copilot.py --target <your-repo>`; (3) any
-  AGENTS.md-aware tool can follow the root `AGENTS.md` directly.
+- **CLI or VS Code** — the flow is identical in both once the plugin is
+  installed (README → Installation): the same skills, the same workspace
+  files, the same reviewer agents. Skills load when your request matches a
+  stage ("start a new task from this brief") or by name. A task started in
+  the CLI resumes in VS Code and vice versa — both read `work/DEMO-1/`.

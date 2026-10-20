@@ -8,7 +8,7 @@
 ## Handoff summary
 <!-- Written last, at this stage's gate, and updated in the same edit as any
      amendment. Later stages read ONLY this block unless they need a section's
-     detail. One line per ID; max 40 lines. Check: scripts/handoff.py check <file>. -->
+     detail. One line per ID; max 40 lines. Check: ses handoff check <file>. -->
 - Contract version: {n}
 - Approach: {two lines at most}
 - Components: §4.1 {repo}:{object} — {change}; §4.2 …

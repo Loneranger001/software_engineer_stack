@@ -6,9 +6,12 @@ argument-hint: "[task-id]"
 
 # /implement — execute the impl doc, verifiably
 
-> Path note: `${CLAUDE_PLUGIN_ROOT}` is this framework's root — the ancestor
-> directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
-> it automatically; other harnesses resolve it from this file's location.
+> Framework files: `<root>` is what `ses root` prints — run it once. Every
+> framework script runs as `ses <command>` (`ses help` lists them). If `ses`
+> is not on PATH, use `python3 <skill-dir>/../../bin/ses` in its place —
+> `<skill-dir>` is the folder this SKILL.md was loaded from — here and for
+> every `ses` below. If neither runs, stop and ask the user (README →
+> Install); never guess another path.
 
 Execute `<ws>/impl-doc.md` exactly: one step at a time, verified and
 committed before the next begins.
@@ -16,40 +19,38 @@ committed before the next begins.
 ## 0. Preamble
 
 1. Load applicable lessons:
-   `${CLAUDE_PLUGIN_ROOT}/scripts/lessons.sh implement --lang <languages the impl doc touches>`
+   `ses lessons implement --lang <languages the impl doc touches>`
    — the language filter pulls in verify-stage lessons for that code too.
 2. Locate the workspace and gate:
-   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/status.py require <ws> impl-plan=approved`
+   `ses status require <ws> impl-plan=approved`
    (`<ws>` = `<workspace-root>/work/<id>`) — non-zero exit = stop.
 3. Read the contract and impl-doc handoff summaries
-   (`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/handoff.py show <ws>/<doc>`) — not the whole documents.
+   (`ses handoff show <ws>/<doc>`) — not the whole documents.
    For each step, read only its row in impl-doc §2 and the TDD sections it
    cites. Also read the rules files of
-   every repo the impl doc changes (`${CLAUDE_PLUGIN_ROOT}/scripts/repo-rules.sh <repo>
+   every repo the impl doc changes (`ses repo-rules <repo>
    <files>`; paths from STATUS.md — see
-   `${CLAUDE_PLUGIN_ROOT}/core/repo-resolution.md`; git operations and test
+   `<root>/core/repo-resolution.md`; git operations and test
    runs execute with the step's own repo as their working directory).
    Also read ASSUMPTIONS.md — you are building on its ratified entries.
-4. Unknowns follow `${CLAUDE_PLUGIN_ROOT}/core/decision-protocol.md`. During
+4. Unknowns follow `<root>/core/decision-protocol.md`. During
    implementation the "no dangerous surface" rule bites hardest: coding
    judgment calls passing §2 → ASSUMPTIONS.md; any uncertainty about a
    data-changing statement, an external contract, or the approved design
    stops and asks — regardless of confidence.
-5. `status.py show <ws>` — a recorded `branch.<repo>` or `current-step` means
-   this is a RESUME. Run `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/checkpoint.py resume <ws>`: it
-   finds the last `<task-id> step <N>` checkpoint commit per repo, compares it
-   with `current-step`, checks each repo is on its recorded branch, and lists
-   every uncommitted file — as the next step's own files (a half-done step)
-   or UNEXPECTED.
-   - Exit 0 (CLEAN) → run `checkpoint.py verify <ws>`, then continue from
+5. `ses status show <ws>` — a recorded `branch.<repo>` means this is a
+   RESUME. Run `ses checkpoint resume <ws>`: it finds the last
+   `<task-id> step <N>` checkpoint commit per repo (the commits are the step
+   record — nothing else stores it), checks each repo is on its recorded
+   branch, and lists every uncommitted file — as the next step's own files
+   (a half-done step) or UNEXPECTED.
+   - Exit 0 (CLEAN) → run `ses checkpoint verify <ws>`, then continue from
      step N+1.
    - Exit 3 (NEEDS DECISION) → stop and show the user its report and the
      uncommitted changes (`git status`, `git diff`, untracked files'
      contents). Ask: keep the half-done work and finish step N+1, or discard
      it and redo the step. Never fold uncommitted work into a commit, stash
      it, or discard it without that answer — it may be the user's own edit.
-   - The commit log is the truth: if it disagrees with `current-step`, trust
-     the commits and re-record the field.
 
 ## 1. Branch setup (first run only)
 
@@ -58,16 +59,16 @@ committed before the next begins.
    work unasked.
 2. In each, create the branch named in the impl-doc from that repo's mainline.
 3. Record the branch per repo:
-   `status.py field <ws> branch.<repo-name> <branch> --log "branch created in <repo-name>"`,
-   then `status.py set <ws> implement=in-progress`.
+   `ses status field <ws> branch.<repo-name> <branch>`, then
+   `ses status set <ws> implement=in-progress`.
 4. **Commit-message preflight**, before the first checkpoint commit in each
    repo: inspect its `commit-msg` hook (`git -C <repo> config core.hooksPath`,
    else `.git/hooks/commit-msg`; also a `commit-msg` stage in
    `.pre-commit-config.yaml`) and adopt its exact format. Recent history and
    framework examples are not enough — the hook is what rejects the commit.
    Fit the checkpoint message into that format keeping the
-   `<task-id> step <N>` token intact (resume greps for it), and record it:
-   `status.py field <ws> commit-format.<repo-name> "<format>"`.
+   `<task-id> step <N>` token intact (resume greps for it). On a resume, the
+   branch's existing checkpoint commits show the format already in use.
 5. Repos in `<repo-set>` that the scope contract does NOT list as changing get
    no branch and no commits — they were analysis scope, not write scope.
 
@@ -76,38 +77,41 @@ committed before the next begins.
 For each impl-doc step N, in order:
 
 1. **Code** the step, in the repo the step names, following that repo's
-   rules files (`repo-rules.sh <repo> <files>` — nested AGENTS.md nearest
+   rules files (`ses repo-rules <repo> <files>` — nested AGENTS.md nearest
    the file wins), then the surrounding code's style, then
-   `${CLAUDE_PLUGIN_ROOT}/standards/`. Touch only the files the step
+   `<root>/standards/`. Touch only the files the step
    names — if the step turns out to need another file, update the impl-doc row
    first (append a note, don't rewrite history) and its `step <N>:` summary
    line.
 2. **Verify** using the step's verification column — invoke the /verify-code
    recipes for each changed file (live mode via `$SES_DB_CONN`/`$SES_KSH_HOST`/
    `$SES_PY` when reachable; static fallback otherwise, recorded as such).
-   Run each command through `${CLAUDE_PLUGIN_ROOT}/scripts/capture.sh` and
+   Run each command through `ses capture` and
    write `evidence/step<N>-<desc>.txt` from its summary using
-   `${CLAUDE_PLUGIN_ROOT}/templates/test-evidence.md`; the full output stays
+   `<root>/templates/test-evidence.md`; the full output stays
    in `evidence/raw/`.
 3. **On failure**: fix and re-verify. If the fix invalidates the design, STOP —
    report to the user, propose a TDD/impl-doc amendment, get approval before
    continuing. Never quietly diverge from the approved documents.
-4. **Checkpoint commit**: `git commit` the step **in the step's repo** with
-   message `<task-id> step <N>: <desc>` (inside the hook format from §1),
-   ending with the evidence hashes as their own paragraph —
-   `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/checkpoint.py trailer <ws> evidence/step<N>-<desc>.txt
-   evidence/raw/<its logs>` prints them (`git commit -m "<subject>" -m
-   "<trailer lines>"`). `work/` may live outside every repo; these lines put
-   proof of the evidence into git.
+4. **Checkpoint commit**: stage the step's own files by name
+   (`git -C <repo> add <files>` — never `git add -A` or `git add .`, which
+   would sweep in `work/` when it sits inside the repo), then `git commit`
+   the step **in the step's repo** with message `<task-id> step <N>: <desc>`
+   (inside the hook format from §1), ending with the evidence hashes as
+   their own paragraph — `ses checkpoint trailer <ws>
+   evidence/step<N>-<desc>.txt evidence/raw/<its logs>` prints them
+   (`git commit -m "<subject>" -m "<trailer lines>"`) and refuses while any
+   workspace file is staged. The workspace itself never goes into git; these
+   lines put proof of the evidence there instead.
    Never batch multiple steps into one commit, and never span repos in one
    step — a step belongs to exactly one repo so that its rollback is a single
-   revert.
-5. Record after every step — this is the resume point:
-   `status.py field <ws> current-step <N> --log "step <N> committed <sha>; evidence/step<N>-<desc>.txt"`.
+   revert. The commit IS the resume point; nothing else needs recording.
+   Track the loop in the harness's todo/plan tool if it has one — that is
+   in-session convenience; a new session resumes from the commits.
 
 ### Scope guard (continuous)
 
-Before each commit, check the diff (`review-diff.sh <repo> <mainline> HEAD`
+Before each commit, check the diff (`ses review-diff <repo> <mainline> HEAD`
 lists the changed files) against the scope contract's handoff summary (S#
 items, repos allowed to change): every changed file must map to
 an in-scope item via the impl-doc, and its repo must be one
@@ -119,35 +123,31 @@ notice along the way go to PARKED.md — even one-line "harmless" fixes.
 ## 3. Test plan execution
 
 After the last step, run the full impl-doc test plan (unit, integration,
-regression) through `capture.sh`, summary to `evidence/tests-<date>.txt`.
+regression) through `ses capture`, summary to `evidence/tests-<date>.txt`.
 Every acceptance criterion must reach PASS; failures loop back to the step
 loop.
 
 ## 4. Review gate
 
-1. Run the review procedure in `${CLAUDE_PLUGIN_ROOT}/agents/code-reviewer.md`
+1. Run the review procedure in `<root>/com.github.copilot/agents/code-reviewer.agent.md`
    on the branch of every changed repo (it reads the diff file by file via
-   `review-diff.sh`; one pass per repo, each
-   judged against that repo's own rules files) — as a subagent where the harness
-   supports it;
-   otherwise execute the procedure yourself as a separate, fresh review pass,
-   holding yourself to its report format. Resolve findings
+   `ses review-diff`; one pass per repo, each
+   judged against that repo's own rules files) — delegated per `<root>/core/reviewers.md`.
+   Resolve findings
    or record a conscious waiver (with the user for anything non-trivial).
-2. Self-check with `${CLAUDE_PLUGIN_ROOT}/checklists/implement.md`.
-3. Record the final commit per changed repo
-   (`status.py field <ws> final-commit.<repo-name> <sha>`), then
-   `status.py set <ws> implement=done --next "Run /deliver."`.
+2. Self-check with `<root>/checklists/implement.md`.
+3. Record: `ses status set <ws> implement=done --next "Run /deliver."`.
 
 ## Fault tolerance
 
-- The branch + checkpoint commits + STATUS.md + evidence/ ARE the recovery
-  state; keep all four current after every step.
-- A crashed session resumes losslessly: `checkpoint.py resume` shows exactly
+- The branch + checkpoint commits + evidence/ ARE the recovery state, with
+  STATUS.md naming the branches; keep them current after every step.
+- A crashed session resumes losslessly: `ses checkpoint resume` shows exactly
   what was committed and what was left half-done; worst case, one step's work
   is redone — by the user's choice, never silently.
-- Evidence is hashed into each checkpoint commit; `checkpoint.py verify`
+- Evidence is hashed into each checkpoint commit; `ses checkpoint verify`
   proves the evidence/ files a delivery cites are the ones that were
   recorded. A lost or edited evidence file is a finding, not a formality.
 - If the environment becomes unreachable mid-task, continue in static-fallback
   mode, mark affected evidence `mode: static-fallback`, and list the pending
-  live verifications as the next action (`status.py next <ws> "..."`).
+  live verifications as the next action (`ses status next <ws> "..."`).

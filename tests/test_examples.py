@@ -38,13 +38,6 @@ class UnderstandSplitTest(unittest.TestCase):
             self.assertNotIn(heading, skill)
         self.assertIn("explain=done", explain)
 
-    def test_generated_reference_files_are_path_substituted(self):
-        for copy in (ROOT / "copilot" / "skills" / "understand" / "explain.md",
-                     ROOT / ".github" / "skills" / "understand" / "explain.md"):
-            text = copy.read_text()
-            self.assertNotIn("${CLAUDE_PLUGIN_ROOT}", text, copy)
-            self.assertIn("scripts/status.py", text)
-
 
 if __name__ == "__main__":
     unittest.main()

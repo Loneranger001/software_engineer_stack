@@ -12,5 +12,5 @@ Run before presenting the implementation document for approval.
 - [ ] Evidence capture points are defined (which files land in evidence/)
 - [ ] No step implements anything outside the scope contract
 - [ ] ASSUMPTIONS.md reviewed — every open entry presented for ratification at this gate (decision-protocol §4)
-- [ ] `impl-plan=approved` is set (status.py) only after the user's explicit approval
-- [ ] Handoff summary written last and `scripts/handoff.py check` passes (every ID in the body is in the summary; contract version current)
+- [ ] `impl-plan=approved` is set (`ses status`) only after the user's explicit approval
+- [ ] Handoff summary written last and `ses handoff check` passes (every ID in the body is in the summary; contract version current)

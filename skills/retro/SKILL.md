@@ -6,22 +6,27 @@ argument-hint: "[task-id]"
 
 # /retro — the framework learns from the task
 
-> Path note: `${CLAUDE_PLUGIN_ROOT}` is this framework's root — the ancestor
-> directory of this file containing `plugin.json`/`skills/`. Claude Code resolves
-> it automatically; other harnesses resolve it from this file's location.
+> Framework files: `<root>` is what `ses root` prints — run it once. Every
+> framework script runs as `ses <command>` (`ses help` lists them). If `ses`
+> is not on PATH, use `python3 <skill-dir>/../../bin/ses` in its place —
+> `<skill-dir>` is the folder this SKILL.md was loaded from — here and for
+> every `ses` below. If neither runs, stop and ask the user (README →
+> Install); never guess another path.
 
 Every delivered task teaches something. This skill turns that into durable
-memory (`knowledge/lessons.md`) and, when warranted, into edits to the
-framework itself.
+memory (your lessons file, `ses lessons --path`) and, when warranted, into
+edits to the framework itself.
 
 ## 1. Gather the raw material
 
-1. Locate the workspace; read STATUS.md's log end-to-end (it records every
-   stage transition and stumble), PARKED.md, ASSUMPTIONS.md (corrected
-   entries = over-confidence, see decision-protocol §5), the evidence/
-   summaries (failed-then-fixed verifications are lessons; open `raw/` logs
-   only for a specific failure), and the conversation
-   context if available.
+1. Locate the workspace and read the task's history where it is recorded:
+   `ses status show <ws>` (gates with their dates and notes), each task
+   branch's commits (`git -C <repo> log --format='%h %ad %s' --date=short
+   <mainline>..<branch>`), the History tables and amendment notes of the
+   stage documents, PARKED.md, ASSUMPTIONS.md (corrected entries =
+   over-confidence, see decision-protocol §5), the evidence/ summaries
+   (failed-then-fixed verifications are lessons; open `raw/` logs only for a
+   specific failure), and the conversation context if available.
 2. Ask the user 2–3 pointed questions (batch them): What cost the most time?
    What did the framework get wrong or make awkward? What almost shipped
    wrong?
@@ -35,21 +40,27 @@ Good: "pkg_batch callers include cron entries under ops-repo/schedules —
 grep there too (missed in PROJ-123 impact analysis)".
 Bad: "impact analysis was hard".
 
-Append to `${CLAUDE_PLUGIN_ROOT}/knowledge/lessons.md` in its format:
+Append each lesson with `ses lessons --add '<line>'` — it checks the format
+and writes to your lessons file (`${SES_HOME:-~/.ses}/lessons.md`), which
+lives outside every install, survives plugin updates, and is read by every
+harness on this machine. Never append to `<root>/knowledge/lessons.md`: in an
+installed copy it is replaced on the next update. Format:
 
 ```markdown
 - [YYYY-MM-DD] [stage:<stage>] [lang:<plsql|sql|ksh|python|->] [repo:<name|->] <lesson> (task <id>)
 ```
 
 Rules:
-- Append-only; never rewrite or delete existing lessons here (pruning happens
+- Append-only; never rewrite or delete existing lessons (pruning happens
   in §4 curation with the user).
-- In the canonical framework repo, commit the appended lessons (with any §3
-  edits); `python3 scripts/check_knowledge.py` must pass. An uncommitted
-  lesson is lost with the clone.
-- Tag precisely — the tags are how other skills filter for relevance.
+- Tag precisely — the tags are how other skills filter for relevance;
+  `ses lessons --add` rejects a line whose tags the filter cannot match.
+- A lesson every user of the framework should get is promoted into the
+  framework checkout's `knowledge/lessons.md` (same line), committed there
+  with `python3 scripts/check_knowledge.py` passing — proposed to the user
+  like a §3 edit.
 - Repo-specific lessons that are really coding RULES belong in that repo's
-  own rules files (AGENTS.md, CODING_STANDARDS.md, … — `repo-rules.sh`
+  own rules files (AGENTS.md, CODING_STANDARDS.md, … — `ses repo-rules`
   lists them). Those files are the team's: propose the exact addition to the
   user for them to commit; never edit them as part of the retro.
 - Term resolutions that only made it into the grill log or conversation get
@@ -69,18 +80,21 @@ Where a lesson generalizes, propose the concrete edit — the actual diff, not
 Present proposals with the lesson that motivated each. Apply ONLY what the
 user approves — and apply it where it lasts:
 
-1. **Edit the canonical framework repo, never an install copy.** If
-   `${CLAUDE_PLUGIN_ROOT}/.generated` exists you are running from a GENERATED
-   copy (the `copilot/` plugin, or a work repo's `.github/se-stack/`) and any
-   skill/template/checklist edit there is overwritten by the next
-   `build_copilot.py` run. Ask the user for the software-engineer-stack
-   checkout and edit `skills/`, `agents/`, `templates/`, `checklists/`,
-   `core/`, `standards/`, or `scripts/` there. No checkout available → write
-   the approved diff to `<ws>/deliverables/framework-edits.patch` and
-   record the entry as pending (step 3), not applied.
-2. **Commit, regenerate, check** in the framework repo: commit the edit, run
-   `python3 scripts/build_copilot.py`, then
-   `python3 scripts/check_knowledge.py` — it must pass.
+1. **Edit the user's framework checkout, never an installed copy.** `<root>`
+   is that checkout only when it is a git working tree outside every plugin
+   cache (`~/.claude/plugins/`, `~/.copilot/`, `~/.codex/`); a marketplace
+   install is replaced on update and the edit would vanish. Otherwise ask
+   the user for the software-engineer-stack checkout and edit `skills/`,
+   `agents/`, `templates/`, `checklists/`, `core/`, `standards/`, or
+   `scripts/` there. No checkout available → write the approved diff to
+   `<ws>/deliverables/framework-edits.patch` and record the entry as pending
+   (step 3), not applied.
+2. **Commit and check** in the framework checkout: commit the edit, then run
+   `python3 scripts/check_knowledge.py` and the tests
+   (`python3 -m unittest discover -s tests`) — both must pass. A plugin
+   installed from GitHub picks the edit up once it is pushed and the plugin
+   is updated (README → Updating); one installed from the local checkout
+   reads it directly.
 3. **Record** under "Applied changes" in the framework repo's
    `knowledge/decisions.md`, naming every edited file by its repo-root path
    in backticks:
@@ -91,18 +105,15 @@ user approves — and apply it where it lasts:
    change that is approved but not yet in the framework repo is recorded as
    `- [YYYY-MM-DD] [pending-upstream] <change> — <where the patch is>`.
 
-Lessons are the exception to rule 1: a lesson appended to an install copy's
-`knowledge/lessons.md` survives rebuilds (they merge it back). Still tell the
-user to upstream lessons that apply beyond this install.
+## 4. Curation (when the lessons grow)
 
-## 4. Curation (when lessons.md grows)
-
-When lessons.md exceeds ~100 entries or contains contradictions, propose a
-curation pass to the user: merge duplicates, promote perennial lessons into
-checklists/templates (then retire the entry), archive stale ones to
-`knowledge/lessons-archive.md`. Curation always shows the user the diff.
+When your lessons file (or the framework's `knowledge/lessons.md`) exceeds
+~100 entries or contains contradictions, propose a curation pass to the user:
+merge duplicates, promote perennial lessons into checklists/templates (then
+retire the entry), archive stale ones to a `lessons-archive.md` beside the
+file. Curation always shows the user the diff.
 
 ## 5. Close
 
-`python3 ${CLAUDE_PLUGIN_ROOT}/scripts/status.py set <ws> retro=done` (`<ws>` = `<workspace-root>/work/<id>`). Summarize for the user: lessons recorded,
+`ses status set <ws> retro=done` (`<ws>` = `<workspace-root>/work/<id>`). Summarize for the user: lessons recorded,
 framework edits applied/declined.
