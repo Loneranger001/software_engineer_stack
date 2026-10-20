@@ -41,6 +41,9 @@ it only when a case here is ambiguous.
 4. Record via
    `ses new-task <task-id> auto <pipeline> <work-repo> <repo-set>`
    (`auto` = the workspace-root rule above; paths land absolutised).
+   Exit 3 = that task id already has a workspace for another work-repo or
+   pipeline, or under another root: show the user its message and ask —
+   same task → resume it (step 1), different task → a new id. Never pick.
 
 **Paths**
 - Repo-level files always prefixed: `<work-repo>/.domain-glossary.md`, never
