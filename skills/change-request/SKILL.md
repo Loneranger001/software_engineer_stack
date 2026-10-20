@@ -117,7 +117,7 @@ On approval: `ses status set <ws> mini-contract=approved --note "by <who>"`.
 
 1. Self-check `<root>/checklists/change-request.md`. For
    multi-file changes, also run the audit procedure in
-   `<root>/agents/scope-auditor.md` against the mini contract —
+   `<root>/com.github.copilot/agents/scope-auditor.agent.md` against the mini contract —
    delegated per `<root>/core/reviewers.md` — passing `analysis.md` as the contract.
 2. Short release note (template: release-notes.md, trimmed): change, deploy
    step, rollback step, evidence table.

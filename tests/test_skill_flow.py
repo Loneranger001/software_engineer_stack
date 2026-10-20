@@ -9,7 +9,7 @@ from importlib.util import module_from_spec, spec_from_loader
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-INSTRUCTION_DIRS = ("skills", "agents", "core", "checklists", "templates", "standards")
+INSTRUCTION_DIRS = ("skills", "com.github.copilot", "core", "checklists", "templates", "standards")
 
 
 def instruction_files():
@@ -20,7 +20,7 @@ def ses_commands():
     loader = SourceFileLoader("ses_cli", str(ROOT / "bin" / "ses"))
     mod = module_from_spec(spec_from_loader("ses_cli", loader))
     loader.exec_module(mod)
-    return set(mod.COMMANDS) | {"root", "setup", "help"}
+    return set(mod.COMMANDS) | {"root", "help"}
 
 # which skills drive which pipeline (a skill may serve several)
 PIPELINE_SKILLS = {
@@ -93,7 +93,7 @@ class FlowTest(unittest.TestCase):
         self.assertEqual(bad, [], "use `ses <command>` and <root>/… — they resolve in every harness")
 
     def test_files_using_root_or_ses_explain_them(self):
-        for f in list((ROOT / "skills").glob("*/SKILL.md")) + list((ROOT / "agents").glob("*.md")):
+        for f in list((ROOT / "skills").glob("*/SKILL.md")) + list((ROOT / "com.github.copilot" / "agents").glob("*.agent.md")):
             text = f.read_text()
             if "<root>/" in text or "`ses " in text:
                 self.assertIn("ses root", text, f"{f.relative_to(ROOT)} uses <root>/ses without the note")

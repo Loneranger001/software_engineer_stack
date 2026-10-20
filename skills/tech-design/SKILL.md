@@ -82,7 +82,7 @@ for HOW the scope will be met.
 
 1. Self-check with `<root>/checklists/tech-design.md`.
 2. Run the fact-check procedure in
-   `<root>/agents/doc-fact-checker.md` on tdd.md (it verifies
+   `<root>/com.github.copilot/agents/doc-fact-checker.agent.md` on tdd.md (it verifies
    every claim against the code) — delegated per `<root>/core/reviewers.md`. Resolve all
    findings.
 3. Write the TDD's **handoff summary** block now — after the fact-check

@@ -3,8 +3,8 @@
 An end-to-end software engineering lifecycle framework for PL/SQL, SQL, KSH,
 and Python codebases: brief → research → technical design → implementation
 plan → verified code → audited delivery, plus fast paths for change requests
-and documentation. The same `skills/` run in Claude Code, GitHub Copilot and
-Codex. Full docs: README.md.
+and documentation, packaged as a GitHub Copilot plugin (Claude Code and Codex
+packaging is parked in `parked/`). Full docs: README.md.
 
 ## How any agent uses it
 
@@ -45,17 +45,15 @@ Codex. Full docs: README.md.
    non-zero when a gate is not met). Checkpoint commits carry the step record
    and evidence hashes. Conversation history and in-session progress are the
    harness's job.
-5. The reviewers in `agents/` (scope-auditor, code-reviewer,
-   doc-fact-checker) run apart from the authoring session as
-   `<root>/core/reviewers.md` describes: the installed agent (Claude Code and
-   Copilot plugins ship them; Codex after `ses setup codex`), else a fresh
-   subagent, else a separate fresh pass held to the report format.
+5. The reviewers in `com.github.copilot/agents/` (scope-auditor,
+   code-reviewer, doc-fact-checker) run apart from the authoring session as
+   `<root>/core/reviewers.md` describes: the plugin's custom agent, else a
+   fresh subagent, else a separate fresh pass held to the report format.
 6. Task workspaces never go into git: `ses new-task` excludes `work/`
    locally when it sits inside a repo, commits stage files by name, and
    `ses checkpoint` refuses or fails on workspace files.
-7. Framework changes: edit `skills/`, `agents/`, `templates/`,
-   `checklists/`, `core/`, `standards/`, `scripts/`, `bin/`; a reviewer edit
-   is copied to `com.github.copilot/agents/<name>.agent.md`; a release bumps
-   the version in all three plugin manifests. CI and `.githooks/pre-commit`
+7. Framework changes: edit `skills/`, `com.github.copilot/agents/`,
+   `templates/`, `checklists/`, `core/`, `standards/`, `scripts/`, `bin/`; a
+   release bumps the version in `plugin.json`. CI and `.githooks/pre-commit`
    run `scripts/check_knowledge.py` and the tests in `tests/`. Nothing is
    generated.

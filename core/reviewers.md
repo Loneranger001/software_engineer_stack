@@ -1,15 +1,16 @@
 # Running a reviewer — scope-auditor, code-reviewer, doc-fact-checker
 
 The reviewers judge work without inheriting the author's context, so they run
-apart from the session that produced the work. Use the first option the
-harness offers:
+apart from the session that produced the work. Their procedures live in
+`<root>/com.github.copilot/agents/<name>.agent.md`, which the Copilot plugin
+also installs as custom agents. Use the first option the harness offers:
 
-1. **The installed agent of that name** — Claude Code plugin:
-   `software-engineer-stack:<name>`; Copilot plugin: `<name>`; Codex: `<name>`
-   when `ses setup codex` registered it.
-2. **A fresh subagent** (Claude Code's Agent tool, Copilot's task agent,
-   Codex's spawn_agent) told to read `<root>/agents/<name>.md` in full,
-   follow it exactly, and stay read-only.
+1. **The installed custom agent of that name** — `scope-auditor`,
+   `code-reviewer`, `doc-fact-checker` (in Copilot, delegate to it as a
+   subagent; the user can also pick it with `/agent`).
+2. **A fresh subagent** (the harness's task/subagent tool) told to read
+   `<root>/com.github.copilot/agents/<name>.agent.md` in full, follow it
+   exactly, and stay read-only.
 3. **No subagents at all** — run the procedure yourself as a separate, fresh
    pass: re-read every input from disk rather than from memory of writing it,
    and hold yourself to the report format.

@@ -129,7 +129,7 @@ loop.
 
 ## 4. Review gate
 
-1. Run the review procedure in `<root>/agents/code-reviewer.md`
+1. Run the review procedure in `<root>/com.github.copilot/agents/code-reviewer.agent.md`
    on the branch of every changed repo (it reads the diff file by file via
    `ses review-diff`; one pass per repo, each
    judged against that repo's own rules files) — delegated per `<root>/core/reviewers.md`.

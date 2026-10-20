@@ -1,6 +1,6 @@
 # Software Engineer Stack
 
-A skill framework for **Claude Code, GitHub Copilot and Codex** covering the full software engineering lifecycle for codebases spanning **PL/SQL, SQL, KSH, and Python**. It turns a solution design document or requirement brief into researched, designed, implemented, verified, and packaged deliverables — while staying **accurate, fault-tolerant, self-improving, and scope-disciplined**.
+A **GitHub Copilot** plugin covering the full software engineering lifecycle for codebases spanning **PL/SQL, SQL, KSH, and Python**. It turns a solution design document or requirement brief into researched, designed, implemented, verified, and packaged deliverables — while staying **accurate, fault-tolerant, self-improving, and scope-disciplined**.
 
 ## The lifecycle
 
@@ -39,65 +39,26 @@ flowchart LR
 
 ## Installation
 
-One repository installs as a plugin in all three harnesses. Each harness needs **two commands** and nothing else; Codex has one optional extra. Requirements: `python3` (3.9+), `git`, and a POSIX shell (macOS or Linux); `pandoc` only if you convert documents to Word/PDF/Confluence.
-
-### Claude Code
-
-```sh
-claude plugin marketplace add Loneranger001/software_engineer_stack
-claude plugin install software-engineer-stack@se-stack
-```
-
-Done. You get the 14 skills (invoked as `/software-engineer-stack:intake` and so on, or just by describing the work), the three reviewer agents, and the `ses` command on PATH.
-
-### GitHub Copilot CLI
+The framework is a **GitHub Copilot plugin**. One install serves both the Copilot CLI and VS Code's Copilot harness. Requirements: `python3` (3.9+), `git`, and a POSIX shell (macOS or Linux); `pandoc` only if you convert documents to Word/PDF/Confluence.
 
 ```sh
 copilot plugin marketplace add Loneranger001/software_engineer_stack
 copilot plugin install software-engineer-stack@se-stack
 ```
 
-Done. `copilot skill list` shows the 14 skills; `/agent` in a session shows the three reviewers.
+That is the whole setup. Check it with `copilot skill list` (14 plugin skills) and `/agent` in a session (the three reviewers: `scope-auditor`, `code-reviewer`, `doc-fact-checker`).
 
-### Codex
+- **VS Code:** plugins installed with the Copilot CLI live in `~/.copilot/installed-plugins/`, and VS Code picks them up automatically (Extensions view → **Agent Plugins - Installed**; agent plugins must be enabled with the `chat.plugins.enabled` setting). You can also install from inside VS Code by running the same two commands as `/plugin marketplace add …` and `/plugin install …` in a Copilot harness chat.
+- **Nothing else to set up.** Skills run framework scripts as `ses <command>`; Copilot doesn't put plugin executables on PATH, so each skill runs `bin/ses` from its own plugin folder. To use `ses` in your own terminal too: `ln -s ~/.copilot/installed-plugins/se-stack/software-engineer-stack/bin/ses ~/.local/bin/ses`.
+- **Nothing per work repo.** Nothing is copied into your repos, and task workspaces are kept out of git automatically ([details](#keeping-work-out-of-git)). Open Copilot in the repo you're changing — or in the folder holding several repos — and start with `/intake`, `/change-request`, `/understand`, … New here? Read the [narrated walkthrough](docs/walkthrough.md).
 
-```sh
-codex plugin marketplace add Loneranger001/software_engineer_stack
-codex plugin add software-engineer-stack@se-stack
-```
+**Updating:** `copilot plugin update software-engineer-stack` (in VS Code: the Agent Plugins view, or `/plugin update`).
 
-Done — the 14 skills appear as `software-engineer-stack:<name>`. **Optional:** Codex plugins can't ship custom agents yet, so without this step the skills run each reviewer as a generic subagent with the same procedure. To register them as named Codex agents with a read-only sandbox, run once (and again after each plugin update, since Codex keeps one folder per version):
+**Working on the framework itself:** install from your clone instead — `copilot plugin marketplace add ~/src/software_engineer_stack`, then the same install command. Copilot then loads the plugin live from the clone, so edits apply from the next session with no update step (VS Code doesn't see such local installs; use the CLI while developing).
 
-```sh
-python3 "$(ls -dt ~/.codex/plugins/cache/se-stack/software-engineer-stack/*/ | head -1)bin/ses" setup codex
-```
+**Cloud agents** (Copilot coding agent) check out only the repo and start fresh each time: the workspace is created inside the repo (and kept out of git), but it doesn't outlive the session — run lifecycle tasks locally.
 
-### What you don't need to set up
-
-- **`ses` on PATH.** Every skill runs framework scripts as `ses <command>`; where `ses` isn't on PATH (Copilot, Codex) the skill runs `bin/ses` from its own plugin folder instead. If you want `ses` by name in your own terminal, `ses setup <harness>` links it into `~/.local/bin`.
-- **Anything per work repo.** Nothing is copied into your repos. Open the harness in the repo you're changing — or in the folder holding several repos — and start with `/intake`, `/change-request`, `/understand`, … New here? Read the [narrated walkthrough](docs/walkthrough.md).
-- **`.gitignore` entries.** Task workspaces are kept out of git automatically — see [Keeping `work/` out of git](#keeping-work-out-of-git).
-
-### Updating
-
-```sh
-claude plugin marketplace update se-stack && claude plugin update software-engineer-stack@se-stack
-copilot plugin update software-engineer-stack
-codex plugin marketplace upgrade se-stack && codex plugin add software-engineer-stack@se-stack
-```
-
-### Without the plugin system
-
-To run straight from a clone (e.g. while editing the framework), link the skills and reviewers into the harness's user folders instead — skills are symlinks, so `git pull` updates them:
-
-```sh
-git clone https://github.com/Loneranger001/software_engineer_stack ~/src/software_engineer_stack
-python3 ~/src/software_engineer_stack/bin/ses setup codex --skills    # or: copilot | claude
-```
-
-Use one route per harness — a plugin plus `--skills` registers every skill twice. `ses setup <harness> --remove` undoes it; `--dry-run` shows the plan; it never replaces a file it didn't create.
-
-**Cloud agents** (Copilot coding agent, Codex cloud) check out only the repo and start fresh each time: the workspace is created inside the repo (and kept out of git), but it doesn't outlive the session — run lifecycle tasks locally.
+**Claude Code and Codex** packaging is parked, not deleted: the skills are harness-neutral, and [parked/README.md](parked/README.md) has the steps to revive either.
 
 ## Task workspaces
 
@@ -122,7 +83,7 @@ work/PROJ-123/                 (never committed — see "Keeping work/ out of gi
 
 A change request keeps `analysis.md` (impact analysis + mini contract) instead of the contract/TDD/impl doc; `/understand` keeps `interface-map.md`; `/document` keeps the document it writes.
 
-**Who keeps which state.** The harness owns the *session*: conversation history, its own resume (`claude --resume`, `codex resume`, `copilot --resume`), compaction, and in-session progress (todo/plan tools). The workspace owns the *task*: what was approved and when, what is in scope, what was assumed, what was built and proven. Nothing about the task lives only in chat, and nothing git or a stage document already records is duplicated into `STATUS.md` — it has no log and no step counter. A task started in one harness resumes in another.
+**Who keeps which state.** The harness owns the *session*: conversation history, its own resume (`copilot --resume`, or reopening the chat session in VS Code), compaction, and in-session progress (todo/plan tools). The workspace owns the *task*: what was approved and when, what is in scope, what was assumed, what was built and proven. Nothing about the task lives only in chat, and nothing git or a stage document already records is duplicated into `STATUS.md` — it has no log and no step counter. A task started in the CLI resumes in VS Code, and vice versa.
 
 `STATUS.md` is a dozen lines you can read at a glance:
 
@@ -228,7 +189,7 @@ The short version:
 
 ## Environment configuration for live verification
 
-Connection details are **never stored in this framework**. Verification recipes read them from the environment of the machine your harness (Claude Code, Copilot, Codex) runs on:
+Connection details are **never stored in this framework**. Verification recipes read them from the environment of the machine Copilot runs on:
 
 | Variable | Used for | Example |
 |---|---|---|
@@ -242,8 +203,7 @@ If a variable is unset or the environment is unreachable, `/verify-code` falls b
 
 ```
 bin/ses       the one command skills use: dispatches to scripts/, prints the root, installs per harness
-skills/       one directory per lifecycle command (SKILL.md each) — identical in every harness
-agents/       scope-auditor, code-reviewer, doc-fact-checker (read-only reviewers)
+skills/       one directory per lifecycle command (SKILL.md each) — harness-neutral
 templates/    canonical Markdown templates for every document type
 core/         decision-protocol.md (what to do when unknown), repo-resolution.md (where the files are —
               the rules card skills load; repo-resolution-rationale.md holds the why)
@@ -257,19 +217,19 @@ scripts/      what `ses` runs: status.py (gates), new-task.sh, list-repos.sh, wo
               check_knowledge.py (maintenance)
 tests/        unittest suite for ses, the scripts, and the skill wiring (run by CI and the pre-commit hook)
 examples/     sample work repo + a worked example task workspace
-.claude-plugin/     plugin.json + marketplace.json (Claude Code; Copilot reads this marketplace too)
-plugin.json         Agent Plugins 1.0 manifest (GitHub Copilot)
-com.github.copilot/agents/  the reviewers as Copilot NAME.agent.md files — exact copies of agents/
-.codex-plugin/      plugin.json (Codex);  .agents/plugins/marketplace.json (Codex marketplace)
+plugin.json         the Copilot plugin manifest (Agent Plugins 1.0)
+.github/plugin/marketplace.json   the marketplace `copilot plugin marketplace add` reads
+com.github.copilot/agents/        scope-auditor, code-reviewer, doc-fact-checker — read-only reviewer agents
+parked/             Claude Code and Codex packaging, inactive (parked/README.md: how to revive)
 ```
 
 ## Maintaining the framework
 
-Edit the canonical files — there is nothing generated to regenerate. Two things to keep in step, both enforced by `tests/test_plugin_manifests.py`: after editing a reviewer in `agents/`, copy it over its `com.github.copilot/agents/<name>.agent.md`; and when releasing, bump `version` in all three manifests (`.claude-plugin/plugin.json`, `plugin.json`, `.codex-plugin/plugin.json`) — installed plugins only update when it changes. Checks, in CI (`.github/workflows/framework-checks.yml`) and locally via the pre-commit hook (`git config core.hooksPath .githooks`, once per clone):
+Edit the canonical files — there is nothing generated to regenerate. When releasing, bump `version` in `plugin.json`; installed plugins show an update when it changes. Checks, in CI (`.github/workflows/framework-checks.yml`) and locally via the pre-commit hook (`git config core.hooksPath .githooks`, once per clone):
 
 - `python3 -m unittest discover -s tests` — includes `tests/test_skill_flow.py`, which fails on any instruction file that names a harness-specific path (`${CLAUDE_PLUGIN_ROOT}`) or a raw script path instead of `ses <command>`, references a `ses` command or `<root>/` file that doesn't exist, or breaks the stage wiring.
 - `python3 scripts/check_knowledge.py` — fails if a `knowledge/decisions.md` "Applied changes" entry names a file that has no commit on or after the entry's date (an edit recorded as applied but lost), or if a lesson line doesn't match the tag format skills filter on.
-- `claude plugin validate .` — the plugin and marketplace manifests, where the Claude Code CLI is available.
+- `tests/test_plugin_manifests.py` checks the Copilot manifest, marketplace and reviewer agents (and that the parked packaging stays valid but inactive).
 
 `/retro` follows the same rule: framework edits go into your checkout, never into an installed copy (a plugin cache is replaced on update); lessons go to `~/.ses/lessons.md`.
 

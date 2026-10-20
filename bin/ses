@@ -1,35 +1,20 @@
 #!/usr/bin/env python3
 """ses — the software-engineer-stack command line.
 
-Skills reach every framework script through this one command, so the same
-SKILL.md works in Claude Code, GitHub Copilot and Codex without knowing where
-the framework is installed. It finds its root by resolving its own real path
-(symlinks followed): a plugin cache, a checkout, or a link in ~/.local/bin.
-Skills that cannot find `ses` on PATH run it as <skill-dir>/../../bin/ses.
+Skills reach every framework script through this one command, so SKILL.md
+files never need to know where the plugin is installed. It finds its root by
+resolving its own real path (symlinks followed). Skills that cannot find
+`ses` on PATH — the usual case under GitHub Copilot — run it as
+<skill-dir>/../../bin/ses.
 
 Usage:
-  ses root                         print the framework root (templates/, core/, checklists/, ...)
-  ses <command> [args...]          run a framework script (commands below)
-  ses setup <harness> [options]    optional extras for claude | copilot | codex (see README):
-                                     - link `ses` into ~/.local/bin (skills then skip the fallback)
-                                     - codex: register the reviewers as Codex custom agents
-                                       (Codex plugins cannot ship agents)
-                                     - --skills: also link the skills and reviewers into the
-                                       harness's user folders, for use WITHOUT the plugin
+  ses root                 print the framework root (templates/, core/, checklists/, ...)
+  ses <command> [args...]  run a framework script (commands below)
   ses help
-
-Setup options:
-  --skills        link skills + reviewer agents too (no-plugin use from a checkout)
-  --remove        undo what setup created (only its own links and files)
-  --home DIR      base directory instead of $HOME (for testing)
-  --bin-dir DIR   where to link `ses` (default: <home>/.local/bin)
-  --dry-run       print what would change, change nothing
 """
 from __future__ import annotations
 
-import json
 import os
-import re
 import shutil
 import sys
 from pathlib import Path
@@ -55,15 +40,6 @@ COMMANDS = {
     "md2confluence": ("md2confluence.sh", "Markdown → Confluence wiki markup"),
 }
 
-# user-level folders each harness discovers skills and custom agents in
-HARNESSES = {
-    "claude": {"skills": ".claude/skills", "agents": ".claude/agents"},
-    "copilot": {"skills": ".copilot/skills", "agents": ".copilot/agents"},
-    "codex": {"skills": ".agents/skills", "agents": ".codex/agents"},
-}
-MARK = "written by `ses setup`"
-
-
 def usage(code: int = 0) -> int:
     print(__doc__.strip())
     print("\nCommands:")
@@ -83,126 +59,6 @@ def run_script(name: str, args: list[str]) -> int:
     return 127  # not reached
 
 
-def frontmatter(path: Path) -> dict[str, str]:
-    m = re.match(r"^---\n(.*?)\n---\n", path.read_text(encoding="utf-8"), re.S)
-    out = {}
-    for line in (m.group(1) if m else "").splitlines():
-        if ":" in line:
-            k, v = line.split(":", 1)
-            out[k.strip()] = v.strip().strip('"').strip("'")
-    return out
-
-
-def codex_agent(src: Path) -> str:
-    """A Codex custom agent whose instructions point at the canonical procedure."""
-    fm = frontmatter(src)
-    rel = src.relative_to(ROOT).as_posix()
-    body = (f"You are software-engineer-stack's {fm['name']} agent. You are read-only: report findings "
-            f"in your defined format and never modify files or repository state (shell only for "
-            f"read-only commands).\n\nYour procedure is {rel} under the framework root, which `ses root` "
-            f"prints. If `ses` is not on PATH, use the `ses` command and root your caller gave you; when "
-            f"this agent was set up the root was {ROOT}. Read the procedure in full now and follow it "
-            f"exactly.")
-    return (f"# {MARK}; `ses setup codex --remove` deletes it\n"
-            f"name = {json.dumps(fm['name'])}\n"
-            f"description = {json.dumps(fm['description'], ensure_ascii=False)}\n"
-            f"sandbox_mode = \"read-only\"\n"
-            f"developer_instructions = {json.dumps(body, ensure_ascii=False)}\n")
-
-
-def ours(path: Path) -> bool:
-    """A path setup may replace or remove: a symlink, or a file it wrote."""
-    if path.is_symlink():
-        return True
-    try:
-        return path.is_file() and MARK in path.read_text(encoding="utf-8", errors="ignore")
-    except OSError:
-        return False
-
-
-def plan(harness: str, home: Path, bin_dir: Path, skills: bool) -> list[tuple[Path, str, object]]:
-    """[(destination, kind, payload)] — kind is 'link' (payload: target) or 'file' (text)."""
-    h = HARNESSES[harness]
-    items: list[tuple[Path, str, object]] = [(bin_dir / "ses", "link", ROOT / "bin" / "ses")]
-    agents = sorted((ROOT / "agents").glob("*.md"))
-    if harness == "codex":
-        items += [(home / h["agents"] / f"{a.stem}.toml", "file", codex_agent(a)) for a in agents]
-    if skills:
-        items += [(home / h["skills"] / d.name, "link", d)
-                  for d in sorted((ROOT / "skills").iterdir()) if (d / "SKILL.md").is_file()]
-        if harness == "claude":
-            items += [(home / h["agents"] / a.name, "link", a) for a in agents]
-        elif harness == "copilot":
-            items += [(home / h["agents"] / f"{a.stem}.agent.md", "link",
-                       ROOT / "com.github.copilot" / "agents" / f"{a.stem}.agent.md") for a in agents]
-    return items
-
-
-def parse_opts(argv: list[str]) -> dict:
-    if not argv or argv[0] not in HARNESSES:
-        raise SystemExit(f"error: harness must be one of {', '.join(HARNESSES)}")
-    o = {"harness": argv[0], "home": Path.home(), "bin_dir": None, "dry": False,
-         "skills": False, "remove": False}
-    rest = argv[1:]
-    while rest:
-        opt = rest.pop(0)
-        if opt in ("--dry-run", "--skills", "--remove"):
-            o[{"--dry-run": "dry", "--skills": "skills", "--remove": "remove"}[opt]] = True
-        elif opt in ("--home", "--bin-dir") and rest:
-            o["home" if opt == "--home" else "bin_dir"] = Path(rest.pop(0)).expanduser().resolve()
-        else:
-            raise SystemExit(f"error: unknown or incomplete option {opt}")
-    o["bin_dir"] = o["bin_dir"] or o["home"] / ".local" / "bin"
-    return o
-
-
-def linked_skills(harness: str, home: Path) -> bool:
-    d = home / HARNESSES[harness]["skills"]
-    return d.is_dir() and any(p.is_symlink() and Path(os.path.realpath(p)).parent == ROOT / "skills"
-                              for p in d.iterdir())
-
-
-def setup(argv: list[str]) -> int:
-    o = parse_opts(argv)
-    harness, home, bin_dir, dry = o["harness"], o["home"], o["bin_dir"], o["dry"]
-    if o["remove"]:
-        keep_cli = any(linked_skills(h, home) or (h == "codex" and (home / HARNESSES[h]["agents"]).is_dir()
-                       and any(ours(p) for p in (home / HARNESSES[h]["agents"]).glob("*.toml")))
-                       for h in HARNESSES if h != harness)
-        for dest, _, _ in plan(harness, home, bin_dir, skills=True):
-            if dest == bin_dir / "ses" and keep_cli:
-                print(f"kept {dest} (another harness still uses it)")
-            elif (dest.is_symlink() or dest.exists()) and ours(dest):
-                print(f"{'would remove' if dry else 'removed'} {dest}")
-                if not dry:
-                    dest.unlink()
-        return 0
-    items = plan(harness, home, bin_dir, o["skills"])
-    blocked = [d for d, _, _ in items if (d.exists() or d.is_symlink()) and not ours(d)]
-    for d in blocked:
-        print(f"error: {d} exists and was not created by ses setup — move it aside first", file=sys.stderr)
-    if blocked:
-        return 1
-    for dest, kind, payload in items:
-        print(f"{'would link' if dry else 'linked'} {dest} -> {payload}" if kind == "link"
-              else f"{'would write' if dry else 'wrote'} {dest}")
-        if dry:
-            continue
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        if dest.is_symlink() or dest.exists():
-            dest.unlink()
-        if kind == "link":
-            dest.symlink_to(payload, target_is_directory=Path(payload).is_dir())
-        else:
-            dest.write_text(str(payload), encoding="utf-8")
-    if not any(Path(p).resolve() == bin_dir for p in os.environ.get("PATH", "").split(os.pathsep) if p):
-        print(f"note: {bin_dir} is not on PATH — add it to use `ses` by name (skills work either way)")
-    if "plugins" in ROOT.parts and "cache" in ROOT.parts:
-        print("note: this is a versioned plugin cache — run setup again after updating the plugin")
-    print(f"{harness}: {'dry run, nothing changed' if dry else 'set up'} from {ROOT}")
-    return 0
-
-
 def main(argv: list[str]) -> int:
     if not argv or argv[0] in ("help", "-h", "--help"):
         return usage(0)
@@ -210,8 +66,6 @@ def main(argv: list[str]) -> int:
     if cmd == "root":
         print(ROOT)
         return 0
-    if cmd == "setup":
-        return setup(rest)
     if cmd in COMMANDS:
         return run_script(cmd, rest)
     print(f"error: unknown command '{cmd}'", file=sys.stderr)

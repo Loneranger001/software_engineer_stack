@@ -39,7 +39,7 @@ audited against scope, evidenced, and converted to the formats the user needs.
 1. Resolve ASSUMPTIONS.md first: every `open` entry is presented to the user
    for ratification or correction (decision-protocol §4) — nothing ships on
    an unratified guess.
-2. Run the audit procedure in `<root>/agents/scope-auditor.md`
+2. Run the audit procedure in `<root>/com.github.copilot/agents/scope-auditor.agent.md`
    with: the scope contract, each changed repo's path, mainline and branch
    (the auditor reads the diff itself via `ses review-diff`) or the produced
    documents,

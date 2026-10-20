@@ -93,9 +93,8 @@ user approves — and apply it where it lasts:
    `python3 scripts/check_knowledge.py` and the tests
    (`python3 -m unittest discover -s tests`) — both must pass. A plugin
    installed from GitHub picks the edit up once it is pushed and the plugin
-   is updated (README → Updating); one installed from the local checkout, or
-   skills linked with `ses setup <harness> --skills`, read the checkout
-   directly.
+   is updated (README → Updating); one installed from the local checkout
+   reads it directly.
 3. **Record** under "Applied changes" in the framework repo's
    `knowledge/decisions.md`, naming every edited file by its repo-root path
    in backticks:

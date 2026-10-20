@@ -89,7 +89,7 @@ skill documents what the code DOES, not what anyone believes it does.
 ## 3. Fact-check gate
 
 1. Run the fact-check procedure in
-   `<root>/agents/doc-fact-checker.md` on the draft —
+   `<root>/com.github.copilot/agents/doc-fact-checker.agent.md` on the draft —
    delegated per `<root>/core/reviewers.md`. It re-verifies each claim against the code; resolve
    every finding (fix the doc or the fact table).
 2. `ses status set <ws> fact-check=done`.

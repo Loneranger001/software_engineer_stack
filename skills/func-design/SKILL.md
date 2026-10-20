@@ -207,7 +207,7 @@ and a clean lint does not excuse a step that fails the litmus test.
 
 1. Self-check with `<root>/checklists/func-design.md`.
 2. Run the fact-check procedure in
-   `<root>/agents/doc-fact-checker.md` on fdd.md —
+   `<root>/com.github.copilot/agents/doc-fact-checker.agent.md` on fdd.md —
    delegated per `<root>/core/reviewers.md`; pass the mode and, in change mode, the repo with
    `change-base`/`change-head`. Resolve every finding; fixes keep the
    functional level (a WRONG step is corrected in plain language, not
