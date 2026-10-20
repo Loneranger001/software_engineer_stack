@@ -61,8 +61,8 @@ session) with no memory of this conversation.
 
 ## 2. Test plan
 
-- Map every acceptance criterion A# to at least one test T#. A criterion
-  without a test is a planning failure.
+- Map every TDD §7 row — acceptance criterion A# and grill scenario G# — to
+  at least one test T#. A row without a test is a planning failure.
 - Reuse the repo's existing test tooling (utPLSQL, pytest, script harnesses —
   the rules files and `tooling:` lines from `ses repo-rules`); only introduce
   new tooling with user agreement.

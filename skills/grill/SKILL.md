@@ -22,20 +22,28 @@ proving which scenarios were confronted.
 
 1. Load applicable lessons: `ses lessons grill` — prior corrected
    assumptions and missed edge cases are exactly the scenarios to re-run.
-2. Locate the workspace and gate, by pipeline (`ses status get <ws> pipeline`;
+2. Fresh context: the session that wrote the TDD is anchored on its own
+   reasoning and grills it least hard. If this conversation authored the
+   target document, say so and recommend a fresh session (or `/clear`)
+   before Phase 1; if the user declines, note it in the grill log header.
+3. Locate the workspace and gate, by pipeline (`ses status get <ws> pipeline`;
    `<ws>` = `<workspace-root>/work/<id>`):
    - **full**: `ses status require <ws> tech-design=approved`.
-     Grilling an unapproved draft is fine if the user asks — record it in
-     the grill log's header ("grilled an unapproved TDD at user request").
+     Grilling an unapproved draft is fine if the user asks — skip the
+     `require` and record it in the grill log's header ("grilled an
+     unapproved TDD at user request").
    - **change-request** (see "Use on change requests"):
      `ses status require <ws> analyze=done`; the target is `analysis.md`.
-3. Read tdd.md and ASSUMPTIONS.md fully — they are what you attack. Read the
+4. Read tdd.md and ASSUMPTIONS.md fully — they are what you attack. Read the
    contract and research handoff summaries
    (`ses handoff show <ws>/<doc>`), opening a full section
-   when a scenario needs its detail. Also read the repo rules research
+   when a scenario needs its detail. With an approved functional design
+   (`<ws>/fdd.md`; approval in `ses status get <ws> fdd`), read its handoff
+   summary too — its business rules (BR#) and exceptions (EX#) are prime
+   scenario material. Also read the repo rules research
    recorded (`<work-repo>` from STATUS.md — see
    `<root>/core/repo-resolution.md`), and the affected code.
-4. Unknowns follow `<root>/core/decision-protocol.md`. In this
+5. Unknowns follow `<root>/core/decision-protocol.md`. In this
    skill the bias flips: the whole point is to ASK — proceed-and-log is
    reserved for trivia.
 
@@ -63,16 +71,34 @@ category; a category that truly cannot apply is marked `n/a` with a reason.
   full/file undeliverable, credentials expired
 - **Security/ops**: injection surfaces, missing grants, log noise vs silence,
   alerting on the new failure modes
+- **Deploy/rollback**: deploy while the batch is running, sessions holding
+  discarded package state (ORA-04068), dependents left INVALID after a
+  recompile, grants/synonyms lost on recreate, multi-repo deploy order and
+  the window between, rollback after a backfill or migration already ran
 
 For each scenario, answer FROM the TDD and the code — with a source reference
 (TDD §, file:line, or evidence). Decision-protocol §1 applies hard: if the
-code or dev DB can answer it, check it, don't reason about it. Verdicts:
+code or dev DB can answer it, check it, don't reason about it — run queries
+through `ses capture <ws>/evidence grill-<n> -- …` so the cited evidence can
+be re-run. Verdicts:
 
 - `covered` — the design handles it; cite where.
-- `gap-fixed` — a real gap the evidence can resolve without the user; EDIT
-  the TDD now (design section + a §7 Verification-approach row so it gets
-  tested), log the fix.
-- `ask-user` — needs domain or business knowledge the repo cannot provide.
+- `gap-fixed` — only when ALL hold: exactly one defensible behaviour (a repo
+  convention or an outright defect — cite it); the fix traces to an existing
+  S#/A#; and it passes decision-protocol §2 (reversible, no data-changing or
+  external-contract surface). EDIT the TDD now — design section, plus a §7
+  Verification-approach row keyed `G<n>` (its grill-log row) when testable,
+  so /impl-plan plans a test for it — and log the fix. Any choice between
+  behaviours (replace, reject or merge?) is `ask-user`, however obvious.
+- `ask-user` — needs domain or business knowledge the repo cannot provide,
+  or a design choice the evidence cannot settle.
+- `out-of-scope` — a real scenario the scope contract excludes; cite the
+  exclusion. No exclusion covers it and the design doesn't handle it →
+  `ask-user`, never assumed out.
+
+A scenario that research or tech-design should have caught (a caller
+missed, a claim that proves wrong) gets its stage in the log's "Upstream
+miss" column — /retro turns those into lessons.
 
 Also collect **terminology challenges**: any term the brief/TDD uses that has
 two defensible readings ("balance: ledger or available?"). Consult
@@ -88,24 +114,32 @@ Take the `ask-user` list and interview the user until it is EMPTY:
 - Ask as concrete scenarios with the real objects and a proposed default
   ("The extract reruns for a date that already has GBP rows — replace them,
   reject the run, or merge? Current design silently replaces (tdd §4.2).").
-- Group by theme; one theme at a time (through the harness's ask-user tool
-  where it has one, up to 4 questions per round). Do not dump twenty questions at once,
+- Group by theme; one theme at a time, highest blast radius first
+  (data-changing and external-contract questions lead, so whatever is left
+  when the user tires is cheap) — through the harness's ask-user tool
+  where it has one, up to 4 questions per round. Do not dump twenty questions at once,
   and do not stop at one round if answers spawn follow-ups — that's the
   grilling.
-- Every answer lands immediately: TDD design section updated, §7 row added
-  when testable, terminology recorded in the grill log (and the TDD overview
+- Every answer lands immediately: TDD design section updated, §7 `G<n>` row
+  added when testable, terminology recorded in the grill log (and the TDD overview
   if load-bearing). Resolved terms also update
   `<work-repo>/.domain-glossary.md` marked `user-confirmed` — that's how the next task
-  skips this question.
+  skips this question. An answer that changes a business rule or exception
+  of an approved FDD amends the FDD first, re-approved per /func-design
+  "Changes after approval"; the TDD follows it, never leads.
 - The user may DEFER a question ("accept the risk", "later CR") — record the
-  deferral verbatim in TDD §11 Risks with their ack, and in the grill log.
+  deferral verbatim in TDD §11 Risks (Mitigation: `accepted by <who> <date>:
+  "<their words>"`), in the grill log, and as a PARKED.md row (found during
+  grill), which is what /deliver's release notes and scope audit read — an
+  accepted risk is handed over, not forgotten.
   Deferred is a user decision; unanswered is not a terminal state.
 
 ## 3. Close the stage
 
 1. Self-check with `<root>/checklists/grill.md`.
 2. Every TDD edit (`gap-fixed`, user answers) updates the TDD's handoff
-   summary in the same edit; re-run `ses handoff check <ws>/tdd.md` before
+   summary in the same edit — its Verification line names every `G#` row,
+   which `ses handoff check <ws>/tdd.md` enforces like A#; re-run it before
    closing. If the grill materially changed the approved TDD, re-present the
    changed sections for approval (never silently edit an approved document).
 3. Record (full pipeline):

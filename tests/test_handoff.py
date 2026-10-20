@@ -131,6 +131,16 @@ class HandoffTest(unittest.TestCase):
         self.assertEqual(r.returncode, 1)
         self.assertIn("fdd.md: summary omits ID(s) the body defines or traces: FR2", r.stderr)
 
+    def test_grill_rows_in_tdd_verification_must_reach_summary(self):
+        self.write("scope-contract.md", CONTRACT.format(version=1))
+        self.write("tdd.md", "<!-- handoff:start -->\n- Contract version: 1\n- Verification: A1 → unit\n"
+                             "<!-- handoff:end -->\n\n## 7. Verification approach\n\n"
+                             "| Criterion (A#, or G# from /grill) | Test type | Sketch |\n|---|---|---|\n"
+                             "| A1 | unit | x |\n| G4 | regression | rerun |\n")
+        r = run("check", self.ws / "tdd.md")
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("omits ID(s) the body defines or traces: G4", r.stderr)
+
     def test_workspace_without_stage_documents_passes(self):
         self.write("analysis.md", "# CR analysis\n")
         r = run("check", self.ws)

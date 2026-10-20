@@ -15,7 +15,7 @@
 - Traceability: S1 → §4.1, §5
 - Data changes: {object — DDL one-liner, backfill yes/no} (§5)
 - Interface impact: {repo}:{caller} — {impact, one line} (§6)
-- Verification: A1 → {unit|integration|regression} (§7)
+- Verification: A1 → {unit|integration|regression}; G2 → {…} (§7)
 - Operational: {deploy/runtime one-liner} (§8)
 - Top risks: {one line each} (§11)
 <!-- handoff:end -->
@@ -95,8 +95,10 @@ repo in the analysis scope, not only the repo being changed.}
 
 <!-- Every acceptance criterion from the scope contract appears here. A
      criterion with no viable test blocks TDD approval — fix the design or
-     renegotiate the criterion. The detailed test plan lands in impl-doc §3. -->
-| Acceptance criterion | Test type (unit / integration / regression) | Sketch |
+     renegotiate the criterion. /grill adds G# rows (grill-log scenario #) for
+     the edge cases it closes; they get tests like any A#. The detailed test
+     plan lands in impl-doc §3. -->
+| Criterion (A#, or G# from /grill) | Test type (unit / integration / regression) | Sketch |
 |---|---|---|
 | A1 | {…} | {…} |
 
