@@ -108,8 +108,8 @@ you>  /grill
 
 Phase 1 runs without you: the agent stress-tests the TDD with concrete
 scenarios per category (data, lifecycle, interface, temporal, environment,
-security/ops) — fixing what the evidence can answer, logging everything to
-`grill-log.md`. Phase 2 is your interview; expect several short rounds:
+security/ops, deploy/rollback) — fixing what the evidence can answer, logging
+everything to `grill-log.md`. Phase 2 is your interview; expect several short rounds:
 
 ```
 copilot>  Lifecycle: the extract reruns for a date that already has GBP rows —

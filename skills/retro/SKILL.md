@@ -24,7 +24,9 @@ edits to the framework itself.
    branch's commits (`git -C <repo> log --format='%h %ad %s' --date=short
    <mainline>..<branch>`), the History tables and amendment notes of the
    stage documents, PARKED.md, ASSUMPTIONS.md (corrected entries =
-   over-confidence, see decision-protocol §5), the evidence/ summaries
+   over-confidence, see decision-protocol §5), grill-log.md rows with an
+   "Upstream miss" (a scenario an earlier stage should have caught), the
+   evidence/ summaries
    (failed-then-fixed verifications are lessons; open `raw/` logs only for a
    specific failure), and the conversation context if available.
 2. Ask the user 2–3 pointed questions (batch them): What cost the most time?

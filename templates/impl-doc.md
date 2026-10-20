@@ -48,7 +48,7 @@ deployments {what a caller sees} — {acceptable because … / mitigated by …}
 
 ### Unit / component tests
 
-| Test | Covers (acceptance criterion) | How run | Expected result |
+| Test | Covers (A# / G#) | How run | Expected result |
 |---|---|---|---|
 | T1 | A1 | {utPLSQL / pytest / ksh invocation} | {…} |
 
