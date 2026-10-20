@@ -68,6 +68,66 @@ class WorkspaceRootTest(unittest.TestCase):
         self.assertIn(f"- work-repo: {self.ws / 'repo-a'}", status)
         self.assertIn(f"- workspace-root: {self.ws}", status)
 
+    def test_new_task_reports_root_source(self):
+        r = sh("new-task.sh", "T-3", "auto", "full", self.ws / "repo-a")
+        self.assertIn(f"workspace root: {self.ws} (auto, from ses workspace-root)", r.stdout)
+        pinned = self.base / "pinned"
+        pinned.mkdir()
+        r = sh("new-task.sh", "T-4", "auto", "full", self.ws / "repo-a", env={"SES_WORKSPACE_ROOT": str(pinned)})
+        self.assertIn(f"workspace root: {pinned} (pinned by SES_WORKSPACE_ROOT)", r.stdout)
+
+
+class ExistingWorkspaceTest(unittest.TestCase):
+    """An existing task id resumes silently only when it is plainly the same task."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.ws = Path(self.tmp.name) / "apps"
+        for r in ("repo-a", "repo-b"):
+            git_init(self.ws / r)
+        r = sh("new-task.sh", "CHG-1", "auto", "full", self.ws / "repo-a")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.status = self.ws / "work" / "CHG-1" / "STATUS.md"
+        self.before = self.status.read_text()
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def test_same_repo_and_pipeline_resumes(self):
+        r = sh("new-task.sh", "CHG-1", "auto", "full", self.ws / "repo-a")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("workspace already exists", r.stderr)
+
+    def test_other_work_repo_asks(self):
+        r = sh("new-task.sh", "CHG-1", "auto", "full", self.ws / "repo-b")
+        self.assertEqual(r.returncode, 3)
+        self.assertIn("ASK THE USER", r.stderr)
+        self.assertIn(f"work-repo {self.ws / 'repo-a'}", r.stderr)
+        self.assertIn(f"work-repo {self.ws / 'repo-b'}", r.stderr)
+        self.assertEqual(self.status.read_text(), self.before)
+
+    def test_other_pipeline_asks(self):
+        r = sh("new-task.sh", "CHG-1", "auto", "change-request", self.ws / "repo-a")
+        self.assertEqual(r.returncode, 3)
+        self.assertIn("pipeline full", r.stderr)
+        self.assertEqual(self.status.read_text(), self.before)
+
+    def test_same_id_under_old_root_asks_instead_of_duplicating(self):
+        pinned = Path(self.tmp.name) / "pinned"
+        pinned.mkdir()
+        r = sh("new-task.sh", "CHG-1", "auto", "full", self.ws / "repo-a", env={"SES_WORKSPACE_ROOT": str(pinned)})
+        self.assertEqual(r.returncode, 3)
+        self.assertIn(str(self.ws / "work" / "CHG-1"), r.stderr)
+        self.assertFalse((pinned / "work").exists())
+
+    def test_legacy_workspace_inside_repo_asks(self):
+        legacy = self.ws / "repo-b" / "work" / "OLD-1"
+        legacy.mkdir(parents=True)
+        (legacy / "STATUS.md").write_text("# STATUS — OLD-1\n")
+        r = sh("new-task.sh", "OLD-1", "auto", "full", self.ws / "repo-b")
+        self.assertEqual(r.returncode, 3)
+        self.assertFalse((self.ws / "work" / "OLD-1").exists())
+
 
 class RepoRulesTest(unittest.TestCase):
     def setUp(self):
