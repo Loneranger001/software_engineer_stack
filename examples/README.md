@@ -1,11 +1,11 @@
 # Examples
 
-Two things live here:
+Three things live here:
 
 - **sample-repo/** — a miniature work repo in the framework's four languages
   (PL/SQL package, SQL DDL, KSH batch wrapper, Python reconciliation tool).
   Use it to try the framework end-to-end without touching a real repo:
-  open Claude Code in `sample-repo/`, then run
+  open Copilot (CLI or VS Code) in `sample-repo/`, then run
   `/intake ../sample-brief.md DEMO-1` and follow the pipeline.
 - **sample-brief.md** — a requirement brief for a small enhancement to the
   sample repo, written the way such briefs typically arrive (slightly

@@ -87,8 +87,8 @@ user approves — and apply it where it lasts:
    cache (`~/.claude/plugins/`, `~/.copilot/`, `~/.codex/`); a marketplace
    install is replaced on update and the edit would vanish. Otherwise ask
    the user for the software-engineer-stack checkout and edit `skills/`,
-   `agents/`, `templates/`, `checklists/`, `core/`, `standards/`, or
-   `scripts/` there. No checkout available → write the approved diff to
+   `com.github.copilot/agents/`, `templates/`, `checklists/`, `core/`,
+   `standards/`, or `scripts/` there. No checkout available → write the approved diff to
    `<ws>/deliverables/framework-edits.patch` and record the entry as pending
    (step 3), not applied.
 2. **Commit and check** in the framework checkout: commit the edit, then run

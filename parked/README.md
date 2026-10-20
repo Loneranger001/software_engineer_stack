@@ -7,7 +7,9 @@ rewrites. Their manifests are kept here, tested as valid JSON, and inactive:
 no harness looks inside `parked/`.
 
 Both were installed successfully with the real CLIs before being parked
-(commit `8e1e323`, version 0.8.0).
+(commit `8e1e323`, version 0.8.0). That commit is on PR #25's branch, not on
+main (the PR was squash-merged), so fetch it before using the steps below
+that cite it: `git fetch origin pull/25/head`.
 
 ## Revive Claude Code
 
