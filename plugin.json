@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "software-engineer-stack",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "End-to-end software engineering lifecycle framework for GitHub Copilot: intake, research, functional design, technical design, grill (adversarial design interrogation), implementation planning, coding with verification, delivery, change requests, and documentation — for PL/SQL, SQL, KSH, and Python codebases. Accurate (source-referenced docs, runnable verification), fault-tolerant (script-checked stage gates, checkpoint commits), self-improving (lessons, domain glossary), and scope-disciplined (scope contracts).",
   "author": {
     "name": "loneranger001"
