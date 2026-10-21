@@ -1,5 +1,6 @@
 """Tests for bin/ses: root resolution and script dispatch."""
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -65,6 +66,30 @@ class DispatchTest(unittest.TestCase):
             r = subprocess.run([sys.executable, str(link / ".." / ".." / "bin" / "ses"), "root"],
                                capture_output=True, text=True)
             self.assertEqual(r.stdout.strip(), str(ROOT), r.stderr)
+
+
+class NoExecBitTest(unittest.TestCase):
+    """An installer that drops file modes (Copilot's does) must not break the framework."""
+
+    def test_new_task_runs_without_any_exec_bit(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            fw = base / "plugin"
+            fw.mkdir()
+            for d in ("bin", "scripts"):
+                shutil.copytree(ROOT / d, fw / d)
+            for f in (fw / "bin").iterdir():
+                f.chmod(0o644)
+            for f in (fw / "scripts").iterdir():
+                f.chmod(0o644)
+            ws = base / "apps"                       # two repos: auto root goes through list-repos.sh
+            for r in ("repo-a", "repo-b"):
+                subprocess.run(["git", "init", "-q", str(ws / r)], check=True)
+            env = {k: v for k, v in os.environ.items() if k != "SES_WORKSPACE_ROOT"}
+            r = subprocess.run([sys.executable, str(fw / "bin" / "ses"), "new-task", "T-1", "auto", "full",
+                                str(ws / "repo-a")], capture_output=True, text=True, env=env)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertTrue((ws / "work" / "T-1" / "STATUS.md").is_file())
 
 
 if __name__ == "__main__":
