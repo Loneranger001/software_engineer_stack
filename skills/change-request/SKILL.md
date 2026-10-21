@@ -110,7 +110,7 @@ On approval: `ses status set <ws> mini-contract=approved --note "by <who>"`.
      `git add -A` / `git add .` — `work/` may sit inside the repo);
    - end each message with its evidence hash lines from
      `ses checkpoint trailer <ws> <evidence files>` (it refuses while any
-     workspace file is staged) (`git commit -m "<subject>" -m "<trailer lines>"`).
+     workspace file or `.domain-glossary.md` is staged) (`git commit -m "<subject>" -m "<trailer lines>"`).
    Then `ses status set <ws> verify=done`.
 
 ## 5. Deliver

@@ -54,7 +54,9 @@ committed before the next begins.
 
 ## 1. Branch setup (first run only)
 
-1. Ensure each repo the impl-doc changes is clean. If one isn't, show the
+1. Ensure each repo the impl-doc changes is clean — a pending
+   `.domain-glossary.md` edit aside: it stays uncommitted across the branch
+   switch (`<root>/core/repo-resolution.md` → Paths). If one isn't, show the
    user what is uncommitted and ask — never stash, commit, or discard their
    work unasked.
 2. In each, create the branch named in the impl-doc from that repo's mainline.
@@ -101,7 +103,7 @@ For each impl-doc step N, in order:
    their own paragraph — `ses checkpoint trailer <ws>
    evidence/step<N>-<desc>.txt evidence/raw/<its logs>` prints them
    (`git commit -m "<subject>" -m "<trailer lines>"`) and refuses while any
-   workspace file is staged. The workspace itself never goes into git; these
+   workspace file or `.domain-glossary.md` is staged. The workspace itself never goes into git; these
    lines put proof of the evidence there instead.
    Never batch multiple steps into one commit, and never span repos in one
    step — a step belongs to exactly one repo so that its rollback is a single

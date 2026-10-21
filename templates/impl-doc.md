@@ -25,7 +25,7 @@
 ## 1. Preconditions
 
 - [ ] TDD approved
-- [ ] Every repo this task changes is clean, with its branch created: `{repo → branch}`
+- [ ] Every repo this task changes is clean (a pending `.domain-glossary.md` edit aside), with its branch created: `{repo → branch}`
 - [ ] Repos changed here match the scope contract's "May change" column
 - [ ] Dev environment reachable ({SES_DB_CONN / SES_KSH_HOST as applicable}) — or static-fallback mode acknowledged
 - [ ] Rules files of every changed repo read (ses repo-rules <repo>) — or none exist and standards/ applies

@@ -10,6 +10,8 @@
 > - Business-semantic lines record who confirmed them and when; anything not
 >   yet confirmed is marked `unconfirmed`.
 > - Hand-edits by the user always win; skills merge, never overwrite.
+> - Skills never stage or commit this file: the user commits it on its own,
+>   apart from any task's step commits.
 > - A brief using a term differently from its entry is ALWAYS an open question
 >   (the brief may be wrong, or this file stale) — never silently pick a side.
 

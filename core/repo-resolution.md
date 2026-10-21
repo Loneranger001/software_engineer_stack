@@ -48,6 +48,9 @@ it only when a case here is ambiguous.
 **Paths**
 - Repo-level files always prefixed: `<work-repo>/.domain-glossary.md`, never
   bare.
+- The glossary is the repo's, not the task's: stages edit it but never stage
+  or commit it (a step's commit is its own rollback unit), and a pending edit
+  doesn't make a repo unclean. The user commits it on its own.
 - Task files: `<ws>/…`, where `<ws>` = `<workspace-root>/work/<task-id>`; a
   workspace-relative name like `evidence/` or `scope-contract.md` always
   means `<ws>/evidence/`, `<ws>/scope-contract.md` — never relative to cwd.

@@ -16,14 +16,18 @@ resume — per changed repo: recorded vs checked-out branch, the last
   NEXT step's file list from
   impl-doc.md §2 ("expected" = that step's own files, i.e. a half-done step;
   "unexpected" = anything else). It decides nothing: it shows the facts the
-  user needs to choose keep-and-continue or discard-and-redo.
+  user needs to choose keep-and-continue or discard-and-redo. A pending
+  .domain-glossary.md change is listed apart and needs no decision — stages
+  edit it but never commit it; staged, it would ride the next checkpoint
+  commit, so that needs one.
   Exit 0 = clean (resume at the next step); 3 = needs a decision.
 
 trailer — prints one `Evidence-SHA256: <sha256> <path>` line per file, path
   relative to <ws>. Add them as the last paragraph of the checkpoint commit
   message, so the hash of the step's evidence lives in git even though work/
-  stays out of every repository. Refuses (exit 1) while any file under work/
-  is staged in a recorded repo: workspaces never go into git.
+  stays out of every repository. Refuses (exit 1) while any file under work/,
+  or .domain-glossary.md, is staged in a recorded repo: workspaces never go
+  into git, and the glossary is committed apart from the task's steps.
 
 verify — reads every Evidence-SHA256 line on each recorded task branch and
   re-hashes the file. Exit 1 if any recorded evidence is missing or altered,
@@ -44,6 +48,7 @@ from status import Status, StatusError, resolve  # noqa: E402
 
 TRAILER_RE = re.compile(r"^Evidence-SHA256:\s*([0-9a-f]{64})\s+(\S.*?)\s*$", re.M)
 NEEDS_DECISION = 3
+GLOSSARY = ".domain-glossary.md"  # repo knowledge: edited by stages, committed only by the user
 
 
 def git(repo: Path, *args: str) -> str:
@@ -121,6 +126,10 @@ def dirty_files(repo: Path, ignore_prefix: str | None) -> list[str]:
     return out
 
 
+def staged_files(repo: Path) -> list[str]:
+    return git(repo, "diff", "--cached", "--name-only").splitlines()
+
+
 def cmd_resume(ws_arg: str) -> int:
     ws, st = load(ws_arg)
     repos = changed_repos(st)
@@ -152,10 +161,21 @@ def cmd_resume(ws_arg: str) -> int:
     for name, repo, branch, head, repo_last in report:
         rel_ws = os.path.relpath(ws, repo)
         dirty = dirty_files(repo, None if rel_ws.startswith("..") else Path(rel_ws).parts[0])
+        glossary = GLOSSARY in dirty
+        if glossary:
+            dirty.remove(GLOSSARY)
         expected = [d for d in dirty if name == nxt_repo and belongs(d, nxt_tokens)]
         unexpected = [d for d in dirty if d not in expected]
         print(f"- {name} ({repo}) branch {head}, last step here {repo_last or '-'}: "
               f"{len(dirty)} uncommitted file(s)")
+        if glossary and GLOSSARY in staged_files(repo):
+            print(f"    STAGED     {GLOSSARY}   (would ride the next checkpoint commit)")
+            problems.append(f"{name}: {GLOSSARY} is staged — unstage it "
+                            f"(git -C {repo} restore --staged {GLOSSARY}); the glossary is "
+                            f"committed apart from the task's steps")
+        elif glossary:
+            print(f"    glossary   {GLOSSARY}   (pending term entries — stays uncommitted; "
+                  f"the user commits it apart from the task)")
         for d in expected:
             print(f"    expected   {d}   (step {nxt}'s file — likely its half-done work)")
         for d in unexpected:
@@ -192,10 +212,15 @@ def cmd_trailer(ws_arg: str, files: list[str]) -> int:
     if not files:
         raise StatusError("trailer needs at least one evidence file")
     for name, (repo, _) in sorted(changed_repos(st).items()):
+        index = staged_files(repo)
+        if GLOSSARY in index:
+            raise StatusError(f"{name}: {GLOSSARY} is staged — unstage it "
+                              f"(git -C {repo} restore --staged {GLOSSARY}); the glossary is "
+                              f"committed apart from the task, never in a step's commit")
         prefix = work_prefix(ws, repo)
         if prefix is None:
             continue
-        staged = [p for p in git(repo, "diff", "--cached", "--name-only").splitlines() if under(p, prefix)]
+        staged = [p for p in index if under(p, prefix)]
         if staged:
             raise StatusError(f"{name}: workspace files are staged — unstage them "
                               f"(git -C {repo} restore --staged {prefix}) and stage only the step's own "

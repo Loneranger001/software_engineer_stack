@@ -85,6 +85,29 @@ class CheckpointTest(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stdout)
         self.assertIn("CLEAN — resume at step 2", r.stdout)
 
+    def test_pending_glossary_does_not_block_resume(self):
+        self.commit_step1()
+        (self.repo / ".domain-glossary.md").write_text("# Domain Glossary — repo-a\n")
+        r = self.cp("resume", self.ws)
+        self.assertEqual(r.returncode, 0, r.stdout)
+        self.assertIn("glossary   .domain-glossary.md", r.stdout)
+        self.assertIn("0 uncommitted file(s)", r.stdout)
+        self.assertIn("CLEAN — resume at step 2", r.stdout)
+
+    def test_staged_glossary_needs_decision_and_blocks_trailer(self):
+        self.commit_step1()
+        (self.repo / ".domain-glossary.md").write_text("# Domain Glossary — repo-a\n")
+        git(self.repo, "add", ".domain-glossary.md")
+        r = self.cp("resume", self.ws)
+        self.assertEqual(r.returncode, 3)
+        self.assertIn("STAGED     .domain-glossary.md", r.stdout)
+        self.assertIn("restore --staged .domain-glossary.md", r.stdout)
+        t = self.cp("trailer", self.ws, "evidence/step1-ddl.txt")
+        self.assertEqual(t.returncode, 1)
+        self.assertIn(".domain-glossary.md is staged", t.stderr)
+        git(self.repo, "restore", "--staged", ".domain-glossary.md")
+        self.assertEqual(self.cp("resume", self.ws).returncode, 0)
+
     def test_wrong_branch_checked_out_needs_decision(self):
         git(self.repo, "checkout", "-qb", "other")
         r = self.cp("resume", self.ws)

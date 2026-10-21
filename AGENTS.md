@@ -51,7 +51,9 @@ packaging is parked in `parked/`). Full docs: README.md.
    fresh subagent, else a separate fresh pass held to the report format.
 6. Task workspaces never go into git: `ses new-task` excludes `work/`
    locally when it sits inside a repo, commits stage files by name, and
-   `ses checkpoint` refuses or fails on workspace files.
+   `ses checkpoint` refuses or fails on workspace files. Stages edit
+   `<work-repo>/.domain-glossary.md` but never commit it; the user commits
+   it on its own.
 7. Framework changes: edit `skills/`, `com.github.copilot/agents/`,
    `templates/`, `checklists/`, `core/`, `standards/`, `scripts/`, `bin/`; a
    release bumps the version in `plugin.json`. CI and `.githooks/pre-commit`
