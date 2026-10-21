@@ -6,10 +6,10 @@ prevents: `<root>/core/repo-resolution-rationale.md` — read
 it only when a case here is ambiguous.
 
 **Names**
-- `<work-repo>` — repo the task changes (holds `.git` and
-  `.domain-glossary.md`).
-- `<workspace-root>` — directory holding `work/<task-id>/`: the folder holding
-  the repos in a multi-repo workspace, else the repo itself — always what
+- `<work-repo>` — repo the task changes (holds `.git`).
+- `<workspace-root>` — directory holding `work/<task-id>/` and the one domain
+  glossary, `work/domain-glossary.md`: the folder holding the repos in a
+  multi-repo workspace, else the repo itself — always what
   `ses workspace-root <work-repo>` prints
   (`$SES_WORKSPACE_ROOT` pins it).
 - `<repos-folder>` — folder the repos sit in (parent of `<work-repo>` when
@@ -46,11 +46,10 @@ it only when a case here is ambiguous.
    same task → resume it (step 1), different task → a new id. Never pick.
 
 **Paths**
-- Repo-level files always prefixed: `<work-repo>/.domain-glossary.md`, never
-  bare.
-- The glossary is the repo's, not the task's: stages edit it but never stage
-  or commit it (a step's commit is its own rollback unit), and a pending edit
-  doesn't make a repo unclean. The user commits it on its own.
+- Glossary: `<workspace-root>/work/domain-glossary.md`, never bare — one for
+  every repo and task, never per repo, and like `work/` never in git. A
+  legacy `<repo>/.domain-glossary.md` met along the way is merged into it
+  (entries tagged with that repo); tell the user the old file can go.
 - Task files: `<ws>/…`, where `<ws>` = `<workspace-root>/work/<task-id>`; a
   workspace-relative name like `evidence/` or `scope-contract.md` always
   means `<ws>/evidence/`, `<ws>/scope-contract.md` — never relative to cwd.
@@ -65,8 +64,9 @@ it only when a case here is ambiguous.
   -- <path>`). A recorded search row may be reused while that repo's sha is
   unchanged; re-search only repos whose sha moved.
 - Cite `<repo>:<path>:<line>`, never bare `file:line`.
-- Read each repo's own repo rules and `.domain-glossary.md`; the same term
-  meaning different things in two repos is a finding to raise.
+- Read each repo's own repo rules. A glossary term meaning different things
+  in two repos keeps one entry with a meaning per repo — and the difference
+  is a finding to raise.
 
 **Writing is confined to `<changed-repos>`**
 - It grows only through an approved scope-contract change; analysis finding

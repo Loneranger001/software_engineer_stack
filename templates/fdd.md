@@ -42,7 +42,7 @@
 {The business problem, who benefits, and what changes for them — two
 paragraphs at most, readable by someone who has not seen the brief.}
 
-Business terms relied on (see `<work-repo>/.domain-glossary.md`):
+Business terms relied on (see `<workspace-root>/work/domain-glossary.md`):
 {purchase order, approved, …} — the glossary entry is authoritative; this
 document does not re-define terms.
 

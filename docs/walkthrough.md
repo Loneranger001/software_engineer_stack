@@ -42,7 +42,7 @@ you>  /intake ../sample-brief.md DEMO-1
 The agent creates `work/DEMO-1/` (STATUS.md, ASSUMPTIONS.md, PARKED.md,
 evidence/), stores the brief, reads it fully, and classifies every statement:
 in-scope item, exclusion, constraint, or open question. Business terms the
-brief leans on ("balance", "extract") are looked up in `.domain-glossary.md`
+brief leans on ("balance", "extract") are looked up in `work/domain-glossary.md`
 first — known terms link their entry; unknown ones become research targets. Then it asks you the
 open questions in ONE batch — the sample brief is ambiguous on purpose, so
 expect something like:
@@ -124,7 +124,7 @@ you>     good catch — ask the datamart team; defer as a risk for now
 ```
 
 Answers land in the TDD immediately; deferrals go to §11 Risks verbatim.
-Resolved terminology also lands in `.domain-glossary.md` as `user-confirmed`,
+Resolved terminology also lands in `work/domain-glossary.md` as `user-confirmed`,
 so the next task never re-asks it. **Gate 3 passed** when nothing is left open.
 
 ## 5. /impl-plan — the executable recipe

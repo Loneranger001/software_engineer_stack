@@ -54,7 +54,7 @@ for HOW the scope will be met.
    repo follows that repo's rules, not the primary repo's; else
    `<root>/standards/<language>.md`): naming, error
    handling, logging, transaction boundaries. Business terms in the TDD
-   reference their `<work-repo>/.domain-glossary.md` entries (§1 Overview lists the terms
+   reference their `<workspace-root>/work/domain-glossary.md` entries (§1 Overview lists the terms
    relied on) rather than re-defining them.
 5. Draw the as-is and to-be mermaid flow diagrams from the research call
    graph — never from memory; the fact-checker verifies them against the code.

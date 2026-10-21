@@ -42,18 +42,17 @@ packaging is parked in `parked/`). Full docs: README.md.
    with a handoff summary), `scope-contract.md` (scope truth),
    `ASSUMPTIONS.md`, `PARKED.md`, `evidence/`, and a minimal `STATUS.md`
    whose gates are checked and set only with `ses status` (`require` exits
-   non-zero when a gate is not met). Checkpoint commits carry the step record
-   and evidence hashes. Conversation history and in-session progress are the
-   harness's job.
+   non-zero when a gate is not met). The one domain glossary, shared by every
+   repo and task, sits beside them as `work/domain-glossary.md`. Checkpoint
+   commits carry the step record and evidence hashes. Conversation history
+   and in-session progress are the harness's job.
 5. The reviewers in `com.github.copilot/agents/` (scope-auditor,
    code-reviewer, doc-fact-checker) run apart from the authoring session as
    `<root>/core/reviewers.md` describes: the plugin's custom agent, else a
    fresh subagent, else a separate fresh pass held to the report format.
 6. Task workspaces never go into git: `ses new-task` excludes `work/`
    locally when it sits inside a repo, commits stage files by name, and
-   `ses checkpoint` refuses or fails on workspace files. Stages edit
-   `<work-repo>/.domain-glossary.md` but never commit it; the user commits
-   it on its own.
+   `ses checkpoint` refuses or fails on workspace files.
 7. Framework changes: edit `skills/`, `com.github.copilot/agents/`,
    `templates/`, `checklists/`, `core/`, `standards/`, `scripts/`, `bin/`; a
    release bumps the version in `plugin.json`. CI and `.githooks/pre-commit`

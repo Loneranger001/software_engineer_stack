@@ -35,9 +35,7 @@ only (git diff/log/show, ls) — never commands that modify anything.
    changed file/hunk — skipped files included, since their presence alone
    can be a breach — identify the scope item it serves. Use the impl-doc's
    step table (full pipeline) as the claimed mapping, then verify the claim
-   against the actual hunks — don't take the doc's word. A
-   `.domain-glossary.md` change is repo knowledge, not scope: Notes, never
-   an unmapped change.
+   against the actual hunks — don't take the doc's word.
 3. **Scope → diff mapping**: for every in-scope item, confirm work exists that
    plausibly satisfies it, and every acceptance criterion has an evidence file
    with PASS.

@@ -25,7 +25,7 @@
 {What is being built/changed and why — one or two paragraphs, understandable by
 someone who has not read the brief.}
 
-Business terms relied on (see `<work-repo>/.domain-glossary.md`):
+Business terms relied on (see `<workspace-root>/work/domain-glossary.md`):
 {purchase order, approved, …} — the glossary entry is authoritative; this
 document does not re-define terms.
 

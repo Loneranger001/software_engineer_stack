@@ -66,10 +66,8 @@ Rules:
   lists them). Those files are the team's: propose the exact addition to the
   user for them to commit; never edit them as part of the retro.
 - Term resolutions that only made it into the grill log or conversation get
-  promoted to `<work-repo>/.domain-glossary.md` now (marked `user-confirmed`
+  promoted to `<workspace-root>/work/domain-glossary.md` now (marked `user-confirmed`
   with this task id) — glossary memory is the cheapest self-improvement there is.
-  Leave it uncommitted and tell the user it has edits for them to commit on
-  its own (`<root>/core/repo-resolution.md` → Paths).
 
 ## 3. Propose framework improvements (user-gated)
 

@@ -39,7 +39,7 @@ of the exercise, not an interruption.
   we rename this column") are answered by tracing the actual handling path;
   say clearly where the trace ends and reasoning beyond the evidence begins.
 - Business meanings confirmed along the way go into
-  `<work-repo>/.domain-glossary.md` (marked `from-code`, template:
+  `<workspace-root>/work/domain-glossary.md` (marked `from-code`, template:
   `<root>/templates/domain-glossary.md`) so the next task
   doesn't re-derive them.
 - Findings that suggest work — bugs, dead code, risky patterns — go to
@@ -48,9 +48,7 @@ of the exercise, not an interruption.
 ## 6. Close and hand off
 
 1. Make sure interface-map.md reflects everything learned, including Q&A
-   discoveries, and log remaining open questions in it. If
-   `<work-repo>/.domain-glossary.md` gained entries, tell the user — it stays
-   uncommitted for them to commit on its own.
+   discoveries, and log remaining open questions in it.
 2. Offer the natural next steps where they fit — a formal
    `/document understanding-doc` (its analyze stage reuses this map), a
    `/change-request`, or a full `/intake` — but don't push: understanding

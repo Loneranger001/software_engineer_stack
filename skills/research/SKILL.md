@@ -86,7 +86,7 @@ expand it:
    tables + key columns, state values, the code paths that implement its verbs
    ("approved" = which proc sets which status), entry points — each with
    evidence. Write/refresh the term's entry in
-   `<work-repo>/.domain-glossary.md` (template:
+   `<workspace-root>/work/domain-glossary.md` (template:
    `<root>/templates/domain-glossary.md`), marked `from-code`;
    pure business semantics the code can't prove stay open questions for the
    user.

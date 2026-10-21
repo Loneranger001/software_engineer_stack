@@ -13,9 +13,9 @@ Four things to resolve, and none of them is "the current directory":
 
 - **`<work-repo>`** — the repository whose code the task changes: the directory
   containing its `.git`. Its own rules files (AGENTS.md, CODING_STANDARDS.md,
-  … — listed by `ses repo-rules`) and the framework's
-  `.domain-glossary.md` live in it.
-- **`<workspace-root>`** — the directory holding `work/<task-id>/`. In a
+  … — listed by `ses repo-rules`) live in it.
+- **`<workspace-root>`** — the directory holding `work/<task-id>/` and the
+  workspace's one domain glossary, `work/domain-glossary.md`. In a
   multi-repo workspace it is the folder holding the repos, so task state sits
   beside the repos rather than inside one of them: a task usually spans
   several repos, and putting its workspace in one repo would make that repo
@@ -83,9 +83,9 @@ below and neither is guessed.
 
 ## Using them
 
-- Repo-level files are ALWAYS addressed with the prefix:
-  `<work-repo>/.domain-glossary.md`, and rules files through
-  `ses repo-rules <work-repo>`. Never bare
+- Files are ALWAYS addressed with their prefix: rules files through
+  `ses repo-rules <work-repo>`, the glossary as
+  `<workspace-root>/work/domain-glossary.md`. Never bare
   relative — the bare form is only correct when cwd happens to be the repo,
   which is exactly the assumption that breaks.
 - Task artifacts are always `<workspace-root>/work/<task-id>/…`.
@@ -126,10 +126,14 @@ Rules for cross-repo analysis:
    analysis to fewer repos ("ignore the archive repo"), that goes in the scope
    contract's out-of-scope table with the reason — never assumed because a
    repo looks unrelated. Per decision-protocol §3 this is scope-affecting.
-5. **Each repo answers in its own dialect.** Read the rules files and
-   `.domain-glossary.md` of each repo you analyze; the same term can mean
-   different things in two repos, and that mismatch is itself a finding worth
-   raising rather than smoothing over.
+5. **Each repo answers in its own dialect.** Read the rules files of each
+   repo you analyze. The same term can mean different things in two repos,
+   and that mismatch is itself a finding worth raising rather than smoothing
+   over — which is why the workspace keeps ONE glossary,
+   `work/domain-glossary.md`, holding every repo's meaning of a term in one
+   entry. Per-repo glossaries split that mismatch across files nobody
+   compared, and a glossary inside a repo had to be committed, which tangled
+   it with task branches; in `work/` it never reaches git.
 
 ## Writing is confined to the repos the contract names
 

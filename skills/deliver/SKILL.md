@@ -87,9 +87,7 @@ The documents must match what was actually built:
 
 1. Self-check with `<root>/checklists/deliver.md`.
 2. Report to the user: what was delivered, where (branch, deliverables/),
-   evidence summary, PARKED.md follow-ups — and any pending
-   `<work-repo>/.domain-glossary.md` edit (`git -C <work-repo> status --short
-   -- .domain-glossary.md`), which was not pushed: theirs to commit on its own.
+   evidence summary, PARKED.md follow-ups.
 3. Record: `ses status set <ws> deliver=done --next "Run /retro."`
 4. Prompt the user to run /retro while the task is fresh — it is how the
    framework improves.
