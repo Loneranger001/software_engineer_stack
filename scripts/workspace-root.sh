@@ -29,7 +29,7 @@ fi
 [ -d "$DIR" ] || { echo "error: not a directory: $DIR" >&2; exit 1; }
 ABS=$(cd "$DIR" && pwd)
 
-count_repos() { "$HERE/list-repos.sh" "$1" 2>/dev/null | grep -c . || true; }
+count_repos() { sh "$HERE/list-repos.sh" "$1" 2>/dev/null | grep -c . || true; }
 
 if REPO=$(git -C "$ABS" rev-parse --show-toplevel 2>/dev/null); then
   PARENT=$(dirname "$REPO")

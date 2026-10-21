@@ -44,7 +44,7 @@ fi
 [ -d "$REPO" ] || { echo "error: not a directory: $REPO" >&2; exit 1; }
 ROOT_FROM="passed explicitly"
 if [ "$ROOT" = auto ]; then
-  ROOT=$("$HERE/workspace-root.sh" "$REPO") || exit 1
+  ROOT=$(sh "$HERE/workspace-root.sh" "$REPO") || exit 1
   if [ -n "${SES_WORKSPACE_ROOT:-}" ]; then ROOT_FROM="pinned by SES_WORKSPACE_ROOT"
   else ROOT_FROM="auto, from ses workspace-root"; fi
 fi
@@ -166,7 +166,7 @@ fi
 # The same id under another root usually means the root resolves differently
 # than when the task began (SES_WORKSPACE_ROOT set since, or a pre-parent-folder
 # workspace inside the repo): creating here would start an empty duplicate.
-for ALT in "$(SES_WORKSPACE_ROOT='' "$HERE/workspace-root.sh" "$ABS_REPO" 2>/dev/null || true)" "$ABS_REPO"; do
+for ALT in "$(SES_WORKSPACE_ROOT='' sh "$HERE/workspace-root.sh" "$ABS_REPO" 2>/dev/null || true)" "$ABS_REPO"; do
   [ -n "$ALT" ] && [ "$ALT" != "$ABS_ROOT" ] && [ -e "$ALT/work/$TASK_ID/STATUS.md" ] || continue
   ask_user "a workspace exists at $ALT/work/$TASK_ID, but this run resolves the
   workspace root to $ABS_ROOT ($ROOT_FROM) and would create an empty one there."
