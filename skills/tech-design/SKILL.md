@@ -53,9 +53,12 @@ for HOW the scope will be met.
    (its rules files per `ses repo-rules` — a component designed for a sibling
    repo follows that repo's rules, not the primary repo's; else
    `<root>/standards/<language>.md`): naming, error
-   handling, logging, transaction boundaries. Business terms in the TDD
-   reference their `<work-repo>/.domain-glossary.md` entries (§1 Overview lists the terms
-   relied on) rather than re-defining them.
+   handling, logging, transaction boundaries. §1 Overview lists every
+   business term the TDD relies on, so the handed-over TDD reads on its own:
+   a global term with its `Meaning` line copied verbatim from
+   `<workspace-root>/work/domain-glossary.md` (never re-defined); a
+   repo-specific term — left out of the glossary — defined for its repo from
+   the research notes.
 5. Draw the as-is and to-be mermaid flow diagrams from the research call
    graph — never from memory; the fact-checker verifies them against the code.
 6. Data model changes always carry migration/backfill AND rollback.

@@ -45,7 +45,7 @@ what anyone (comments, wikis, the user, folklore) believes it does.
    `ses status field <ws> intent "<target — what the user wants to learn>"`.
    A specific question focuses where to go deep; it does not skip the trace,
    because answers given without the surrounding flow are how folklore starts.
-4. Read `<work-repo>/.domain-glossary.md` if present and the rules files
+4. Read `<workspace-root>/work/domain-glossary.md` if present and the rules files
    `ses repo-rules <work-repo>` lists — they hold knowledge
    already confirmed; never re-derive or re-ask what is established there.
    Use the full path / the script, not a bare filename: run from a parent

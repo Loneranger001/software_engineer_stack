@@ -79,7 +79,7 @@ the user has explicitly approved. Nothing downstream may begin before that appro
   user in one batch (through the harness's ask-user tool where it has one).
 - **Term inventory**: list every business/functional term the brief leans on
   ("purchase order", "approved", "settlement"), then look each up in
-  `<work-repo>/.domain-glossary.md`. Known terms: link the entry in the scope
+  `<workspace-root>/work/domain-glossary.md`. Known terms: link the entry in the scope
   contract instead of re-defining. Unknown terms: mark as research targets.
   A term the brief uses DIFFERENTLY from its glossary entry is ALWAYS an open
   question — the brief may be wrong or the glossary stale; never silently

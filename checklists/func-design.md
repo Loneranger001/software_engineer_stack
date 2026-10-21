@@ -15,7 +15,7 @@ Run before presenting the FDD for approval.
 - [ ] Actors, triggers, consumers, and interfaces come from the code and the cross-repo search, with "no other consumer" backed by the search that found none
 - [ ] Flow diagram is business-level and matches the traced flow (as-built) or the research call graph plus the change (forward)
 - [ ] Every statement about existing behaviour has an Appendix A row with a source reference
-- [ ] Business terms reference `<work-repo>/.domain-glossary.md` entries rather than re-defining them
+- [ ] §1 lists every business term relied on: global ones with their `Meaning` line copied verbatim from `<workspace-root>/work/domain-glossary.md` (none re-defined), repo-specific ones defined for their repo
 - [ ] No section dropped — "None" stated explicitly where nothing applies
 - [ ] Open Q# items answered, or explicitly deferred by the user and recorded in §13
 - [ ] doc-fact-checker ran on the FDD and its findings were resolved at the functional level

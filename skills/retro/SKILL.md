@@ -65,8 +65,9 @@ Rules:
   own rules files (AGENTS.md, CODING_STANDARDS.md, … — `ses repo-rules`
   lists them). Those files are the team's: propose the exact addition to the
   user for them to commit; never edit them as part of the retro.
-- Term resolutions that only made it into the grill log or conversation get
-  promoted to `<work-repo>/.domain-glossary.md` now (marked `user-confirmed`
+- Term resolutions that only made it into the grill log or conversation, and
+  that hold in every repo (the glossary takes global terms only), get
+  promoted to `<workspace-root>/work/domain-glossary.md` now (marked `user-confirmed`
   with this task id) — glossary memory is the cheapest self-improvement there is.
 
 ## 3. Propose framework improvements (user-gated)

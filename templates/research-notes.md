@@ -17,6 +17,7 @@
 - Callers: {repo-a}: {n} ({where}); {repo-b}: none (searched, command in §Cross-repo search record)
 - Data: {table} — {volume / key constraint}
 - Repo rules binding this change: {repo}: {file — the rule}
+- Repo-specific terms: {Upload: repo1 → TABLE1, repo2 → TABLE2; the brief means repo1's} | none
 - Risks: {one line each}
 - Blocking questions: {none | Q# one line}
 - Evidence: evidence/research-*.txt
@@ -54,6 +55,18 @@
 
 {Who calls the affected objects, what they call. Include the queries or grep
 commands used to establish this, so the result is reproducible.}
+
+### Business terms
+
+<!-- Every term intake marked as a research target, grounded in every repo. -->
+<!-- Same meaning in every repo → `global`: one row, also written to the -->
+<!-- glossary. Meaning differs by repo → one row per repo; it stays out of the -->
+<!-- glossary, and TDD/FDD §1 define it from here for the repo they concern. -->
+| Term | Scope | Meaning | Source |
+|---|---|---|---|
+| {Order} | global | {Order means purchase order; it exists in ORDHEAD (header) and ORDSKU (detail).} | {schema-repo:ddl/ordhead.sql:1} |
+| {Upload} | {repo1} | {loads the day's file into TABLE1} | {repo1:bin/upload.ksh:12} |
+| {Upload} | {repo2} | {loads the day's file into TABLE2} | {repo2:src/upload.py:40} |
 
 ### Repo rules that apply
 

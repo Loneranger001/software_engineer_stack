@@ -104,6 +104,18 @@ class FlowTest(unittest.TestCase):
             if (d / "SKILL.md").is_file():
                 self.assertIn(f"`skills/{d.name}/SKILL.md`", agents_md)
 
+    def test_one_glossary_per_workspace(self):
+        allowed = {"<workspace-root>/work/domain-glossary.md", "work/domain-glossary.md",
+                   "<root>/templates/domain-glossary.md"}
+        bad = []
+        for f in instruction_files():
+            for n, line in enumerate(f.read_text().splitlines(), 1):
+                for ref in re.findall(r"[^\s`(]*domain-glossary\.md", line):
+                    legacy = f.parent.name == "core" and ref == "<repo>/.domain-glossary.md"
+                    if ref not in allowed and not legacy:
+                        bad.append(f"{f.relative_to(ROOT)}:{n}: {ref}")
+        self.assertEqual(bad, [], "the glossary is <workspace-root>/work/domain-glossary.md, never per repo")
+
     def test_no_bare_task_paths_or_hand_edited_status(self):
         bad = []
         for f in (ROOT / "skills").rglob("*.md"):

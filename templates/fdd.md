@@ -42,9 +42,19 @@
 {The business problem, who benefits, and what changes for them — two
 paragraphs at most, readable by someone who has not seen the brief.}
 
-Business terms relied on (see `<work-repo>/.domain-glossary.md`):
-{purchase order, approved, …} — the glossary entry is authoritative; this
-document does not re-define terms.
+Business terms used in this document:
+
+<!-- One row per business term this document relies on, so it reads on its -->
+<!-- own when handed over. A global term: its `Meaning` line copied VERBATIM -->
+<!-- from <workspace-root>/work/domain-glossary.md, never paraphrased — the -->
+<!-- doc-fact-checker flags a row that differs. A term the glossary leaves -->
+<!-- out because its meaning differs by repo: define it here for the repo -->
+<!-- this document concerns, from the research notes, naming the repo. -->
+
+| Term | Meaning |
+|---|---|
+| {Order} | {Order means purchase order; it exists in ORDHEAD (header) and ORDSKU (detail).} |
+| {Upload (repo1)} | {repo1 only: loads the day's file into TABLE1} |
 
 ## 2. Scope
 

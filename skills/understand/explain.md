@@ -38,10 +38,10 @@ of the exercise, not an interruption.
 - "What if" questions ("what happens if the feed is late", "what breaks if
   we rename this column") are answered by tracing the actual handling path;
   say clearly where the trace ends and reasoning beyond the evidence begins.
-- Business meanings confirmed along the way go into
-  `<work-repo>/.domain-glossary.md` (marked `from-code`, template:
+- Business meanings confirmed along the way that hold in every repo go into
+  `<workspace-root>/work/domain-glossary.md` (marked `from-code`, template:
   `<root>/templates/domain-glossary.md`) so the next task
-  doesn't re-derive them.
+  doesn't re-derive them; a repo-specific meaning stays in interface-map.md.
 - Findings that suggest work — bugs, dead code, risky patterns — go to
   PARKED.md and are mentioned to the user; never act on them here.
 
