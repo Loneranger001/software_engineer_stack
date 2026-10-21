@@ -87,7 +87,8 @@ expand it:
    ("approved" = which proc sets which status), entry points — each with
    evidence. Write/refresh the term's entry in
    `<workspace-root>/work/domain-glossary.md` (template:
-   `<root>/templates/domain-glossary.md`), marked `from-code`;
+   `<root>/templates/domain-glossary.md`), marked `from-code`, with the
+   plain-language `Meaning` line TDDs and FDDs copy;
    pure business semantics the code can't prove stay open questions for the
    user.
 

@@ -6,6 +6,7 @@ Run before presenting the TDD for approval.
 - [ ] Nothing in the design implements an out-of-scope/non-goal item
 - [ ] If an approved FDD exists: every FR# is traced, and no section contradicts its business rules (BR#) or exceptions (EX#) — a needed departure was re-approved as an FDD amendment
 - [ ] Every claim about existing behaviour carries a source reference (file:line, query, doc)
+- [ ] §1 Overview lists every business term relied on with its `Meaning` line copied verbatim from `<workspace-root>/work/domain-glossary.md` — none re-defined
 - [ ] Interface impact analysis is backed by the research call graph — "no callers affected" is proven, not assumed
 - [ ] Data model changes include migration/backfill AND rollback for each object
 - [ ] Design follows the conventions of the repo each component lands in (or standards/ defaults where that repo is silent)

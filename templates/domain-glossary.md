@@ -20,6 +20,7 @@
 
 ## {term, e.g. purchase order}
 
+- Meaning: {one plain-language line a business reader understands, no table or code names — TDDs and FDDs copy it verbatim} — `Meaning (<repo>)` per repo only where the business meaning itself differs
 - System meaning ({repo}): {row in PO_HEADER (+PO_LINES), keyed by po_id (procurement:src/sql/po_header.sql:3)} — one line per repo where it differs
 - States: {PO_HEADER.status ∈ DRAFT|SUBMITTED|APPROVED|CANCELLED (procurement:src/sql/po_header.sql:14)}
 - Key semantics: {"approved" mechanically = pkg_po.approve_po sets status +

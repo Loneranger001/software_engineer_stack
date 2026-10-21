@@ -54,8 +54,10 @@ for HOW the scope will be met.
    repo follows that repo's rules, not the primary repo's; else
    `<root>/standards/<language>.md`): naming, error
    handling, logging, transaction boundaries. Business terms in the TDD
-   reference their `<workspace-root>/work/domain-glossary.md` entries (§1 Overview lists the terms
-   relied on) rather than re-defining them.
+   come from `<workspace-root>/work/domain-glossary.md`: §1 Overview lists
+   each with its entry's `Meaning` line copied verbatim, so the handed-over
+   TDD reads on its own — never re-defined; a term the glossary lacks goes
+   there first.
 5. Draw the as-is and to-be mermaid flow diagrams from the research call
    graph — never from memory; the fact-checker verifies them against the code.
 6. Data model changes always carry migration/backfill AND rollback.

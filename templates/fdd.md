@@ -42,9 +42,18 @@
 {The business problem, who benefits, and what changes for them — two
 paragraphs at most, readable by someone who has not seen the brief.}
 
-Business terms relied on (see `<workspace-root>/work/domain-glossary.md`):
-{purchase order, approved, …} — the glossary entry is authoritative; this
-document does not re-define terms.
+Business terms used in this document:
+
+<!-- One row per business term this document relies on, its Meaning copied -->
+<!-- VERBATIM from the entry's `Meaning` line in -->
+<!-- <workspace-root>/work/domain-glossary.md, so the document reads on its -->
+<!-- own when handed over. The glossary stays authoritative: never paraphrase -->
+<!-- or re-define here; a term it lacks is added there first. The -->
+<!-- doc-fact-checker flags a row that differs from its entry. -->
+
+| Term | Meaning |
+|---|---|
+| {purchase order} | {copied verbatim from the glossary entry's Meaning line} |
 
 ## 2. Scope
 
