@@ -220,7 +220,7 @@ One more variable, not for verification: `SES_WORKSPACE_ROOT` (an existing direc
 ## Repository layout
 
 ```
-bin/ses       the one command skills use: dispatches to scripts/, prints the root, installs per harness
+bin/ses       the one command skills use: dispatches to scripts/, prints the root
 skills/       one directory per lifecycle command (SKILL.md each) — harness-neutral
 templates/    canonical Markdown templates for every document type
 core/         decision-protocol.md (what to do when unknown), repo-resolution.md (where the files are —
