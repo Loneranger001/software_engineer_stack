@@ -27,16 +27,17 @@ someone who has not read the brief.}
 
 Business terms used in this document:
 
-<!-- One row per business term this document relies on, its Meaning copied -->
-<!-- VERBATIM from the entry's `Meaning` line in -->
-<!-- <workspace-root>/work/domain-glossary.md, so the document reads on its -->
-<!-- own when handed over. The glossary stays authoritative: never paraphrase -->
-<!-- or re-define here; a term it lacks is added there first. The -->
-<!-- doc-fact-checker flags a row that differs from its entry. -->
+<!-- One row per business term this document relies on, so it reads on its -->
+<!-- own when handed over. A global term: its `Meaning` line copied VERBATIM -->
+<!-- from <workspace-root>/work/domain-glossary.md, never paraphrased — the -->
+<!-- doc-fact-checker flags a row that differs. A term the glossary leaves -->
+<!-- out because its meaning differs by repo: define it here for the repo -->
+<!-- this document concerns, from the research notes, naming the repo. -->
 
 | Term | Meaning |
 |---|---|
-| {purchase order} | {copied verbatim from the glossary entry's Meaning line} |
+| {Order} | {Order means purchase order; it exists in ORDHEAD (header) and ORDSKU (detail).} |
+| {Upload (repo1)} | {repo1 only: loads the day's file into TABLE1} |
 
 ## 2. Requirements traceability
 

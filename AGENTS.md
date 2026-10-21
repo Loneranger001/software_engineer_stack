@@ -42,8 +42,8 @@ packaging is parked in `parked/`). Full docs: README.md.
    with a handoff summary), `scope-contract.md` (scope truth),
    `ASSUMPTIONS.md`, `PARKED.md`, `evidence/`, and a minimal `STATUS.md`
    whose gates are checked and set only with `ses status` (`require` exits
-   non-zero when a gate is not met). The one domain glossary, shared by every
-   repo and task, sits beside them as `work/domain-glossary.md`. Checkpoint
+   non-zero when a gate is not met). The one domain glossary — only terms whose
+   meaning holds in every repo — sits beside them as `work/domain-glossary.md`. Checkpoint
    commits carry the step record and evidence hashes. Conversation history
    and in-session progress are the harness's job.
 5. The reviewers in `com.github.copilot/agents/` (scope-auditor,

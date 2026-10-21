@@ -122,9 +122,9 @@ Take the `ask-user` list and interview the user until it is EMPTY:
   grilling.
 - Every answer lands immediately: TDD design section updated, §7 `G<n>` row
   added when testable, terminology recorded in the grill log (and the TDD overview
-  if load-bearing). Resolved terms also update
+  if load-bearing). Resolved terms that hold in every repo also update
   `<workspace-root>/work/domain-glossary.md` marked `user-confirmed` — that's how the next task
-  skips this question. An answer that changes a business rule or exception
+  skips this question; a repo-specific answer stays in the TDD and grill log. An answer that changes a business rule or exception
   of an approved FDD amends the FDD first, re-approved per /func-design
   "Changes after approval"; the TDD follows it, never leads.
 - The user may DEFER a question ("accept the risk", "later CR") — record the

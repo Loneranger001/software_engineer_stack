@@ -40,11 +40,14 @@ inspection only.
    but listed for visibility).
 4. Check business-term usage against the workspace glossary,
    `<workspace-root>/work/domain-glossary.md` (`workspace-root` from the
-   task's STATUS.md, not the caller's cwd), when present — the meaning for
-   the repo each claim concerns: a document using a term contrary to its
-   user-confirmed glossary entry, or a business-terms row whose meaning is not
-   its entry's `Meaning` line verbatim, is a finding (report as STALE-REF, naming the entry) — one
-   of the two is wrong, and the author must reconcile them.
+   task's STATUS.md, not the caller's cwd), when present: a document using a
+   term contrary to its user-confirmed entry, or a business-terms row for a
+   glossary term that is not its `Meaning` line verbatim, is a finding (report
+   as STALE-REF, naming the entry) — one of the two is wrong, and the author
+   must reconcile them. A row for a term the glossary leaves out is a claim
+   like any other, checked against the code of the repo it names; code in any
+   repo contradicting a glossary entry is a finding too — the entry is not
+   global.
 5. Spot-check the inverse: skim the referenced code for important behaviour
    the doc omits or contradicts (e.g. an error path the doc's flow ignores).
 6. For a functional design (fdd.md), its plain-language steps are claims too:

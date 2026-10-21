@@ -1,31 +1,30 @@
 # Domain Glossary — {workspace}
 
-> Business terms mapped to what they ARE in each repo of this workspace. One
-> file for every repo and task: `<workspace-root>/work/domain-glossary.md`,
-> beside the task workspaces and, like them, never in git. Consulted by
+> Global business terms: what a term means in EVERY repo of this workspace.
+> One file, `<workspace-root>/work/domain-glossary.md`, beside the task
+> workspaces and, like them, never in git. Read by
 > intake/research/func-design/tech-design/grill/understand BEFORE a term is
-> investigated or asked; appended to by whichever stage resolves a term. Rules:
+> investigated or asked. Rules:
 >
-> - Mechanical claims (tables, states, code paths) carry a source reference,
->   `<repo>:<path>:<line>` — glossary entries are checkable facts
->   (decision-protocol §1).
-> - A term that means different things in two repos keeps ONE entry with a
->   `System meaning (<repo>)` line per repo; the difference is a finding to
->   raise, never smoothed over.
-> - Business-semantic lines record who confirmed them and when; anything not
->   yet confirmed is marked `unconfirmed`.
+> - Be selective. A term goes in only if its meaning holds in every repo —
+>   checked across all of them (`ses search`), never assumed from one. A
+>   meaning that varies by repo ("upload" loads one table in repo1, another in
+>   repo2) stays OUT: the task that needs it defines it per repo in its
+>   research notes and design documents, cited `<repo>:<path>:<line>`.
+> - Each entry is one functional statement — what the term means and where it
+>   lives — which TDDs and FDDs copy verbatim. Facts in it carry a source
+>   reference: entries are checkable (decision-protocol §1).
+> - A repo found using a listed term differently means the entry is not
+>   global after all: raise it with the user, who corrects or removes it.
+> - `Resolved` records who confirmed the meaning and when; anything not yet
+>   confirmed is `unconfirmed`.
 > - Hand-edits by the user always win; skills merge, never overwrite.
 > - A brief using a term differently from its entry is ALWAYS an open question
 >   (the brief may be wrong, or this file stale) — never silently pick a side.
 
-## {term, e.g. purchase order}
+## {Order}
 
-- Meaning: {one plain-language line a business reader understands, no table or code names — TDDs and FDDs copy it verbatim} — `Meaning (<repo>)` per repo only where the business meaning itself differs
-- System meaning ({repo}): {row in PO_HEADER (+PO_LINES), keyed by po_id (procurement:src/sql/po_header.sql:3)} — one line per repo where it differs
-- States: {PO_HEADER.status ∈ DRAFT|SUBMITTED|APPROVED|CANCELLED (procurement:src/sql/po_header.sql:14)}
-- Key semantics: {"approved" mechanically = pkg_po.approve_po sets status +
-  approval_dt; two-level rule >50k EUR in pkg_po.check_approval_limit (procurement:pkg_po.pkb:212)}
-- Entry points: {pkg_po.approve_po; bin/po_batch_approve.ksh}
-- Aliases / traps: {PO; "order" means THIS in procurement briefs but
-  SALES_ORDER in fulfillment briefs}
+- Meaning: {Order means purchase order; it exists in ORDHEAD (header) and ORDSKU (detail).}
+- Source: {schema-repo:ddl/ordhead.sql:1, schema-repo:ddl/ordsku.sql:1}
+- Aliases: {PO, purchase order}
 - Resolved: {task-id (date, user-confirmed | from-code | unconfirmed)}

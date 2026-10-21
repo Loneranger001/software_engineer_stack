@@ -85,8 +85,9 @@ One template for all modes (`<root>/templates/fdd.md`):
    who will read it — and record it (`ses status field <ws> doc-scope "..."`).
    Attached forward mode inherits the contract's scope instead.
 4. Read `<workspace-root>/work/domain-glossary.md` (§1 lists each business
-   term with its entry's `Meaning` line copied verbatim — never re-defined)
-   and the rules files `ses repo-rules <work-repo>`
+   term: a global one with its `Meaning` line copied verbatim, never
+   re-defined; a repo-specific one defined for its repo from the research
+   notes) and the rules files `ses repo-rules <work-repo>`
    lists. If they — or the user, with a client-mandated FDD template —
    prescribe a format, map the content onto it and record the choice
    (`ses status field <ws> doc-format "..."`); the abstraction rules still

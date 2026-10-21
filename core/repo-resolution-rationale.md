@@ -129,11 +129,14 @@ Rules for cross-repo analysis:
 5. **Each repo answers in its own dialect.** Read the rules files of each
    repo you analyze. The same term can mean different things in two repos,
    and that mismatch is itself a finding worth raising rather than smoothing
-   over — which is why the workspace keeps ONE glossary,
-   `work/domain-glossary.md`, holding every repo's meaning of a term in one
-   entry. Per-repo glossaries split that mismatch across files nobody
-   compared, and a glossary inside a repo had to be committed, which tangled
-   it with task branches; in `work/` it never reaches git.
+   over. The workspace keeps ONE glossary, `work/domain-glossary.md`, and
+   only for terms that mean the same in every repo: a global fact is worth
+   remembering across tasks, while a repo-specific meaning ("upload" loads a
+   different table in each repo) belongs to the task that needs it, defined
+   per repo in its research notes and design documents. Per-repo glossaries
+   invited the same word to be defined differently in each repo, and a
+   glossary inside a repo had to be committed, which tangled it with task
+   branches; in `work/` it never reaches git.
 
 ## Writing is confined to the repos the contract names
 

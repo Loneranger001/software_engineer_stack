@@ -85,12 +85,14 @@ expand it:
    target (and any new ones you meet), establish what it IS in this system —
    tables + key columns, state values, the code paths that implement its verbs
    ("approved" = which proc sets which status), entry points — each with
-   evidence. Write/refresh the term's entry in
-   `<workspace-root>/work/domain-glossary.md` (template:
-   `<root>/templates/domain-glossary.md`), marked `from-code`, with the
-   plain-language `Meaning` line TDDs and FDDs copy;
-   pure business semantics the code can't prove stay open questions for the
-   user.
+   evidence, in every repo of `<repo-set>`. Same meaning in every repo →
+   write/refresh its entry in `<workspace-root>/work/domain-glossary.md`
+   (template: `<root>/templates/domain-glossary.md`): one functional
+   statement with its source, marked `from-code`. Meaning differs by repo →
+   it stays OUT of the glossary: record each repo's meaning in the research
+   notes' Business terms table (`<repo>:<path>:<line>`), and if the brief doesn't settle which
+   repo's meaning it means, that is an open question. Pure business
+   semantics the code can't prove stay open questions for the user.
 
 ### Accuracy rules
 

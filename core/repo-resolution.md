@@ -47,9 +47,10 @@ it only when a case here is ambiguous.
 
 **Paths**
 - Glossary: `<workspace-root>/work/domain-glossary.md`, never bare — one for
-  every repo and task, never per repo, and like `work/` never in git. A
-  legacy `<repo>/.domain-glossary.md` met along the way is merged into it
-  (entries tagged with that repo); tell the user the old file can go.
+  every repo and task, like `work/` never in git, holding ONLY terms whose
+  meaning holds in every repo. A legacy `<repo>/.domain-glossary.md` met
+  along the way: its global entries move in, repo-specific ones don't; tell
+  the user, whose call the old file is.
 - Task files: `<ws>/…`, where `<ws>` = `<workspace-root>/work/<task-id>`; a
   workspace-relative name like `evidence/` or `scope-contract.md` always
   means `<ws>/evidence/`, `<ws>/scope-contract.md` — never relative to cwd.
@@ -64,9 +65,9 @@ it only when a case here is ambiguous.
   -- <path>`). A recorded search row may be reused while that repo's sha is
   unchanged; re-search only repos whose sha moved.
 - Cite `<repo>:<path>:<line>`, never bare `file:line`.
-- Read each repo's own repo rules. A glossary term meaning different things
-  in two repos keeps one entry with a meaning per repo — and the difference
-  is a finding to raise.
+- Read each repo's own repo rules. A term meaning different things in two
+  repos stays out of the glossary — the task defines it per repo — and the
+  difference is a finding to raise.
 
 **Writing is confined to `<changed-repos>`**
 - It grows only through an approved scope-contract change; analysis finding
