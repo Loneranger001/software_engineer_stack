@@ -42,9 +42,9 @@ class CheckKnowledgeTest(unittest.TestCase):
         (self.repo / "knowledge" / "decisions.md").write_text(
             "# Decisions\n\n## Applied changes\n\n" + entries)
 
-    def check(self):
+    def check(self, env=None):
         return subprocess.run([sys.executable, str(self.repo / "scripts" / "check_knowledge.py"),
-                               "--stack-root", str(self.repo)], capture_output=True, text=True)
+                               "--stack-root", str(self.repo)], capture_output=True, text=True, env=env)
 
     def test_lost_edit_detected(self):
         # the 2026-08-12 failure: entry recorded, skill file never changed
@@ -59,6 +59,17 @@ class CheckKnowledgeTest(unittest.TestCase):
         self.write_decisions("- [2026-08-12] Added preflight in `skills/research/SKILL.md` — task X\n")
         git(self.repo, "commit", "-qam", "apply", date="2026-08-12T12:00:00")
         r = self.check()
+        self.assertEqual(r.returncode, 0, r.stderr)
+
+    def test_edit_in_slack_day_passes_at_any_time_of_day(self):
+        # edited early on the day before the entry (timezone slack); checked late in the day
+        (self.repo / "skills" / "research" / "SKILL.md").write_text("v2\n")
+        git(self.repo, "commit", "-qam", "apply", date="2026-08-11T09:00:00")
+        self.write_decisions("- [2026-08-12] Added preflight in `skills/research/SKILL.md` — task X\n")
+        git(self.repo, "commit", "-qam", "record decision", date="2026-08-12T12:00:00")
+        import os
+        late = dict(os.environ, GIT_TEST_DATE_NOW="1786575600")  # 2026-08-12 23:00 UTC
+        r = self.check(env=late)
         self.assertEqual(r.returncode, 0, r.stderr)
 
     def test_uncommitted_edit_passes_for_pre_commit(self):

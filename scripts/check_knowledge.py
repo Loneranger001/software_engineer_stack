@@ -114,7 +114,9 @@ def check_decisions(root: Path) -> list[str]:
                 continue  # removed by a later change; its history proves it existed
             # committed history first; a staged or modified file counts too, so the
             # pre-commit hook passes on the commit that carries the edit
-            touched = git(root, "log", f"--since={since.isoformat()}", "--format=%h", "-1", "--", p)
+            # explicit midnight: a bare date makes git take the current time of day,
+            # so the same history passed in the morning and failed in the evening
+            touched = git(root, "log", f"--since={since.isoformat()} 00:00:00", "--format=%h", "-1", "--", p)
             if not touched:
                 touched = git(root, "status", "--porcelain", "--", p)
             if not touched:
