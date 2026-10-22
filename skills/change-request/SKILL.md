@@ -86,9 +86,18 @@ On approval: `ses status set <ws> mini-contract=approved --note "by <who>"`.
    another repo is reported, not quietly fixed.
 2. Surgical diff only. Anything else you itch to fix → PARKED.md.
 3. Follow the rules of the repo the file lives in (`ses repo-rules <repo>
-   <file>` — not necessarily `<work-repo>`'s), then the surrounding code's
-   style, then the standards defaults.
-4. Record the branch (`ses status field <ws> branch.<repo-name> <branch>`) and
+   <file>` — not necessarily `<work-repo>`'s), precedence per
+   `<root>/core/repo-resolution.md`: the rules beat the code around the
+   change — copying its non-compliant naming or patterns is a violation —
+   the surrounding style fills only what they leave open, then the
+   standards defaults.
+4. **Rules check**: read the diff (`git -C <repo> diff HEAD -- <files>`; a
+   new file whole) against those rules files — every new or renamed
+   identifier against the naming rules, every added or changed line against
+   the rest — and fix each violation before §4. Existing names the change
+   references stay as they are; any that break a rule go to PARKED.md. The
+   result goes into the evidence's Rules check section (§4).
+5. Record the branch (`ses status field <ws> branch.<repo-name> <branch>`) and
    `ses status set <ws> change=done`. Nothing is committed yet — commits
    follow verification (§4), so each carries the hashes of the evidence that
    proves it.

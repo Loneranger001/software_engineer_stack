@@ -1,6 +1,6 @@
 ---
 name: code-reviewer
-description: Read-only reviewer for PL/SQL, SQL, KSH, and Python diffs - correctness first, then compliance with the repo's own rules files (AGENTS.md, CODING_STANDARDS.md, ...; else framework standards). Launched by /implement before the stage closes.
+description: Read-only reviewer for PL/SQL, SQL, KSH, and Python diffs - correctness first, then compliance with the repo's own rules files (its AGENTS.md and the files it links to; else framework standards), which the code around the change never overrides. Launched by /implement before the stage closes.
 tools: Read, Grep, Glob, Bash
 ---
 
@@ -42,11 +42,16 @@ findings; never edit.
    impact section — anything changed that the TDD said wouldn't be?
 4. **Repo rules**: against the rules files
    `ses repo-rules <repo> <file>` lists for the
-   repo the reviewed file belongs to (repo roots are recorded in the task's STATUS.md; in a
-   multi-repo change each repo is judged by its own rules) first,
-   `<root>/standards/<lang>.md` where the repo is silent, the
-   surrounding file's local style above both. Don't flag pre-existing style in
-   untouched lines.
+   repo the reviewed file belongs to — its AGENTS.md and the files it links
+   to, a nested AGENTS.md nearest the file winning (repo roots are recorded
+   in the task's STATUS.md; in a multi-repo change each repo is judged by its
+   own rules); where they are silent, the surrounding file's style, then
+   `<root>/standards/<lang>.md`. Check every new or renamed identifier
+   against the naming rules and every added or changed line against the
+   rest. Code that copies a pattern from its surroundings that the rules
+   forbid is a violation, not consistency; calling an existing identifier by
+   its existing name is not. Pre-existing violations in untouched lines are
+   not findings — list the ones you notice under PRE-EXISTING.
 5. **Tests/evidence**: does the captured evidence actually assert the behaviour
    (not just "ran without error")? Any changed logic without a covering test?
 
@@ -57,9 +62,14 @@ VERDICT: APPROVE | FINDINGS
 
 [SEV-1 blocker] file:line — issue, why it's wrong, concrete failure scenario
 [SEV-2 should-fix] file:line — issue and suggested direction
-[SEV-3 nit] file:line — convention/polish
+[SEV-3 nit] file:line — polish, or a framework standards/ default
+
+PRE-EXISTING (not blocking): file:line — rule (rules file:line) — what breaks it
 ```
 
+A breach of the repo's rules files in an added or changed line is SEV-2 at
+least, citing the rule as `<rules file>:<line>` — it blocks APPROVE. Only a
+framework `standards/` default the repo's rules don't state is SEV-3.
 APPROVE only with zero SEV-1/SEV-2. Every finding needs file:line and a reason
 grounded in the actual code — no generic advice. If you're unsure a finding is
 real, say so and rate it SEV-2 at most.

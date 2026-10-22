@@ -1,7 +1,8 @@
 # PL/SQL default standards
 
-> Framework defaults. A work repo's rules files (ses repo-rules) ALWAYS override these;
-> and the file being edited overrides both — match what's around your change.
+> Framework defaults. A work repo's rules files (ses repo-rules) ALWAYS override these
+> and the file being edited; that file's style overrides these defaults only where the
+> rules are silent — never copy a pattern the rules forbid.
 
 ## Naming
 

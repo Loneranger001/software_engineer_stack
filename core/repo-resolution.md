@@ -16,14 +16,23 @@ it only when a case here is ambiguous.
   repos are siblings; otherwise ask).
 - `<repo-set>` — ANALYSIS scope: every repo under `<repos-folder>`.
 - `<changed-repos>` — WRITE scope: starts as `[<work-repo>]`.
-- repo rules — a repo's own rules files (AGENTS.md, CLAUDE.md,
-  CODING_STANDARDS.md, CONTRIBUTING.md, Copilot instructions, …), exactly as
-  `ses repo-rules <repo> [changed files]` lists
-  them. Follow them. Precedence: nested AGENTS.md nearest the file > the
-  repo's root rules > the surrounding file's style (for what the rules leave
-  open) > framework `standards/`. Never restyle untouched lines to satisfy a
-  rule. Two rules files that contradict each other are an open question,
-  never a silent pick.
+- repo rules — a repo's own rules files, exactly as
+  `ses repo-rules <repo> [changed files]` lists them: its root AGENTS.md
+  and the files it links to, plus each nested AGENTS.md above the changed
+  files and its links (only a repo with no root AGENTS.md falls back to
+  conventional names — CODING_STANDARDS.md, CONTRIBUTING.md, Copilot
+  instructions, …). Read and follow every file listed; a `missing:` line is
+  a rule you cannot read — an open question. Precedence: nested AGENTS.md
+  nearest the file > the repo's root rules > the surrounding file's style
+  (only for what the rules leave open) > framework `standards/`. Existing
+  code is never a precedent against a rule: every line you write or change
+  follows the rules even where the code around it doesn't — copying its
+  non-compliant naming or patterns is a violation, not consistency.
+  Existing identifiers you reference keep their names (renaming them is out
+  of scope); violations met while coding go to PARKED.md; a rule that seems
+  wrong for the case is a question, never a silent copy of the local
+  pattern. Never restyle untouched lines to satisfy a rule. Two rules files
+  that contradict each other are an open question, never a silent pick.
 
 **Resolve**
 1. Workspace exists — `<workspace-root>/work/<id>/STATUS.md` (a workspace

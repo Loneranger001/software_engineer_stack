@@ -33,12 +33,21 @@ committed before the next begins.
    `<root>/core/repo-resolution.md`; git operations and test
    runs execute with the step's own repo as their working directory).
    Also read ASSUMPTIONS.md — you are building on its ratified entries.
-4. Unknowns follow `<root>/core/decision-protocol.md`. During
+4. **Rules checklist**: from those rules files write
+   `<ws>/rules-checklist.md`, rebuilt at every session start — one line per
+   checkable rule that applies to the languages and object kinds the impl
+   doc touches: `R<n> | <repo> | <rule, in the file's own words> |
+   <file>:<line>` (naming per object type, error handling, logging,
+   transaction control, formatting). Leave out what no diff can be checked
+   against ("write clean code"). It is the worksheet for each step's rules
+   check, not a substitute: the rules files stay the authority, and the
+   code reviewer judges against them.
+5. Unknowns follow `<root>/core/decision-protocol.md`. During
    implementation the "no dangerous surface" rule bites hardest: coding
    judgment calls passing §2 → ASSUMPTIONS.md; any uncertainty about a
    data-changing statement, an external contract, or the approved design
    stops and asks — regardless of confidence.
-5. `ses status show <ws>` — a recorded `branch.<repo>` means this is a
+6. `ses status show <ws>` — a recorded `branch.<repo>` means this is a
    RESUME. Run `ses checkpoint resume <ws>`: it finds the last
    `<task-id> step <N>` checkpoint commit per repo (the commits are the step
    record — nothing else stores it), checks each repo is on its recorded
@@ -77,23 +86,34 @@ committed before the next begins.
 For each impl-doc step N, in order:
 
 1. **Code** the step, in the repo the step names, following that repo's
-   rules files (`ses repo-rules <repo> <files>` — nested AGENTS.md nearest
-   the file wins), then the surrounding code's style, then
+   rules (`ses repo-rules <repo> <files>`, its rules-checklist.md lines,
+   precedence per `<root>/core/repo-resolution.md`). The rules beat the code
+   around your change: a new identifier is named by the naming rules even
+   when its neighbours aren't, while existing ones you call keep their
+   names. The surrounding style fills only what the rules leave open, then
    `<root>/standards/`. Touch only the files the step
    names — if the step turns out to need another file, update the impl-doc row
    first (append a note, don't rewrite history) and its `step <N>:` summary
    line.
-2. **Verify** using the step's verification column — invoke the /verify-code
+2. **Rules check**, before verifying: read the step's diff
+   (`git -C <repo> diff HEAD -- <files>`; a new file whole) against
+   rules-checklist.md — every new or renamed identifier against the naming
+   rules, every added or changed line against the rest — and fix each
+   violation now. An existing identifier the code references that breaks a
+   rule stays as it is and goes to PARKED.md (file, name, rule). The result
+   goes into the Rules check section of the step's evidence file (written in 3).
+3. **Verify** using the step's verification column — invoke the /verify-code
    recipes for each changed file (live mode via `$SES_DB_CONN`/`$SES_KSH_HOST`/
    `$SES_PY` when reachable; static fallback otherwise, recorded as such).
    Run each command through `ses capture` and
    write `evidence/step<N>-<desc>.txt` from its summary using
    `<root>/templates/test-evidence.md`; the full output stays
    in `evidence/raw/`.
-3. **On failure**: fix and re-verify. If the fix invalidates the design, STOP —
+4. **On failure**: fix, rules-check the lines the fix changed, and
+   re-verify. If the fix invalidates the design, STOP —
    report to the user, propose a TDD/impl-doc amendment, get approval before
    continuing. Never quietly diverge from the approved documents.
-4. **Checkpoint commit**: stage the step's own files by name
+5. **Checkpoint commit**: stage the step's own files by name
    (`git -C <repo> add <files>` — never `git add -A` or `git add .`, which
    would sweep in `work/` when it sits inside the repo), then `git commit`
    the step **in the step's repo** with message `<task-id> step <N>: <desc>`
@@ -135,6 +155,8 @@ loop.
    judged against that repo's own rules files) — delegated per `<root>/core/reviewers.md`.
    Resolve findings
    or record a conscious waiver (with the user for anything non-trivial).
+   A repo-rules finding is fixed, or waived by the user only; the
+   reviewer's PRE-EXISTING list goes to PARKED.md.
 2. Self-check with `<root>/checklists/implement.md`.
 3. Record: `ses status set <ws> implement=done --next "Run /deliver."`.
 

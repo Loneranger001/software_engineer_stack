@@ -1,6 +1,7 @@
 # SQL default standards
 
-> Framework defaults; the repo's rules files (ses repo-rules) and the surrounding file win.
+> Framework defaults; the repo's rules files (ses repo-rules) win, and the surrounding
+> file's style wins where they are silent — never over a repo rule.
 
 ## Style
 

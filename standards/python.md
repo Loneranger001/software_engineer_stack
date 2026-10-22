@@ -1,7 +1,8 @@
 # Python default standards
 
-> Framework defaults; the repo's rules files (ses repo-rules), its tooling config
-> (pyproject/setup.cfg/ruff.toml), and the surrounding module win.
+> Framework defaults; the repo's rules files (ses repo-rules) and its tooling config
+> (pyproject/setup.cfg/ruff.toml) win, and the surrounding module's style wins where
+> they are silent — never over a repo rule.
 
 ## Style & structure
 

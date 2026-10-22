@@ -126,7 +126,7 @@ One caveat: the audit value only exists if you honor the gates. If you approve a
 
 ## 21. My VS Code workspace root is a parent folder holding several repos — is that supported? Whose coding rules apply?
 
-Supported — it is the layout the framework is built around. Coding rules are **per repo**: each repo's own rules files (`AGENTS.md`, `CODING_STANDARDS.md`, `CONTRIBUTING.md`, Copilot instructions, nested `AGENTS.md` near the code — listed by [`scripts/repo-rules.sh`](../scripts/repo-rules.sh)) govern code in that repo and override the framework defaults in `standards/`. Four repos can have four different sets, so nothing is merged across them. Task state and the domain glossary, by contrast, belong to the workspace: `work/` sits in the parent folder (#19), and `work/domain-glossary.md` holds only the terms that mean the same in every repo.
+Supported — it is the layout the framework is built around. Coding rules are **per repo**: each repo's own rules files (its `AGENTS.md` and the files it links to, plus nested `AGENTS.md` near the code; a repo without `AGENTS.md` falls back to `CODING_STANDARDS.md`, `CONTRIBUTING.md`, Copilot instructions and similar names — listed by [`scripts/repo-rules.sh`](../scripts/repo-rules.sh)) govern code in that repo and override the framework defaults in `standards/`. Four repos can have four different sets, so nothing is merged across them. Task state and the domain glossary, by contrast, belong to the workspace: `work/` sits in the parent folder (#19), and `work/domain-glossary.md` holds only the terms that mean the same in every repo.
 
 What that layout *does* change is which directory counts as "the repo":
 

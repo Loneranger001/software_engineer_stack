@@ -20,6 +20,12 @@ exit code, line count, error-line matches, last lines — not the full log}
 
 Raw logs: `evidence/raw/{name}.log` (full output, opened only to diagnose)
 
+## Rules check (code changes)
+
+- Checked against: {rules-checklist.md R#, … | the CR's rules files} — diff lines read: {count}
+- Violations fixed before verifying: {R# — file:line — what changed | none}
+- Existing names kept that break a rule: {file:line — name — R# | none} (→ PARKED.md)
+
 ## Result
 
 - Outcome: PASS | FAIL | PARTIAL
