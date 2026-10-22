@@ -30,8 +30,9 @@ days, run `/grill`, and it picks up from `STATUS.md` exactly where you left off.
 There is no profiling step. Every stage follows the rules the repo's team
 already wrote — its `AGENTS.md` and the files that links to (a repo without
 one: `CODING_STANDARDS.md`, `CONTRIBUTING.md` and similar files), as
-`ses repo-rules <repo>` lists them — over the framework's own `standards/`
-and over the code around each change. A repo with no such files gets the framework
+`ses repo-rules <repo>` lists them — over the framework's own `standards/`.
+New code follows those rules strictly; a change inside an existing unit
+follows that unit's own conventions. A repo with no such files gets the framework
 defaults plus the style of the code around each change.
 
 ## 1. /intake — the brief becomes an approved scope contract

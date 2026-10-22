@@ -1,7 +1,8 @@
 # KSH default standards
 
-> Framework defaults; the repo's rules files (ses repo-rules) win, and the surrounding
-> script's style wins where they are silent — never over a repo rule.
+> Framework defaults: used only where the repo's rules files (ses repo-rules) and the
+> surrounding code are both silent. Which of those two wins is set in
+> core/repo-resolution.md — new code: the rules; a change inside an existing unit: that unit.
 
 ## Structure
 

@@ -86,17 +86,19 @@ On approval: `ses status set <ws> mini-contract=approved --note "by <who>"`.
    another repo is reported, not quietly fixed.
 2. Surgical diff only. Anything else you itch to fix → PARKED.md.
 3. Follow the rules of the repo the file lives in (`ses repo-rules <repo>
-   <file>` — not necessarily `<work-repo>`'s), precedence per
-   `<root>/core/repo-resolution.md`: the rules beat the code around the
-   change — copying its non-compliant naming or patterns is a violation —
-   the surrounding style fills only what they leave open, then the
-   standards defaults.
+   <file>` — not necessarily `<work-repo>`'s), split as
+   `<root>/core/repo-resolution.md` sets out: new code (a new file, object,
+   or unit) follows the rules strictly; a change inside an existing unit
+   follows that unit's own conventions, the rules filling what it doesn't
+   show, then the standards defaults.
 4. **Rules check**: read the diff (`git -C <repo> diff HEAD -- <files>`; a
-   new file whole) against those rules files — every new or renamed
-   identifier against the naming rules, every added or changed line against
-   the rest — and fix each violation before §4. Existing names the change
-   references stay as they are; any that break a rule go to PARKED.md. The
-   result goes into the evidence's Rules check section (§4).
+   new file whole), classifying each hunk as new or modified code, and
+   check every new or renamed identifier and every added or changed line
+   against the standard that governs it — the rules files for new code, the
+   unit's conventions for modified code. Fix each violation before §4. A
+   rule breach the unit's convention carries into the change, or an
+   existing name that breaks a rule, stays as it is: one PARKED.md line.
+   The result goes into the evidence's Rules check section (§4).
 5. Record the branch (`ses status field <ws> branch.<repo-name> <branch>`) and
    `ses status set <ws> change=done`. Nothing is committed yet — commits
    follow verification (§4), so each carries the hashes of the evidence that

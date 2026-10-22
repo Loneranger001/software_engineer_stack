@@ -1,8 +1,8 @@
 # PL/SQL default standards
 
-> Framework defaults. A work repo's rules files (ses repo-rules) ALWAYS override these
-> and the file being edited; that file's style overrides these defaults only where the
-> rules are silent — never copy a pattern the rules forbid.
+> Framework defaults: used only where the repo's rules files (ses repo-rules) and the
+> surrounding code are both silent. Which of those two wins is set in
+> core/repo-resolution.md — new code: the rules; a change inside an existing unit: that unit.
 
 ## Naming
 

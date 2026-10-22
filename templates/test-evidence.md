@@ -22,9 +22,10 @@ Raw logs: `evidence/raw/{name}.log` (full output, opened only to diagnose)
 
 ## Rules check (code changes)
 
-- Checked against: {rules-checklist.md R#, … | the CR's rules files} — diff lines read: {count}
-- Violations fixed before verifying: {R# — file:line — what changed | none}
-- Existing names kept that break a rule: {file:line — name — R# | none} (→ PARKED.md)
+- New code (new file, object, or unit) — checked against the rules: {unit — R#, … | none}
+- Modified code (inside an existing unit) — matched to its conventions: {unit — convention followed | none}
+- Violations fixed before verifying: {file:line — rule or convention — what changed | none}
+- Rule breaches carried by a unit's convention, or existing names that break a rule: {unit or name — R# | none} (→ PARKED.md)
 
 ## Result
 

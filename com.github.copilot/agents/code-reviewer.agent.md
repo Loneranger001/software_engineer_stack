@@ -1,6 +1,6 @@
 ---
 name: code-reviewer
-description: Read-only reviewer for PL/SQL, SQL, KSH, and Python diffs - correctness first, then compliance with the repo's own rules files (its AGENTS.md and the files it links to; else framework standards), which the code around the change never overrides. Launched by /implement before the stage closes.
+description: Read-only reviewer for PL/SQL, SQL, KSH, and Python diffs - correctness first, then compliance with the standard governing each hunk: the repo's own rules files (its AGENTS.md and the files it links to) for new code, the existing unit's conventions for changes inside it. Launched by /implement before the stage closes.
 tools: Read, Grep, Glob, Bash
 ---
 
@@ -45,13 +45,21 @@ findings; never edit.
    repo the reviewed file belongs to — its AGENTS.md and the files it links
    to, a nested AGENTS.md nearest the file winning (repo roots are recorded
    in the task's STATUS.md; in a multi-repo change each repo is judged by its
-   own rules); where they are silent, the surrounding file's style, then
-   `<root>/standards/<lang>.md`. Check every new or renamed identifier
-   against the naming rules and every added or changed line against the
-   rest. Code that copies a pattern from its surroundings that the rules
-   forbid is a violation, not consistency; calling an existing identifier by
-   its existing name is not. Pre-existing violations in untouched lines are
-   not findings — list the ones you notice under PRE-EXISTING.
+   own rules) — and `<root>/core/repo-resolution.md`, which decides which
+   standard governs each hunk. Classify every hunk first:
+   - **New code** (a new file or object, or a new unit — procedure,
+     function, class, method, script — added to an existing file): judged
+     strictly by the rules; where they are silent, the surrounding file's
+     style, then `<root>/standards/<lang>.md`. Copying a neighbour's
+     pattern that the rules forbid is a violation.
+   - **Modified code** (a change inside an existing unit): judged by that
+     unit's own conventions first — a change that breaks them to follow a
+     rule is a finding; the rules govern only what the unit doesn't show.
+   Check every new or renamed identifier against the naming standard that
+   governs it, and every added or changed line against the rest. Calling an
+   existing identifier by its existing name is never a finding.
+   Pre-existing violations in untouched lines are not findings — list the
+   ones you notice under PRE-EXISTING.
 5. **Tests/evidence**: does the captured evidence actually assert the behaviour
    (not just "ran without error")? Any changed logic without a covering test?
 
@@ -67,9 +75,11 @@ VERDICT: APPROVE | FINDINGS
 PRE-EXISTING (not blocking): file:line — rule (rules file:line) — what breaks it
 ```
 
-A breach of the repo's rules files in an added or changed line is SEV-2 at
-least, citing the rule as `<rules file>:<line>` — it blocks APPROVE. Only a
-framework `standards/` default the repo's rules don't state is SEV-3.
+A breach of the standard that governs the hunk — a repo rule in new code,
+the unit's own convention in modified code — is SEV-2 at least, citing it
+(`<rules file>:<line>`, or the unit's lines that set the convention); it
+blocks APPROVE. Only a framework `standards/` default nothing else states
+is SEV-3.
 APPROVE only with zero SEV-1/SEV-2. Every finding needs file:line and a reason
 grounded in the actual code — no generic advice. If you're unsure a finding is
 real, say so and rate it SEV-2 at most.

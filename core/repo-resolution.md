@@ -21,18 +21,22 @@ it only when a case here is ambiguous.
   and the files it links to, plus each nested AGENTS.md above the changed
   files and its links (only a repo with no root AGENTS.md falls back to
   conventional names — CODING_STANDARDS.md, CONTRIBUTING.md, Copilot
-  instructions, …). Read and follow every file listed; a `missing:` line is
-  a rule you cannot read — an open question. Precedence: nested AGENTS.md
-  nearest the file > the repo's root rules > the surrounding file's style
-  (only for what the rules leave open) > framework `standards/`. Existing
-  code is never a precedent against a rule: every line you write or change
-  follows the rules even where the code around it doesn't — copying its
-  non-compliant naming or patterns is a violation, not consistency.
-  Existing identifiers you reference keep their names (renaming them is out
-  of scope); violations met while coding go to PARKED.md; a rule that seems
-  wrong for the case is a question, never a silent copy of the local
-  pattern. Never restyle untouched lines to satisfy a rule. Two rules files
-  that contradict each other are an open question, never a silent pick.
+  instructions, …). Read every file listed; a `missing:` line is a rule you
+  cannot read — an open question. Which standard wins depends on the code:
+  - **New code** — a new file or object, or a new unit (procedure,
+    function, class, method, script) added to an existing file: the rules,
+    strictly — nested AGENTS.md nearest the file > the root rules; the
+    surrounding style only where they are silent, then framework
+    `standards/`. A non-compliant neighbour is no precedent.
+  - **Modified code** — a change inside an existing unit: that unit's own
+    conventions (naming, layout, error-handling and logging idiom) take
+    precedence, so it stays consistent; the rules fill what it doesn't
+    show, then `standards/`. Each unit where this continues a rule breach
+    gets one PARKED.md line (unit, convention, rule).
+  Either way: copying a pattern never excuses a bug or a security hole;
+  existing identifiers keep their names (renaming is out of scope); never
+  restyle untouched lines. Two rules files that contradict each other are
+  an open question, never a silent pick.
 
 **Resolve**
 1. Workspace exists — `<workspace-root>/work/<id>/STATUS.md` (a workspace
