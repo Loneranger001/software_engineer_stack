@@ -22,17 +22,18 @@ it only when a case here is ambiguous.
   files and its links (only a repo with no root AGENTS.md falls back to
   conventional names — CODING_STANDARDS.md, CONTRIBUTING.md, Copilot
   instructions, …). Read every file listed; a `missing:` line is a rule you
-  cannot read — an open question. Which standard wins depends on the code:
-  - **New code** — a new file or object, or a new unit (procedure,
-    function, class, method, script) added to an existing file: the rules,
-    strictly — nested AGENTS.md nearest the file > the root rules; the
-    surrounding style only where they are silent, then framework
-    `standards/`. A non-compliant neighbour is no precedent.
-  - **Modified code** — a change inside an existing unit: that unit's own
-    conventions (naming, layout, error-handling and logging idiom) take
-    precedence, so it stays consistent; the rules fill what it doesn't
-    show, then `standards/`. Each unit where this continues a rule breach
-    gets one PARKED.md line (unit, convention, rule).
+  cannot read — an open question. Which standard wins depends on the file:
+  - **New code** — a new file: the rules, strictly — nested AGENTS.md
+    nearest the file > the root rules; where they are silent, comparable
+    existing files' style, then framework `standards/`. An existing file is
+    never a precedent against a rule.
+  - **Modified code** — any change to an existing file, including a new
+    procedure, function, class or method added to it: the file's own
+    conventions (naming, layout, error-handling and logging idiom — the
+    enclosing unit's first, else the rest of the file's) take precedence,
+    so the file stays consistent; the rules fill what it doesn't show, then
+    `standards/`. Each file where this continues a rule breach gets one
+    PARKED.md line (file, convention, rule).
   Either way: copying a pattern never excuses a bug or a security hole;
   existing identifiers keep their names (renaming is out of scope); never
   restyle untouched lines. Two rules files that contradict each other are

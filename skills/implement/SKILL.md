@@ -87,25 +87,23 @@ For each impl-doc step N, in order:
 
 1. **Code** the step, in the repo the step names, following that repo's
    rules (`ses repo-rules <repo> <files>`, its rules-checklist.md lines)
-   as `<root>/core/repo-resolution.md` splits them: **new code** (a new
-   file, object, or unit — procedure, function, class, method, script)
-   follows the rules strictly, whatever its neighbours do; **a change inside
-   an existing unit** follows that unit's own conventions, the rules filling
-   only what it doesn't show. Existing identifiers you call keep their
-   names. Touch only the files the step
+   as `<root>/core/repo-resolution.md` splits them: **a new file** follows
+   the rules strictly, whatever existing files do; **any change to an
+   existing file** — a new procedure, function, class or method included —
+   follows that file's own conventions, the rules filling only what it
+   doesn't show. Existing identifiers you call keep their names. Touch only the files the step
    names — if the step turns out to need another file, update the impl-doc row
    first (append a note, don't rewrite history) and its `step <N>:` summary
    line.
 2. **Rules check**, before verifying: read the step's diff
-   (`git -C <repo> diff HEAD -- <files>`; a new file whole), classifying
-   each hunk as new or modified code. New code: against rules-checklist.md.
-   Modified code: against its unit's own conventions, and rules-checklist.md
-   for what the unit doesn't show. Check every new or renamed identifier
-   against the naming standard that governs it and every added or changed
-   line against the rest, and fix each violation now. A rule breach the
-   unit's convention carries into your change, or an existing identifier
-   that breaks a rule, stays as it is: one PARKED.md line (unit or name,
-   rule). The result goes into the Rules check section of the step's
+   (`git -C <repo> diff HEAD -- <files>`; a new file whole). A new file:
+   against rules-checklist.md. An existing file: against its own
+   conventions, and rules-checklist.md for what it doesn't show. Check
+   every new or renamed identifier against the naming standard that governs
+   it and every added or changed line against the rest, and fix each
+   violation now. A rule breach the file's convention carries into your
+   change, or an existing identifier that breaks a rule, stays as it is:
+   one PARKED.md line (file or name, rule). The result goes into the Rules check section of the step's
    evidence file (written in 3).
 3. **Verify** using the step's verification column — invoke the /verify-code
    recipes for each changed file (live mode via `$SES_DB_CONN`/`$SES_KSH_HOST`/
@@ -160,8 +158,8 @@ loop.
    judged against that repo's own rules files) — delegated per `<root>/core/reviewers.md`.
    Resolve findings
    or record a conscious waiver (with the user for anything non-trivial).
-   A standards finding (a repo rule in new code, the unit's convention in
-   modified code) is fixed, or waived by the user only; the reviewer's
+   A standards finding (a repo rule in a new file, the file's convention in
+   an existing one) is fixed, or waived by the user only; the reviewer's
    PRE-EXISTING list goes to PARKED.md.
 2. Self-check with `<root>/checklists/implement.md`.
 3. Record: `ses status set <ws> implement=done --next "Run /deliver."`.

@@ -11,7 +11,7 @@ Run before delivering a fast-path change.
 - [ ] Regression check covers the impacted callers found in the analysis, not just the changed object
 - [ ] Every acceptance criterion has PASS evidence in evidence/
 - [ ] Diff maps 1:1 to the mini contract; scope-auditor pass on anything larger than a single-file change
-- [ ] New code follows the changed file's own repo's rules strictly (rules files per `ses repo-rules` / standards defaults); changes inside an existing unit follow that unit's conventions; the Rules check is in the evidence and rule breaches carried over are in PARKED.md
+- [ ] A new file follows its repo's rules strictly (rules files per `ses repo-rules` / standards defaults); changes to an existing file, new procedures or functions included, follow that file's conventions; the Rules check is in the evidence and rule breaches carried over are in PARKED.md
 - [ ] Rollback note written (even for small changes: exact revert/redeploy step)
 - [ ] ASSUMPTIONS.md has no open entries — ratified at the mini-contract gate or resolved since (decision-protocol §4)
 - [ ] `ses status` recorded analyze → mini-contract → change → verify → deliver, in order

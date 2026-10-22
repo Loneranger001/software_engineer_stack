@@ -10,9 +10,9 @@ Run before marking the implement stage done.
 - [ ] Diff reviewed against the scope contract: every changed file maps to an in-scope item
 - [ ] Out-of-scope discoveries went to PARKED.md, not into the diff
 - [ ] code-reviewer agent ran on every changed repo's branch (via `ses review-diff`, every review file read) and its findings were resolved or consciously waived
-- [ ] New code (new file, object, or unit) follows the repo's rules strictly (its AGENTS.md and linked files per `ses repo-rules` / standards defaults: naming, error handling, logging), whatever the code around it does
-- [ ] Changes inside an existing unit follow that unit's own conventions; the rules only fill what it doesn't show
-- [ ] Each step's evidence has its Rules check (new vs modified hunks); rule breaches carried by a unit's convention, existing names that break a rule, and the reviewer's PRE-EXISTING list are in PARKED.md
+- [ ] New files follow the repo's rules strictly (its AGENTS.md and linked files per `ses repo-rules` / standards defaults: naming, error handling, logging), whatever existing files do
+- [ ] Changes to existing files — new procedures, functions, classes or methods included — follow that file's own conventions; the rules only fill what it doesn't show
+- [ ] Each step's evidence has its Rules check (new vs existing files); rule breaches carried by a file's convention, existing names that break a rule, and the reviewer's PRE-EXISTING list are in PARKED.md
 - [ ] No standards finding was waived without the user
 - [ ] Commits exist only in repos the scope contract lists as changing; each step's commit is in exactly one repo
 - [ ] No secrets, connect strings, or environment-specific paths hardcoded
