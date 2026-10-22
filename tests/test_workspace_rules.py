@@ -130,11 +130,84 @@ class ExistingWorkspaceTest(unittest.TestCase):
 
 
 class RepoRulesTest(unittest.TestCase):
+    """A root AGENTS.md is the manifest: it and the files it links to, nothing guessed by name."""
+
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.repo = Path(self.tmp.name) / "repo with space"
         git_init(self.repo)
-        (self.repo / "AGENTS.md").write_text("root rules\n")
+        (self.repo / "AGENTS.md").write_text(
+            "# Rules\n"
+            "Follow [naming](NAMING_CONVENTIONS.md#tables) and "
+            "[standards](./docs/CODING_STANDARDS.md \"Coding\").\n"
+            "Also [review][r], [site](https://example.com/rules.md), [logo](logo.png), "
+            "[old](OLD_RULES.md), [sibling](../other/AGENTS.md).\n\n"
+            "[r]: <docs/Review Rules.md>\n")
+        (self.repo / "NAMING_CONVENTIONS.md").write_text("naming\n")
+        (self.repo / "docs").mkdir()
+        (self.repo / "docs" / "CODING_STANDARDS.md").write_text("standards\n")
+        (self.repo / "docs" / "Review Rules.md").write_text("review\n")
+        (self.repo / "CONTRIBUTING.md").write_text("unlinked\n")
+        (self.repo / ".github").mkdir()
+        (self.repo / ".github" / "copilot-instructions.md").write_text("unlinked\n")
+        pkg = self.repo / "src" / "plsql" / "billing"
+        pkg.mkdir(parents=True)
+        (self.repo / "src" / "plsql" / "AGENTS.md").write_text(
+            "[plsql naming](PLSQL_NAMING.md) [root naming](/NAMING_CONVENTIONS.md)\n")
+        (self.repo / "src" / "plsql" / "PLSQL_NAMING.md").write_text("plsql naming\n")
+        (pkg / "pkg.pkb").write_text("x\n")
+        (self.repo / "pyproject.toml").write_text("")
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def lines(self, *args):
+        r = sh("repo-rules.sh", self.repo, *args)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        return r.stdout.splitlines()
+
+    def test_agents_md_and_the_files_it_links_to(self):
+        rules = [l for l in self.lines() if l.startswith("rules:")]
+        self.assertEqual(rules, ["rules:   AGENTS.md", "rules:   NAMING_CONVENTIONS.md",
+                                 "rules:   docs/CODING_STANDARDS.md", "rules:   docs/Review Rules.md"])
+        self.assertIn("tooling: pyproject.toml", self.lines())
+
+    def test_unlinked_files_are_not_rules(self):
+        out = "\n".join(self.lines())
+        self.assertNotIn("CONTRIBUTING.md", out)
+        self.assertNotIn("copilot-instructions.md", out)
+
+    def test_broken_or_outside_links_are_missing(self):
+        out = self.lines()
+        self.assertIn("missing: OLD_RULES.md (linked from AGENTS.md)", out)
+        self.assertIn("missing: ../other/AGENTS.md (linked from AGENTS.md)", out)
+        self.assertFalse([l for l in out if "example.com" in l or "logo.png" in l])
+
+    def test_nested_agents_md_set_comes_last(self):
+        rules = [l for l in self.lines("src/plsql/billing/pkg.pkb") if l.startswith("rules:")]
+        self.assertEqual(rules[-2:], ["rules:   src/plsql/AGENTS.md", "rules:   src/plsql/PLSQL_NAMING.md"])
+        self.assertEqual(rules.count("rules:   NAMING_CONVENTIONS.md"), 1)
+
+    def test_generated_root_agents_md_falls_back_to_the_scan(self):
+        (self.repo / "AGENTS.md").write_text(MARKER)
+        out = self.lines()
+        self.assertNotIn("rules:   AGENTS.md", out)
+        self.assertIn("rules:   CONTRIBUTING.md", out)
+
+    def test_not_a_repo_is_an_error(self):
+        plain = Path(self.tmp.name) / "plain"
+        plain.mkdir()
+        self.assertEqual(sh("repo-rules.sh", plain).returncode, 2)
+
+
+class RepoRulesScanTest(unittest.TestCase):
+    """No root AGENTS.md: conventional names are scanned instead."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.repo = Path(self.tmp.name) / "repo with space"
+        git_init(self.repo)
+        (self.repo / "naming_conventions.md").write_text("naming\n")
         (self.repo / "docs").mkdir()
         (self.repo / "docs" / "Coding_Standards.md").write_text("standards\n")
         (self.repo / ".github" / "instructions").mkdir(parents=True)
@@ -156,7 +229,7 @@ class RepoRulesTest(unittest.TestCase):
 
     def test_lists_rules_case_insensitively_and_skips_generated(self):
         out = self.lines()
-        self.assertIn("rules:   AGENTS.md", out)
+        self.assertIn("rules:   naming_conventions.md", out)
         self.assertIn("rules:   docs/Coding_Standards.md", out)
         self.assertIn("rules:   .github/instructions/sql.instructions.md", out)
         self.assertNotIn("rules:   .github/copilot-instructions.md", out)
@@ -165,18 +238,13 @@ class RepoRulesTest(unittest.TestCase):
     def test_nested_agents_md_for_changed_file_comes_last(self):
         out = [l for l in self.lines("src/plsql/billing/pkg.pkb") if l.startswith("rules:")]
         self.assertEqual(out[-1], "rules:   src/plsql/AGENTS.md")
-        self.assertEqual(out.count("rules:   AGENTS.md"), 1)
+        self.assertEqual(out.count("rules:   naming_conventions.md"), 1)
 
     def test_none_found_is_explicit(self):
         bare = Path(self.tmp.name) / "bare"
         git_init(bare)
         r = sh("repo-rules.sh", bare)
         self.assertIn("rules:   (none found", r.stdout)
-
-    def test_not_a_repo_is_an_error(self):
-        plain = Path(self.tmp.name) / "plain"
-        plain.mkdir()
-        self.assertEqual(sh("repo-rules.sh", plain).returncode, 2)
 
 
 if __name__ == "__main__":

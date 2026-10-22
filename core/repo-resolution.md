@@ -16,14 +16,28 @@ it only when a case here is ambiguous.
   repos are siblings; otherwise ask).
 - `<repo-set>` — ANALYSIS scope: every repo under `<repos-folder>`.
 - `<changed-repos>` — WRITE scope: starts as `[<work-repo>]`.
-- repo rules — a repo's own rules files (AGENTS.md, CLAUDE.md,
-  CODING_STANDARDS.md, CONTRIBUTING.md, Copilot instructions, …), exactly as
-  `ses repo-rules <repo> [changed files]` lists
-  them. Follow them. Precedence: nested AGENTS.md nearest the file > the
-  repo's root rules > the surrounding file's style (for what the rules leave
-  open) > framework `standards/`. Never restyle untouched lines to satisfy a
-  rule. Two rules files that contradict each other are an open question,
-  never a silent pick.
+- repo rules — a repo's own rules files, exactly as
+  `ses repo-rules <repo> [changed files]` lists them: its root AGENTS.md
+  and the files it links to, plus each nested AGENTS.md above the changed
+  files and its links (only a repo with no root AGENTS.md falls back to
+  conventional names — CODING_STANDARDS.md, CONTRIBUTING.md, Copilot
+  instructions, …). Read every file listed; a `missing:` line is a rule you
+  cannot read — an open question. Which standard wins depends on the file:
+  - **New code** — a new file: the rules, strictly — nested AGENTS.md
+    nearest the file > the root rules; where they are silent, comparable
+    existing files' style, then framework `standards/`. An existing file is
+    never a precedent against a rule.
+  - **Modified code** — any change to an existing file, including a new
+    procedure, function, class or method added to it: the file's own
+    conventions (naming, layout, error-handling and logging idiom — the
+    enclosing unit's first, else the rest of the file's) take precedence,
+    so the file stays consistent; the rules fill what it doesn't show, then
+    `standards/`. Each file where this continues a rule breach gets one
+    PARKED.md line (file, convention, rule).
+  Either way: copying a pattern never excuses a bug or a security hole;
+  existing identifiers keep their names (renaming is out of scope); never
+  restyle untouched lines. Two rules files that contradict each other are
+  an open question, never a silent pick.
 
 **Resolve**
 1. Workspace exists — `<workspace-root>/work/<id>/STATUS.md` (a workspace
