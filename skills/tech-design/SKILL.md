@@ -76,8 +76,10 @@ for HOW the scope will be met.
 
 ### Accuracy
 
-- Claims about existing behaviour keep their source references (carry them
-  over from research-notes.md; add new ones for anything newly read).
+- Claims about existing behaviour keep their source references: copy the
+  code references (`file:line`) over from research-notes.md and add new ones
+  for anything newly read. Never cite research-notes.md itself — it stays
+  in the workspace, so the reader of the handed-over TDD cannot open it.
 - Pseudocode/signatures must compile against reality: correct object names,
   parameter types from the actual specs.
 
@@ -90,13 +92,30 @@ for HOW the scope will be met.
    findings.
 3. Write the TDD's **handoff summary** block now — after the fact-check
    fixes — and run `ses handoff check <ws>/tdd.md`; it must pass.
-4. Present the TDD to the user for approval, starting from the summary: key
-   decisions, traceability table, risks — plus open ASSUMPTIONS.md entries
-   for ratification (decision-protocol §4); promote design-shaping ones into
-   the TDD. Iterate until approved — each revision updates the summary in
-   the same edit and re-runs the check. Record approval + date in the TDD
-   header.
-5. Record:
+4. **Review version.** tdd.md is the agent version: complete and traceable,
+   read by /grill, /impl-plan and the reviewers. People read and approve a
+   short review version written from it. Copy
+   `<root>/templates/tdd-review.md` → `<ws>/tdd.review.md` and fill it from
+   tdd.md: In short first, two pages (four at most), plain words per
+   `<root>/standards/writing.md` — about the system, never about how the
+   design was made; no coined noun stacks or slashes; no visible IDs. Each
+   part ends with a hidden `covers:` anchor naming the tdd.md IDs it covers;
+   every S, FR, A and G of tdd.md is covered somewhere. Then run
+   `ses review-version stamp <ws>/tdd.md`,
+   `ses review-version check <ws>/tdd.md` and
+   `ses prose-lint <ws>/tdd.review.md`; all must pass.
+5. **Agreement check.** Run the doc-fact-checker procedure on tdd.review.md
+   against tdd.md — delegated per `<root>/core/reviewers.md` — and fix every
+   finding in the review version (in tdd.md first when tdd.md is unclear).
+6. Render the review version (`ses review-version render <ws>/tdd.md` →
+   `<ws>/deliverables/tdd.review.md`) and present it — it is what the user
+   approves — plus open ASSUMPTIONS.md entries for ratification
+   (decision-protocol §4); promote design-shaping ones into the TDD. Iterate
+   until approved — each revision changes tdd.md first, then its summary
+   and the review version in the same edit; re-stamp, re-run the checks,
+   and re-run the agreement check on the changed parts. Record approval +
+   date in both headers.
+7. Record:
    `ses status set <ws> tech-design=approved --next "Run /grill."`
    (the
    adversarial completeness interrogation runs before any implementation
@@ -106,4 +125,7 @@ for HOW the scope will be met.
 
 Write the TDD incrementally. On resume, diff the traceability table against
 the scope contract to find unfinished sections. Never edit an approved TDD
-silently — changes after approval require re-approval and a note in the header.
+silently — changes after approval require re-approval and a note in the
+header. Every change to tdd.md updates tdd.review.md in the same edit and is
+re-approved on it; `ses handoff check` fails until the review version is
+re-stamped.

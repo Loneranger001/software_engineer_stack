@@ -145,11 +145,16 @@ Take the `ask-user` list and interview the user until it is EMPTY:
    tech-design fact-check never saw. Resolve all findings.
 3. Every TDD edit updates the TDD's handoff summary in the same edit — its
    Verification line names every `G#` row, which
-   `ses handoff check <ws>/tdd.md` enforces like A#; re-run it before closing.
+   `ses handoff check <ws>/tdd.md` enforces like A# — and, once the TDD has
+   one, its review version (tdd.review.md, a `covers:` anchor for each new
+   `G#`), re-stamped with `ses review-version stamp <ws>/tdd.md`; the
+   handoff check enforces that too. Re-run it before closing.
 4. An approved TDD the grill edited is re-approved, never silently changed —
    whatever the size of the edits. Present ONE change list built from the
    grill log's TDD-changing rows (`#n · TDD § · before → after`, one line
-   each) with the fact-check verdict; one approval covers it. Record it as a
+   each) with the fact-check verdict, plus the updated review version
+   rendered (`ses review-version render <ws>/tdd.md`); one approval covers
+   it. Record it as a
    TDD header note (`re-approved after /grill <date>: <n> edits`) and with
    `ses status set <ws> tech-design=approved --note "re-approved after grill, <n> edits"`.
    An edit the user rejects is reverted and its row goes back to `ask-user`.

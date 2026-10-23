@@ -19,6 +19,11 @@ Usage:
     handoff.py check <doc.md|ws>...  validate one document, or every stage
                                      document present in a workspace dir
 
+`check` also runs the review-version check (review_version.py) on fdd.md and
+tdd.md whenever a review version (fdd.review.md, tdd.review.md) exists beside
+them, so a design amended at any stage cannot leave its approved review
+version behind.
+
 `check` fails (exit 1) when a summary is:
   - missing, or longer than MAX_LINES lines;
   - missing an ID the body defines or traces — the first cell of a table row
@@ -93,6 +98,9 @@ def problems(doc: Path) -> list[str]:
         if want is not None and m.group(1) != want:
             out.append(f"{doc}: summary is based on contract v{m.group(1)} but scope-contract.md "
                        f"is v{want} — the document (and its summary) is stale")
+    if doc.name in ("fdd.md", "tdd.md") and doc.with_name(f"{doc.stem}.review.md").is_file():
+        from review_version import problems as review_problems  # it imports this module
+        out += review_problems(doc)
     return out
 
 

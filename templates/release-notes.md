@@ -32,4 +32,7 @@ document alone.}
 
 ## Known limitations / follow-ups
 
-{Includes relevant PARKED.md items handed over for future triage.}
+<!-- Include the PARKED.md items handed over for future triage, each written
+     as a fact about the system. -->
+{Limitations and follow-up work that the team that runs the system must know
+about.}

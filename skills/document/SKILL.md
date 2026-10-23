@@ -81,10 +81,16 @@ skill documents what the code DOES, not what anyone believes it does.
 
 1. Fill the matching template into `<ws>/<doc-name>.md`.
 2. Write for the stated audience; lead with the short answer / purpose.
+   Every sentence follows `<root>/standards/writing.md`: facts about the
+   system, never about how they were found ("the job retries twice", not
+   "analysis shows the job retries twice"); the fact table holds the
+   sources.
 3. Every behavioural statement must trace to the fact table. Suspicions and
    folklore are either verified or explicitly labelled as open questions.
 4. Diagrams: use mermaid for flows (renders in Markdown, survives conversion).
-5. `ses status set <ws> draft=done`.
+5. Run `ses prose-lint <ws>/<doc-name>.md` and fix every finding by
+   rewriting the sentence.
+6. `ses status set <ws> draft=done`.
 
 ## 3. Fact-check gate
 

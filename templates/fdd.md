@@ -14,9 +14,14 @@
      business flows. Not allowed: code, SQL, pseudocode, DDL, data types,
      indexes, hints, commit points, variable names, error codes.
      Mechanical floor: ses fdd-lint <file>.
-     Stakeholders get a rendered view (ses fdd-view): the business
-     audience drops the handoff summary, every technical:start/end region,
-     and Appendix A — keep the markers around developer-only detail. -->
+     AGENT VERSION: complete and exact — /tech-design, /grill and the
+     reviewers read it. People read and approve fdd.review.md (template:
+     <root>/templates/fdd-review.md), written from this file at the approval
+     gate and kept in step with it (ses review-version check). A developer
+     who asks for this full version gets a rendering (ses fdd-view); its
+     business audience drops the handoff summary, every technical:start/end
+     region, and Appendix A — keep the markers around developer-only
+     detail. -->
 
 <!-- handoff:start -->
 ## Handoff summary
