@@ -1,6 +1,6 @@
 ---
 name: func-design
-description: Produce a functional design document (FDD) - what the system does, when, and under which business rules, with each component's logic as numbered plain-language steps and data named at table/column level, but no code, SQL, pseudocode, or DDL. Works forward (a proposed change, from an approved scope contract or a brief), as-built (existing functionality), or for a change already implemented (before vs after, from the delivered diff); fact-checked against the code, linted for code-level content, user-approved, and rendered for a business or technical audience. Use when a functional design, functional specification, FDD, or business-readable description of a package, job, interface, or change is needed - including after the change was built - to discuss with non-technical stakeholders.
+description: Produce a functional design document (FDD) - what the system does, when, and under which business rules, with each component's logic as numbered plain-language steps and data named at table/column level, but no code, SQL, pseudocode, or DDL, written to the plain-English writing standard. Works forward (a proposed change, from an approved scope contract or a brief), as-built (existing functionality), or for a change already implemented (before vs after, from the delivered diff); fact-checked against the code, linted for code-level content, user-approved, and rendered for a business or technical audience. Use when a functional design, functional specification, FDD, or business-readable description of a package, job, interface, or change is needed - including after the change was built - to discuss with non-technical stakeholders.
 argument-hint: "<task-id> | brief <path> | as-built <component> | change <repo> <base>..<head>   [audience=business|technical]"
 ---
 
@@ -16,7 +16,8 @@ argument-hint: "<task-id> | brief <path> | as-built <component> | change <repo> 
 Produce `<ws>/fdd.md`, get it user-approved, and render it for its audience.
 The FDD tells stakeholders WHAT the solution does, in their language; the TDD
 says HOW. It is optional in every lifecycle — nothing gates on it. The
-defining rule is the abstraction level — see **Abstraction rules** below.
+defining rule is the abstraction level — see **Abstraction rules** below;
+the second is plain writing — see **Writing**.
 
 ## Invocation
 
@@ -110,7 +111,7 @@ Technical = how it is coded. The FDD holds only the first.
 |---|---|
 | Component names (package, procedure, script, job) as identifiers | Code, SQL, PL/SQL blocks, shell or Python snippets |
 | Processing logic as numbered plain-language steps; decision tables for multi-condition rules | Pseudocode mirroring code: loops, cursors, bulk binds, assignments, variable names |
-| `table.column` names where they pin down business meaning, with code values and what they mean | DDL, data types, precision, indexes, partitions, hints, sequences |
+| `table.column` names and code values in §7, mapped to the business words the steps use | DDL, data types, precision, indexes, partitions, hints, sequences |
 | Business limits in words ("up to 30 characters", "2 decimal places") | `VARCHAR2(30)`, `NUMBER(12,2)` |
 | Parameters by name, business meaning, valid values | Parameter types and defaults written as code |
 | What a failure means to the business, who is told, how it is recovered | Exception-handler mechanics, `ORA-` codes, log-table internals |
@@ -124,8 +125,10 @@ business effect or moved to the TDD.
 
 - ✗ `FOR r IN c_po LOOP IF r.status = 'A' …` — code.
 - ✗ "Open cursor c_po on ORDHEAD, bulk-collect into the order table, loop" — code in prose.
-- ✓ "Select every purchase order that is approved (`ORDHEAD.STATUS` = 'A')
-  and not yet sent to the vendor (`ORDHEAD.EDI_SENT_IND` = 'N')."
+- ✓ "Find every approved purchase order that the system has not sent to its
+  vendor." §7 maps "approved" to `ORDHEAD.STATUS` = 'A' and "sent" to
+  `ORDHEAD.EDI_SENT_IND`; with `audience=technical` the step may add them in
+  brackets.
 
 As-built and change modes read the code to learn the logic; translating it to
 this level is the job — summarise, don't transcribe. A 400-line procedure is
@@ -140,6 +143,26 @@ mechanically (non-mermaid code blocks, SQL/PL/SQL/shell/Python constructs,
 data types). It is a floor, not the judgment: a finding is fixed by lifting
 the content to the functional level, never by rewording around the pattern,
 and a clean lint does not excuse a step that fails the litmus test.
+
+## Writing
+
+Every sentence a reader sees follows `<root>/standards/writing.md` — the
+writing rules of ASD-STE100 Simplified Technical English, without its
+dictionary. Two faults make an FDD tiring to read:
+
+- Writing about how the document was made. The reader never sees the
+  research, the task, or the scope contract — state the fact about the
+  system, and keep sources in Appendix A.
+  - ✗ "Research identified no implementation of the resend rule."
+  - ✓ "The system does not resend an order today."
+- Coined noun stacks and slashes. Describe the thing in plain words.
+  - ✗ "the task-owned message / publication identity"
+  - ✓ "the ID that the system gives each message that it publishes"
+
+`ses prose-lint <ws>/fdd.md` flags the common forms of both, plus long
+sentences, long paragraphs, and filler words. Like the fdd lint it is a
+floor: fix a finding by rewriting the sentence, and a clean lint does not
+excuse a sentence a business reader has to read twice.
 
 ## 1. Analyze
 
@@ -187,23 +210,32 @@ and a clean lint does not excuse a step that fails the litmus test.
    no natural home in §5 means the design is incomplete.
 3. §4: the business-level flow — the traced flow (as-built, change) or the
    research call graph plus the proposed change (forward), never from
-   memory. Forward and change modes fill **Before and after this change**:
-   for stakeholders it is the most-read part of the document, so every row
-   is concrete ("orders reach the vendor the same night", not "improved
-   processing").
+   memory.
 4. §5: one subsection per component the function involves; unchanged ones
    only where a reader needs them for context, marked so. Change mode marks
-   each step `(new)` or `(changed)`. Steps reference BR#, EX#, and
-   `table.column` — every rule stated once in §6, every failure path once in
-   §9 with its business recovery. Keep each component's Inputs table, and
-   Appendix A, inside the technical markers.
-5. Write for the recorded audience; for `business`, a sentence that needs
-   the technical regions to make sense is rewritten. No section is dropped:
-   "None" is stated, with the reason where it is not obvious.
-6. Run `ses fdd-lint [--allow <kinds>] <ws>/fdd.md`
-   (kinds from `ses status get <ws> fdd-lint-allow`, if recorded) and fix
-   every finding per the abstraction rules.
-7. Standalone: `ses status set <ws> draft=done`.
+   each step `(new)` or `(changed)`. Steps are in business words: each
+   names its rule in a few words with the ID at the end ("Check that the
+   vendor accepts EDI orders (BR1)"), and its failure path the same way
+   (EX1). The full rule is stated once in §6, the failure path once in §9
+   with its business recovery, and the step's words agree with them. Table
+   and column names and code values go in §7. Keep each component's Inputs
+   table, and Appendix A, inside the technical markers.
+5. Write for the recorded audience, per **Writing**; for `business`, a
+   sentence that needs the technical regions to make sense is rewritten. No
+   section is dropped: "None" is stated, with the reason where it is not
+   obvious.
+6. **In short** opens the document; write it last, from the finished body:
+   four to eight plain sentences — what changes (as-built: what the function
+   does), who notices, when, and what the reader must decide — with no IDs
+   and no table or column names. Forward and change modes fill its
+   **Before and after this change** table: for stakeholders it is the
+   most-read part of the document, so every row is concrete ("orders reach
+   the vendor the same night", not "improved processing").
+7. Run `ses fdd-lint [--allow <kinds>] <ws>/fdd.md`
+   (kinds from `ses status get <ws> fdd-lint-allow`, if recorded) and
+   `ses prose-lint <ws>/fdd.md`, and fix every finding per the abstraction
+   rules and **Writing**.
+8. Standalone: `ses status set <ws> draft=done`.
 
 ## 3. Quality gates
 
@@ -216,15 +248,16 @@ and a clean lint does not excuse a step that fails the litmus test.
    replaced by the code it summarises). Standalone:
    `ses status set <ws> fact-check=done`.
 3. Write the **handoff summary** block now — after the fact-check fixes —
-   then run `ses handoff check <ws>/fdd.md` and the lint
-   again; both must pass.
+   then run `ses handoff check <ws>/fdd.md` and both lints
+   again; all three must pass.
 4. Render the audience view (§4 step 1) and present the FDD from it, then
    the summary: requirements and traceability, before vs after, business
    rules, exceptions, open Q# items, plus open ASSUMPTIONS.md entries for
    ratification (decision-protocol §4). Approval with a Q# still open needs
    the user to defer it explicitly, recorded in its §13 status. Iterate until
-   approved — each revision updates the summary in the same edit and re-runs
-   the handoff check and lint. Record approval + date in the FDD header.
+   approved — each revision updates the summary and **In short** in the
+   same edit and re-runs the handoff check and both lints. Record approval
+   + date in the FDD header.
 5. Record:
    - Attached: `ses status field <ws> fdd "approved <date> by <who>"`.
      Forward mode while `tech-design` is pending:
@@ -237,8 +270,9 @@ and a clean lint does not excuse a step that fails the litmus test.
 1. Render the view for the recorded audience:
    `ses fdd-view <ws>/fdd.md --audience <fdd-audience>`
    → `<ws>/fdd.<audience>.md`. `business` drops the handoff summary, the
-   technical regions, and Appendix A; `technical` keeps them. Both drop
-   template guidance. Never hand stakeholders `fdd.md` itself.
+   technical regions, Appendix A, and sections that say only "None";
+   `technical` keeps them. Both drop template guidance. Never hand
+   stakeholders `fdd.md` itself.
 2. Ask which output formats are needed unless `ses status get <ws> formats`
    answers it, and record them (`ses status field <ws> formats "<docx,pdf,...>"`).
    Convert the view (not fdd.md) via

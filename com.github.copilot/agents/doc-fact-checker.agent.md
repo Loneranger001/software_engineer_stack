@@ -64,7 +64,10 @@ inspection only.
    (each FR# cites its S# or brief section), not against code. Functional
    wording is not itself a finding — a step that summarises the code
    faithfully passes; one that drops a condition a business reader relies on
-   is WRONG or OMISSION.
+   is WRONG or OMISSION. A step's short wording of a rule (BR#) or failure
+   path (EX#) that disagrees with its §6 or §9 row is WRONG. Each business
+   word a step relies on ("approved", "sent") must map in §7 to the column
+   and code value that hold it.
 
 ## Report format
 

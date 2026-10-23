@@ -67,6 +67,10 @@ for HOW the scope will be met.
    every repo in `<repo-set>`, not the assertion — and where callers live in
    repos this task will not change, say how they keep working (backward
    compatibility, or a follow-up recorded with the user).
+8. Write every sentence to `<root>/standards/writing.md`: facts about the
+   system, never about how the design was made ("No other program reads
+   this table", not "research found no other reader"); no coined noun
+   stacks or slashes; short sentences.
 
 ### Scope discipline
 
@@ -76,8 +80,10 @@ for HOW the scope will be met.
 
 ### Accuracy
 
-- Claims about existing behaviour keep their source references (carry them
-  over from research-notes.md; add new ones for anything newly read).
+- Claims about existing behaviour keep their source references: copy the
+  code references (`file:line`) over from research-notes.md and add new ones
+  for anything newly read. Never cite research-notes.md itself — it stays
+  in the workspace, so the reader of the handed-over TDD cannot open it.
 - Pseudocode/signatures must compile against reality: correct object names,
   parameter types from the actual specs.
 
@@ -89,12 +95,13 @@ for HOW the scope will be met.
    every claim against the code) — delegated per `<root>/core/reviewers.md`. Resolve all
    findings.
 3. Write the TDD's **handoff summary** block now — after the fact-check
-   fixes — and run `ses handoff check <ws>/tdd.md`; it must pass.
+   fixes — and run `ses handoff check <ws>/tdd.md` and
+   `ses prose-lint <ws>/tdd.md`; both must pass.
 4. Present the TDD to the user for approval, starting from the summary: key
    decisions, traceability table, risks — plus open ASSUMPTIONS.md entries
    for ratification (decision-protocol §4); promote design-shaping ones into
    the TDD. Iterate until approved — each revision updates the summary in
-   the same edit and re-runs the check. Record approval + date in the TDD
+   the same edit and re-runs both checks. Record approval + date in the TDD
    header.
 5. Record:
    `ses status set <ws> tech-design=approved --next "Run /grill."`

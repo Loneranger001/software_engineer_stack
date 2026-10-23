@@ -35,6 +35,7 @@ COMMANDS = {
     "lessons": ("lessons.sh", "lessons for a stage; --add appends one"),
     "fdd-lint": ("fdd_lint.py", "flag code-level content in a functional design"),
     "fdd-view": ("fdd_view.py", "render a functional design for its audience"),
+    "prose-lint": ("prose_lint.py", "hold a document people read to the writing standard"),
     "md2docx": ("md2docx.sh", "Markdown → Word"),
     "md2pdf": ("md2pdf.sh", "Markdown → PDF"),
     "md2confluence": ("md2confluence.sh", "Markdown → Confluence wiki markup"),

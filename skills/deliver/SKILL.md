@@ -67,7 +67,9 @@ The documents must match what was actually built:
 ## 3. Package
 
 1. Fill `<root>/templates/release-notes.md` →
-   `<ws>/release-notes.md` (deployment + rollback usable stand-alone).
+   `<ws>/release-notes.md` (deployment + rollback usable stand-alone),
+   written to `<root>/standards/writing.md`;
+   `ses prose-lint <ws>/release-notes.md` must pass.
 2. Convert deliverables per the user's needs using
    `ses md2docx | ses md2pdf | ses md2confluence`
    into `<ws>/deliverables/`. Ask once which formats are wanted unless

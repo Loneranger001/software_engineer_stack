@@ -4,6 +4,12 @@
 - Inputs: scope-contract.md v{n}, research-notes.md
 - Author: Claude, reviewed by {user}
 
+<!-- Written for its reader, not for the pipeline: every sentence follows
+     <root>/standards/writing.md (check: ses prose-lint <file>). State facts
+     about the system and cite them as code references (file:line); never
+     cite research-notes.md or another workspace file — the reader of the
+     handed-over TDD cannot open them. -->
+
 <!-- handoff:start -->
 ## Handoff summary
 <!-- Written last, at this stage's gate, and updated in the same edit as any
@@ -22,8 +28,8 @@
 
 ## 1. Overview
 
-{What is being built/changed and why — one or two paragraphs, understandable by
-someone who has not read the brief.}
+{What is being built or changed and why — one or two paragraphs,
+understandable by someone who has not read the brief.}
 
 Business terms used in this document:
 
@@ -49,7 +55,10 @@ Business terms used in this document:
 
 ## 3. Current state
 
-{Condensed from research-notes.md, with source references retained.}
+<!-- Condensed from research-notes.md: carry over its code references, not
+     the notes themselves. -->
+{How the function works today, with a code reference (file:line) for each
+claim.}
 
 ### As-is flow
 
@@ -61,7 +70,8 @@ flowchart TD
     {entry point} --> {component} --> {data object / file}
 ```
 
-{One paragraph walking the diagram; source: research-notes.md §call graph.}
+{One paragraph that walks through the diagram, with a code reference for
+each step.}
 
 ## 4. Proposed design
 
@@ -93,9 +103,12 @@ flowchart TD
 
 ## 6. Interface impact
 
-{Callers affected, contract changes, backward compatibility. "None" must be
-justified with the call-graph evidence from research — evidence covering every
-repo in the analysis scope, not only the repo being changed.}
+<!-- "None" must be backed by the research call graph and the search across
+     every repo in the analysis scope, not only the repo being changed. Write
+     the result as a fact about the system ("No other program in repo-a,
+     repo-b or repo-c reads this table"), not as a report of the search. -->
+{Which callers are affected, which interfaces change, and how existing
+callers keep working.}
 
 | Repo | Caller | Impact | Changes here? | How it keeps working |
 |---|---|---|---|---|
@@ -115,11 +128,11 @@ repo in the analysis scope, not only the repo being changed.}
 ## 8. Operational impact
 
 <!-- Batch reality check. "None" must be stated per line, not implied. -->
-- Schedule / trigger changes: {…}
+- Schedule and trigger changes: {…}
 - Restartability: {how the changed job behaves on rerun after failure}
-- File handoffs: {new/changed files, consumers informed?}
+- File handoffs: {new or changed files, and whether their consumers know}
 - Logging & monitoring: {new log lines, alerts, what ops should watch}
-- Run duration / volumes: {expected change, basis}
+- Run duration and volumes: {expected change, basis}
 
 ## 9. Non-functional considerations
 
@@ -139,4 +152,5 @@ repo in the analysis scope, not only the repo being changed.}
 
 ## 12. Out of scope
 
-{Restate the contract's exclusions that readers might otherwise expect here.}
+<!-- The scope contract's exclusions (N#) that a reader might expect here. -->
+{What a reader might expect in this design but it does not cover.}

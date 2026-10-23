@@ -25,7 +25,7 @@ flowchart LR
 |---|---|---|
 | `/intake <brief>` | Parse a solution design / requirement brief into a requirements summary and a **scope contract** | User approves scope contract |
 | `/research` | Investigate the codebase and external sources; every finding carries a source reference | Checklist |
-| `/func-design <task-id> \| brief <path> \| as-built <component> \| change <repo> <base>..<head>` | Optional functional design document for stakeholders: what the system does, when, and under which business rules — component logic as plain-language steps, tables/columns only where they carry meaning, no code (linted by `fdd_lint.py`). Forward (a proposed change; `/tech-design` then realises it), as-built (existing functionality), or change (a change already built, before vs after from its diff). Rendered for `audience=business` (default) or `technical` by `fdd_view.py` | User approves FDD |
+| `/func-design <task-id> \| brief <path> \| as-built <component> \| change <repo> <base>..<head>` | Optional functional design document for stakeholders: what the system does, when, and under which business rules — component logic as plain-language steps, tables/columns only where they carry meaning, no code (linted by `fdd_lint.py`), opening with an "In short" a reader can stop after and written to the plain-English writing standard (`prose_lint.py`). Forward (a proposed change; `/tech-design` then realises it), as-built (existing functionality), or change (a change already built, before vs after from its diff). Rendered for `audience=business` (default) or `technical` by `fdd_view.py` | User approves FDD |
 | `/tech-design` | Produce a technical design document traceable to requirements and research | User approves TDD |
 | `/grill` | Adversarial interrogation of the TDD: concrete edge-case scenarios per category (data, lifecycle, interface, temporal, environment, security/ops, deploy/rollback); gaps fixed from evidence, the rest grilled out of you until answered or explicitly deferred | Zero open questions |
 | `/impl-plan` | Produce an implementation document: ordered steps, test plan, rollback plan | User approves impl doc |
@@ -225,13 +225,14 @@ skills/       one directory per lifecycle command (SKILL.md each) — harness-ne
 templates/    canonical Markdown templates for every document type
 core/         decision-protocol.md (what to do when unknown), repo-resolution.md (where the files are —
               the rules card skills load; repo-resolution-rationale.md holds the why)
-standards/    default coding standards per language (a repo's own rules files override them)
+standards/    default coding standards per language (a repo's own rules files override them), and
+              writing.md — the plain-English standard for documents people read
 checklists/   per-stage quality gates
 knowledge/    lessons.md (shipped lessons; yours go to ~/.ses/lessons.md), decisions.md (framework decision log)
 docs/         QA.md (design Q&A + testing guide), walkthrough.md (narrated example task)
 scripts/      what `ses` runs: status.py (gates), new-task.sh, list-repos.sh, workspace-root.sh,
               repo-rules.sh, handoff.py, checkpoint.py, xsearch.py, review-diff.sh, lessons.sh,
-              capture.sh, fdd_lint.py, fdd_view.py, md2docx.sh, md2pdf.sh, md2confluence.sh;
+              capture.sh, fdd_lint.py, fdd_view.py, prose_lint.py, md2docx.sh, md2pdf.sh, md2confluence.sh;
               check_knowledge.py (maintenance)
 tests/        unittest suite for ses, the scripts, and the skill wiring (run by CI and the pre-commit hook)
 examples/     sample work repo + a worked example task workspace

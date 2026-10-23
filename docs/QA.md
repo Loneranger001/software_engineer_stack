@@ -25,7 +25,7 @@ Orchestrator topologies pay off for parallel, decomposable, human-free work. Thi
 
 ## 4. Do the TDD / how-to / other document types follow defined templates?
 
-Yes — thirteen templates in [`templates/`](../templates), one per document type (scope contract, research notes, FDD, TDD, grill log, impl doc, test evidence, KB article, how-to, interface map, understanding doc, domain glossary, release notes). Skills copy the template and fill every section; the stage checklists verify the load-bearing parts; the doc-fact-checker flags any claim without a source reference; `/retro` is the sanctioned way to evolve a template.
+Yes — thirteen templates in [`templates/`](../templates), one per document type (scope contract, research notes, FDD, TDD, grill log, impl doc, test evidence, KB article, how-to, interface map, understanding doc, domain glossary, release notes). Skills copy the template and fill every section; the stage checklists verify the load-bearing parts; the doc-fact-checker flags any claim without a source reference; `/retro` is the sanctioned way to evolve a template. Every document a reader outside the build gets (FDD, TDD, how-to, KB article, understanding doc, release notes) is also written to [`standards/writing.md`](../standards/writing.md) — see §23.
 
 ## 5. When the code-reviewer reviews code, where does its output go?
 
@@ -156,3 +156,7 @@ Writing stays narrow because analysis scope is not permission. Discovering that 
 On the fast path, `/change-request` escalates to the full pipeline when changes land in more than one repo: coordinated branches plus a deploy order is not a small change, whatever the diff size suggests.
 
 Rules files stay per-repo throughout, and that is deliberate: code written in repo-b follows repo-b's rules. The domain glossary is deliberately the opposite — one `work/domain-glossary.md` for the workspace, holding only terms that mean the same in every repo. A term that means different things in two repos stays out of it: each task defines it per repo in its own documents, and the difference is a finding worth raising rather than smoothing over.
+
+## 23. Why do the documents follow STE writing rules but not strict ASD-STE100?
+
+Strict ASD-STE100 means its controlled dictionary: about 900 approved words, each with one meaning. The dictionary is ASD's copyrighted specification, so it cannot ship in the plugin, and an agent that does not have it cannot claim compliance; real compliance needs a commercial checker. STE was also built for maintenance procedures, while a design document explains reasons and trade-offs, which the approved-word limit makes stilted. The writing rules carry most of the value and can be checked, so [`standards/writing.md`](../standards/writing.md) takes them — sentence limits (20 words for a step, 25 otherwise), active voice, one idea per sentence, noun groups of three words at most, six sentences per paragraph, one term for one meaning — and adds the rule that matters most for these documents: write about the system, never about how the document was made ("research identified no implementation" becomes "the system does not do this today"). `ses prose-lint` checks the mechanical part; the stage checklists hold the judgment.

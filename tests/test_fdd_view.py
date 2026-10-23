@@ -78,6 +78,19 @@ class FddViewTest(unittest.TestCase):
         self.assertNotIn("Appendix", outs["fdd.business.md"])
         self.assertIn("## 1. Purpose", outs["fdd.business.md"])
 
+    def test_business_view_drops_sections_that_only_say_none(self):
+        doc = ("# FDD\n\n## 2. Scope\n\n### 2.1 Requirements\n\nFR1\n\n### 2.2 Out of scope\n\nNone.\n\n"
+               "## 10. Reports\n\nNone\n\n## 11. Security\n\nNone — batch account only.\n\n"
+               "## 12. Operations\n\nNone.\n\n### 12.1 Volumes\n\nTen a day.\n")
+        _, outs = render(doc)
+        out = outs["fdd.business.md"]
+        for gone in ("2.2 Out of scope", "10. Reports"):
+            self.assertNotIn(gone, out)
+        for kept in ("### 2.1 Requirements", "None — batch account only.", "## 12. Operations", "Ten a day."):
+            self.assertIn(kept, out)
+        _, outs = render(doc, "--audience", "technical")
+        self.assertIn("### 2.2 Out of scope", outs["fdd.technical.md"])
+
     def test_unbalanced_markers_fail(self):
         r, _ = render("# FDD\n<!-- technical:start -->\nx\n")
         self.assertEqual(r.returncode, 1)

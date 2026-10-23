@@ -14,14 +14,14 @@
 
 ## 1. Purpose
 
-{What this interface/component exists to do, in business terms.}
+{What this interface or component exists to do, in business terms.}
 
 ## 2. At a glance
 
 | Aspect | Value | Source |
 |---|---|---|
-| Entry points | {proc / script / endpoint} | {file:line} |
-| Trigger / schedule | {cron, event, manual} | {…} |
+| Entry points | {procedure, script, or endpoint} | {file:line} |
+| Trigger and schedule | {cron, event, or manual} | {…} |
 | Inputs | {files, tables, parameters} | {…} |
 | Outputs | {files, tables, return codes} | {…} |
 | Key configuration | {…} | {…} |
@@ -82,7 +82,7 @@ flowchart LR
 
 | Dependency | Type | How used | Source |
 |---|---|---|---|
-| {feed file / table / package / service} | {…} | {…} | {file:line / query} |
+| {feed file, table, package, or service} | {…} | {…} | {file:line / query} |
 
 ### Downstream (what depends on this interface)
 
@@ -94,7 +94,7 @@ flowchart LR
 | Object | Type | Relationship | Source |
 |---|---|---|---|
 | {pkg_x} | PL/SQL package | {called by main proc for …} | {…} |
-| {run_x.ksh} | KSH | {wrapper / scheduler entry} | {…} |
+| {run_x.ksh} | KSH | {wrapper or scheduler entry} | {…} |
 
 ### Schedule / triggers
 
@@ -109,7 +109,7 @@ flowchart LR
 ## 7. Error handling & recovery
 
 {How failures surface (return codes, log locations, alert tables) and how the
-interface is restarted/recovered. Source references required.}
+interface is restarted and recovered. Source references required.}
 
 ## 8. Operational notes
 
