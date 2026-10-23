@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 LINT = [sys.executable, str(ROOT / "scripts" / "prose_lint.py")]
-READER_TEMPLATES = ("fdd", "tdd", "howto", "kb-article", "understanding-doc", "release-notes")
+READER_TEMPLATES = ("fdd-review", "tdd-review", "howto", "kb-article", "understanding-doc", "release-notes")
 
 CLEAN = """# Functional Design Document — T-1: send approved orders
 

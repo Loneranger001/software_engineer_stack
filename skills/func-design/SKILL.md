@@ -1,6 +1,6 @@
 ---
 name: func-design
-description: Produce a functional design document (FDD) - what the system does, when, and under which business rules, with each component's logic as numbered plain-language steps and data named at table/column level, but no code, SQL, pseudocode, or DDL, written to the plain-English writing standard. Works forward (a proposed change, from an approved scope contract or a brief), as-built (existing functionality), or for a change already implemented (before vs after, from the delivered diff); fact-checked against the code, linted for code-level content, user-approved, and rendered for a business or technical audience. Use when a functional design, functional specification, FDD, or business-readable description of a package, job, interface, or change is needed - including after the change was built - to discuss with non-technical stakeholders.
+description: Produce a functional design document (FDD) - what the system does, when, and under which business rules, with each component's logic as numbered plain-language steps and data named at table/column level, but no code, SQL, pseudocode, or DDL. Works forward (a proposed change, from an approved scope contract or a brief), as-built (existing functionality), or for a change already implemented (before vs after, from the delivered diff); fact-checked against the code, linted for code-level content, and approved through a short plain-English review version written for a business or technical audience. Use when a functional design, functional specification, FDD, or business-readable description of a package, job, interface, or change is needed - including after the change was built - to discuss with non-technical stakeholders.
 argument-hint: "<task-id> | brief <path> | as-built <component> | change <repo> <base>..<head>   [audience=business|technical]"
 ---
 
@@ -13,11 +13,12 @@ argument-hint: "<task-id> | brief <path> | as-built <component> | change <repo> 
 > every `ses` below. If neither runs, stop and ask the user (README →
 > Install); never guess another path.
 
-Produce `<ws>/fdd.md`, get it user-approved, and render it for its audience.
-The FDD tells stakeholders WHAT the solution does, in their language; the TDD
-says HOW. It is optional in every lifecycle — nothing gates on it. The
-defining rule is the abstraction level — see **Abstraction rules** below;
-the second is plain writing — see **Writing**.
+Produce `<ws>/fdd.md` — the agent version, complete and traceable — and,
+from it, `<ws>/fdd.review.md` — the short review version people read and
+approve (**Two versions** below). The FDD tells stakeholders WHAT the
+solution does, in their language; the TDD says HOW. It is optional in every
+lifecycle — nothing gates on it. The defining rule is the abstraction level
+— see **Abstraction rules** below.
 
 ## Invocation
 
@@ -28,11 +29,13 @@ the second is plain writing — see **Writing**.
 | `/func-design as-built ORDER_EDI_SQL` | as-built — existing functionality | standalone |
 | `/func-design change repo-a main..feature/PROJ-123` | change — what a built change did | standalone |
 
-Append `audience=technical` to keep developer detail in the rendered
-document; the default `audience=business` is for non-technical stakeholders.
+Append `audience=technical` when the readers are developers: the review
+version may then name components and tables. The default
+`audience=business` is for non-technical stakeholders.
 With no arguments, show this table and ask which case applies.
 
-One template for all modes (`<root>/templates/fdd.md`):
+One pair of templates for all modes (`<root>/templates/fdd.md`,
+`<root>/templates/fdd-review.md`):
 - **forward** — requirements come from the scope contract or a brief;
   existing behaviour it relies on is still read from the code.
 - **as-built** — a component as it stands, every statement verified against
@@ -111,7 +114,7 @@ Technical = how it is coded. The FDD holds only the first.
 |---|---|
 | Component names (package, procedure, script, job) as identifiers | Code, SQL, PL/SQL blocks, shell or Python snippets |
 | Processing logic as numbered plain-language steps; decision tables for multi-condition rules | Pseudocode mirroring code: loops, cursors, bulk binds, assignments, variable names |
-| `table.column` names and code values in §7, mapped to the business words the steps use | DDL, data types, precision, indexes, partitions, hints, sequences |
+| `table.column` names where they pin down business meaning, with code values and what they mean | DDL, data types, precision, indexes, partitions, hints, sequences |
 | Business limits in words ("up to 30 characters", "2 decimal places") | `VARCHAR2(30)`, `NUMBER(12,2)` |
 | Parameters by name, business meaning, valid values | Parameter types and defaults written as code |
 | What a failure means to the business, who is told, how it is recovered | Exception-handler mechanics, `ORA-` codes, log-table internals |
@@ -125,10 +128,8 @@ business effect or moved to the TDD.
 
 - ✗ `FOR r IN c_po LOOP IF r.status = 'A' …` — code.
 - ✗ "Open cursor c_po on ORDHEAD, bulk-collect into the order table, loop" — code in prose.
-- ✓ "Find every approved purchase order that the system has not sent to its
-  vendor." §7 maps "approved" to `ORDHEAD.STATUS` = 'A' and "sent" to
-  `ORDHEAD.EDI_SENT_IND`; with `audience=technical` the step may add them in
-  brackets.
+- ✓ "Select every purchase order that is approved (`ORDHEAD.STATUS` = 'A')
+  and not yet sent to the vendor (`ORDHEAD.EDI_SENT_IND` = 'N')."
 
 As-built and change modes read the code to learn the logic; translating it to
 this level is the job — summarise, don't transcribe. A 400-line procedure is
@@ -136,7 +137,8 @@ this level is the job — summarise, don't transcribe. A 400-line procedure is
 
 Developer-only detail that the fact-checker needs but stakeholders don't —
 component input tables, Appendix A — sits between `<!-- technical:start -->`
-and `<!-- technical:end -->`; the business view drops it (§4).
+and `<!-- technical:end -->`; a business rendering of the full design
+(`ses fdd-view`) drops it.
 
 `ses fdd-lint <ws>/fdd.md` flags code-level content
 mechanically (non-mermaid code blocks, SQL/PL/SQL/shell/Python constructs,
@@ -144,25 +146,35 @@ data types). It is a floor, not the judgment: a finding is fixed by lifting
 the content to the functional level, never by rewording around the pattern,
 and a clean lint does not excuse a step that fails the litmus test.
 
-## Writing
+## Two versions
 
-Every sentence a reader sees follows `<root>/standards/writing.md` — the
-writing rules of ASD-STE100 Simplified Technical English, without its
-dictionary. Two faults make an FDD tiring to read:
+The FDD exists twice, once for each kind of reader:
+
+| | Agent version — `fdd.md` | Review version — `fdd.review.md` |
+|---|---|---|
+| Read by | /tech-design, /grill, the doc-fact-checker | the user and stakeholders, who approve it |
+| Holds | everything: IDs, steps per component, `table.column`, Appendix A, the handoff summary | what a reader needs to decide: In short, what changes, one flow, rules, failures, tests, questions — two pages, four at most |
+| Written to | the abstraction rules; precise before short | the abstraction rules and `<root>/standards/writing.md`; simple before complete wording |
+| Checked by | `ses fdd-lint`, the fact-check against the code, `ses handoff check` | `ses fdd-lint`, `ses prose-lint`, `ses review-version check`, the agreement check against fdd.md |
+
+fdd.md is the source of truth; the review version is written from it, never
+the other way round. Approving the review version approves fdd.md, so the two
+must say the same thing. Each part of the review version ends with a hidden
+`covers:` anchor naming the fdd.md IDs it covers, and its header carries a
+stamp of the fdd.md it was written from (`ses review-version stamp`).
+`ses review-version check` — also run by `ses handoff check` — fails when an
+ID has no anchor, an ID shows in the text, or fdd.md changed after the stamp.
+
+Two faults make a review version tiring to read; the prose lint catches
+their common forms:
 
 - Writing about how the document was made. The reader never sees the
-  research, the task, or the scope contract — state the fact about the
-  system, and keep sources in Appendix A.
+  research, the task, or the scope contract.
   - ✗ "Research identified no implementation of the resend rule."
   - ✓ "The system does not resend an order today."
 - Coined noun stacks and slashes. Describe the thing in plain words.
   - ✗ "the task-owned message / publication identity"
   - ✓ "the ID that the system gives each message that it publishes"
-
-`ses prose-lint <ws>/fdd.md` flags the common forms of both, plus long
-sentences, long paragraphs, and filler words. Like the fdd lint it is a
-floor: fix a finding by rewriting the sentence, and a clean lint does not
-excuse a sentence a business reader has to read twice.
 
 ## 1. Analyze
 
@@ -210,32 +222,24 @@ excuse a sentence a business reader has to read twice.
    no natural home in §5 means the design is incomplete.
 3. §4: the business-level flow — the traced flow (as-built, change) or the
    research call graph plus the proposed change (forward), never from
-   memory.
+   memory. Forward and change modes fill **Before and after this change**:
+   for stakeholders it is the most-read part of the document, so every row
+   is concrete ("orders reach the vendor the same night", not "improved
+   processing").
 4. §5: one subsection per component the function involves; unchanged ones
    only where a reader needs them for context, marked so. Change mode marks
-   each step `(new)` or `(changed)`. Steps are in business words: each
-   names its rule in a few words with the ID at the end ("Check that the
-   vendor accepts EDI orders (BR1)"), and its failure path the same way
-   (EX1). The full rule is stated once in §6, the failure path once in §9
-   with its business recovery, and the step's words agree with them. Table
-   and column names and code values go in §7. Keep each component's Inputs
-   table, and Appendix A, inside the technical markers.
-5. Write for the recorded audience, per **Writing**; for `business`, a
-   sentence that needs the technical regions to make sense is rewritten. No
+   each step `(new)` or `(changed)`. Steps reference BR#, EX#, and
+   `table.column` — every rule stated once in §6, every failure path once in
+   §9 with its business recovery. Keep each component's Inputs table, and
+   Appendix A, inside the technical markers.
+5. Write fdd.md for the agents and reviewers that read it: complete and
+   exact before short — the review version (§3) is where it gets simple. No
    section is dropped: "None" is stated, with the reason where it is not
    obvious.
-6. **In short** opens the document; write it last, from the finished body:
-   four to eight plain sentences — what changes (as-built: what the function
-   does), who notices, when, and what the reader must decide — with no IDs
-   and no table or column names. Forward and change modes fill its
-   **Before and after this change** table: for stakeholders it is the
-   most-read part of the document, so every row is concrete ("orders reach
-   the vendor the same night", not "improved processing").
-7. Run `ses fdd-lint [--allow <kinds>] <ws>/fdd.md`
-   (kinds from `ses status get <ws> fdd-lint-allow`, if recorded) and
-   `ses prose-lint <ws>/fdd.md`, and fix every finding per the abstraction
-   rules and **Writing**.
-8. Standalone: `ses status set <ws> draft=done`.
+6. Run `ses fdd-lint [--allow <kinds>] <ws>/fdd.md`
+   (kinds from `ses status get <ws> fdd-lint-allow`, if recorded) and fix
+   every finding per the abstraction rules.
+7. Standalone: `ses status set <ws> draft=done`.
 
 ## 3. Quality gates
 
@@ -248,17 +252,31 @@ excuse a sentence a business reader has to read twice.
    replaced by the code it summarises). Standalone:
    `ses status set <ws> fact-check=done`.
 3. Write the **handoff summary** block now — after the fact-check fixes —
-   then run `ses handoff check <ws>/fdd.md` and both lints
-   again; all three must pass.
-4. Render the audience view (§4 step 1) and present the FDD from it, then
-   the summary: requirements and traceability, before vs after, business
-   rules, exceptions, open Q# items, plus open ASSUMPTIONS.md entries for
-   ratification (decision-protocol §4). Approval with a Q# still open needs
-   the user to defer it explicitly, recorded in its §13 status. Iterate until
-   approved — each revision updates the summary and **In short** in the
-   same edit and re-runs the handoff check and both lints. Record approval
-   + date in the FDD header.
-5. Record:
+   then run `ses handoff check <ws>/fdd.md` and the lint
+   again; both must pass.
+4. **Review version.** Copy `<root>/templates/fdd-review.md` →
+   `<ws>/fdd.review.md` and write it from fdd.md for the recorded audience,
+   per **Two versions**: In short first; each part ends with its `covers:`
+   anchor; every FR, BR, EX, TS and Q of fdd.md covered; open Q# items under
+   "Questions for you". Then run `ses review-version stamp <ws>/fdd.md`,
+   `ses review-version check <ws>/fdd.md`, `ses prose-lint <ws>/fdd.review.md`
+   and `ses fdd-lint <ws>/fdd.review.md`; all must pass. Fix a prose finding
+   by rewriting the sentence, a coverage finding by adding the item where a
+   reader meets it.
+5. **Agreement check.** Run the doc-fact-checker procedure on fdd.review.md
+   against fdd.md — delegated per `<root>/core/reviewers.md`. Fix every
+   finding in the review version; one that shows fdd.md itself is unclear
+   is fixed in fdd.md first, then carried down.
+6. Render the review version (`ses review-version render <ws>/fdd.md` →
+   `<ws>/deliverables/fdd.review.md`) and present it — it is what the user
+   approves — plus open ASSUMPTIONS.md entries for ratification
+   (decision-protocol §4). Approval with a Q# still open needs the user to
+   defer it explicitly, recorded in its §13 status. Iterate until approved —
+   each revision changes fdd.md first, then its handoff summary and the
+   review version in the same edit; re-stamp, re-run the checks, and re-run
+   the agreement check on the changed parts. Record approval + date in both
+   headers.
+7. Record:
    - Attached: `ses status field <ws> fdd "approved <date> by <who>"`.
      Forward mode while `tech-design` is pending:
      `ses status next <ws> "Run /tech-design — the TDD realises the approved FDD."`
@@ -267,19 +285,18 @@ excuse a sentence a business reader has to read twice.
 
 ## 4. Deliver
 
-1. Render the view for the recorded audience:
-   `ses fdd-view <ws>/fdd.md --audience <fdd-audience>`
-   → `<ws>/fdd.<audience>.md`. `business` drops the handoff summary, the
-   technical regions, Appendix A, and sections that say only "None";
-   `technical` keeps them. Both drop template guidance. Never hand
-   stakeholders `fdd.md` itself.
+1. Render the review version again — the approval changed its header:
+   `ses review-version render <ws>/fdd.md` →
+   `<ws>/deliverables/fdd.review.md`, without anchors, guidance, or stamp.
+   Never hand stakeholders `fdd.md` itself; a developer who asks for the
+   full design gets `ses fdd-view <ws>/fdd.md --audience technical`.
 2. Ask which output formats are needed unless `ses status get <ws> formats`
    answers it, and record them (`ses status field <ws> formats "<docx,pdf,...>"`).
-   Convert the view (not fdd.md) via
+   Convert the rendered review version (not fdd.md) via
    `ses md2docx | ses md2pdf | ses md2confluence`
    into `<ws>/deliverables/`; verify each file is non-empty. Attached
    forward mode can leave conversion to the task's /deliver package — it
-   converts the same view.
+   converts the same file.
 3. Present the FDD and where it is; list deferred Q# items so the user can
    close them.
 4. Standalone: `ses status set <ws> deliver=done`.
@@ -287,7 +304,9 @@ excuse a sentence a business reader has to read twice.
 ## Changes after approval
 
 Never edit an approved FDD silently — a change needs re-approval and a note
-in the header. Attached forward mode: when /tech-design, /grill, or
+in the header. Every change to fdd.md updates fdd.review.md in the same edit
+and is re-approved on it; `ses handoff check` fails until the review version
+is re-stamped. Attached forward mode: when /tech-design, /grill, or
 /implement finds the FDD wrong or incomplete, the FDD is amended and
 re-approved first; the TDD never quietly departs from it. Change mode: if
 the code changes after approval, re-pin `change-head` and re-run from §1.
@@ -295,5 +314,6 @@ the code changes after approval, re-pin `change-head` and re-run from §1.
 ## Fault tolerance
 
 Write incrementally. On resume, diff §2.1 against §5 and §14 to find FR#
-without a home, and Appendix A against §5 to find unsourced steps; standalone
-stage state comes from `ses status show <ws>`.
+without a home, and Appendix A against §5 to find unsourced steps;
+`ses review-version check <ws>/fdd.md` shows whether the review version is
+behind. Standalone stage state comes from `ses status show <ws>`.

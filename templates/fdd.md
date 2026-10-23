@@ -1,29 +1,27 @@
 # Functional Design Document — {TASK_ID}: {TITLE}
 
 - Status: draft | user-approved ({date})
-- Audience: {business | technical} — {who: business owner, functional analysts, UAT testers, developers}
-- Author: Claude, reviewed by {user}
-<!-- technical:start -->
 - Mode: forward (proposed change) | as-built (existing behaviour) | change (a change already built)
 - Inputs: {scope-contract.md v{n} + research-notes.md | brief: {path} | code: {repo}@{sha} | change: {repo} {base-sha}..{head-sha}}
-<!-- technical:end -->
+- Audience: {business | technical} — {who: business owner, functional analysts, UAT testers, developers}
+- Author: Claude, reviewed by {user}
 
 <!-- FUNCTIONAL LEVEL ONLY (skills/func-design/SKILL.md, "Abstraction rules"):
      WHAT the system does, WHEN, under WHICH business rules, with WHAT effect
      on data — never HOW it is coded. Allowed: component names, table.column
-     names and code values (in §7, mapped to the business words the steps
-     use), file names, numbered plain-language steps, decision tables,
-     mermaid business flows. Not allowed: code, SQL, pseudocode, DDL, data
-     types, indexes, hints, commit points, variable names, error codes.
+     names that pin down business meaning, code values and their meaning,
+     file names, numbered plain-language steps, decision tables, mermaid
+     business flows. Not allowed: code, SQL, pseudocode, DDL, data types,
+     indexes, hints, commit points, variable names, error codes.
      Mechanical floor: ses fdd-lint <file>.
-     PLAIN WRITING (<root>/standards/writing.md): about the system, never
-     about how this document was made — no research, task, scope contract,
-     or stage names; no coined noun stacks; no slashes between words; short
-     sentences. Mechanical floor: ses prose-lint <file>.
-     Stakeholders get a rendered view (ses fdd-view): the business
-     audience drops the handoff summary, every technical:start/end region,
-     Appendix A, and sections that say only "None." — keep the markers
-     around developer-only detail. -->
+     AGENT VERSION: complete and exact — /tech-design, /grill and the
+     reviewers read it. People read and approve fdd.review.md (template:
+     <root>/templates/fdd-review.md), written from this file at the approval
+     gate and kept in step with it (ses review-version check). A developer
+     who asks for this full version gets a rendering (ses fdd-view); its
+     business audience drops the handoff summary, every technical:start/end
+     region, and Appendix A — keep the markers around developer-only
+     detail. -->
 
 <!-- handoff:start -->
 ## Handoff summary
@@ -43,31 +41,6 @@
 - Scenarios: TS1 → FR1 (A1)
 - Open questions: Q1 {…} | none
 <!-- handoff:end -->
-
-## In short
-
-<!-- For the reader who stops here. Four to eight plain sentences: what
-     changes (as-built: what the function does), who notices, when it
-     happens, and what the reader must decide or check. No IDs, no table or
-     column names, nothing about how this document was made. Write it last,
-     from the finished body, and update it with every revision. -->
-
-{Today, a purchase order waits for the weekly run before it goes to the
-vendor. After this change, the nightly run sends each approved order on the
-day that the buyer approves it. Buyers no longer send EDI orders by hand.
-Orders for vendors that do not accept EDI go on the buyer's exception report,
-as they do today.}
-
-### Before and after this change
-
-<!-- Forward and change modes — the stakeholders' main view of what the
-     change does; change mode fills both columns from the code (before = base
-     commit, after = head commit). Each row is concrete: "orders reach the
-     vendor the same night", not "improved processing". As-built mode: delete
-     this subsection. -->
-| Aspect | Before | After this change |
-|---|---|---|
-| {how orders reach vendors} | {…} | {…} |
 
 ## 1. Purpose and business context
 
@@ -101,9 +74,8 @@ Business terms used in this document:
 
 ### 2.2 Out of scope
 
-<!-- Attached mode: the scope contract's N# items. State "None." when there
-     are none. -->
-{What a reader might expect in this design but it does not cover.}
+{Exclusions a reader might otherwise expect here — the contract's N# items in
+attached mode. "None" stated explicitly.}
 
 ## 3. Actors, triggers and schedule
 
@@ -128,21 +100,25 @@ flowchart TD
     D -- no --> X[exception path — EX1]
 ```
 
-{One paragraph that walks through the diagram.}
+{One paragraph walking the diagram.}
+
+### Before and after this change
+
+<!-- Forward and change modes — the stakeholders' main view of what the
+     change does; change mode fills both columns from the code (before = base
+     commit, after = head commit). As-built mode: delete this subsection. -->
+| Aspect | Before | After this change |
+|---|---|---|
+| {how orders reach vendors} | {…} | {…} |
 
 ## 5. Component functional design
 
 <!-- One subsection per component the function involves (package, procedure,
-     script, program, job). Logic is numbered plain-language steps in business
-     words: what the step reads or changes and the rule it applies — never
-     loops, cursors, SQL, or variables. A step names its rule in a few words
-     with the ID at the end ("Check that the vendor accepts EDI orders
-     (BR1)"), and its failure path the same way (EX1); the words agree with
-     §6 and §9. Table and column names and code values go in §7; with
-     audience=technical a step may add the `table.column` in brackets after
-     the business words. A 400-line procedure becomes 5–10 steps, each 20
-     words at most. Litmus test: two developers could implement these steps
-     differently and both satisfy them.
+     script, program, job). Logic is numbered plain-language steps: each step
+     names the data it reads or changes (table.column, with the code value and
+     its meaning) and the rule it applies (BR#), never loops, cursors, SQL, or
+     variables. A 400-line procedure becomes 5–10 steps. Litmus test: two
+     developers could implement these steps differently and both satisfy them.
      Mark components shown only for context as "context — unchanged"; in
      change mode, mark each new or changed step "(new)" / "(changed)". -->
 
@@ -159,14 +135,14 @@ flowchart TD
 
 <!-- technical:end -->
 - Processing logic:
-  1. {Find every approved purchase order that the system has not sent to
-     its vendor.}
-  2. {Check that the vendor accepts EDI orders (BR1). If it does not, skip
-     the order and put it on the buyer's exception report (EX1).}
-  3. {(new) Write the other orders to the vendor file (§8). Mark each of
-     them as sent.}
-- Outputs and effects: {the records it creates or changes and what that
-  means to the business, the files it produces, the notifications it sends}
+  1. {Identify the purchase orders to send: approved (`ORDHEAD.STATUS` = 'A')
+     and not yet sent to the vendor (`ORDHEAD.EDI_SENT_IND` = 'N').}
+  2. {Check each order against BR1; an order that fails is reported (EX1) and
+     skipped, the rest continue.}
+  3. {(new) Write the accepted orders to the vendor file (§8) and mark each
+     as sent (`ORDHEAD.EDI_SENT_IND` = 'Y').}
+- Outputs and effects: {records created or updated (table.column → new value
+  and what it means), files produced, notifications sent}
 - Exceptions: {EX1, …}
 - Requirements met: {FR1, …}
 
@@ -174,9 +150,9 @@ flowchart TD
 
 ## 6. Business rules and validations
 
-<!-- The full statement of each rule lives here, once. A §5 step names the
-     rule in a few words with its ID; those words must agree with this
-     table. Multi-condition rules get a decision table below. -->
+<!-- Each rule stated once, here, and referenced by ID from §5 — never
+     restated elsewhere in different words. Multi-condition rules get a
+     decision table below. -->
 | # | Rule | Applies to | When violated |
 |---|---|---|---|
 | BR1 | {An order is sent only if its vendor is EDI-enabled} | {§5.1 step 2} | {order skipped, reported as EX1} |
@@ -192,9 +168,7 @@ Decision table — {rule ID}:
 <!-- The business view of the data the function reads or changes and what it
      MEANS. A column appears only when it carries meaning a reader needs. No
      DDL, data types, lengths as types, indexes, or storage — a business limit
-     is stated in words ("up to 30 characters"). This is where the business
-     words of §5 ("approved", "sent") map to tables, columns, and code
-     values. -->
+     is stated in words ("up to 30 characters"). -->
 
 ### 7.1 Data elements
 
@@ -207,7 +181,6 @@ Decision table — {rule ID}:
 | Attribute | Value | Meaning | Set by |
 |---|---|---|---|
 | {ORDHEAD.STATUS} | {A} | {approved} | {buyer approval, outside this function} |
-| {ORDHEAD.EDI_SENT_IND} | {N, Y} | {not sent to the vendor yet; sent} | {§5.1 step 3 sets Y} |
 
 ## 8. Interfaces
 
@@ -238,7 +211,7 @@ handled — in business roles, not grants.}
 
 <!-- Business view, one line each; "None" stated, not implied. -->
 - Volumes: {…}
-- Timing window and service level: {…}
+- Timing window / service level: {…}
 - Rerun behaviour: {what a rerun does to records already processed}
 - Audit and retention: {…}
 

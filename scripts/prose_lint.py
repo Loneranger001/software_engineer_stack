@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """prose_lint.py — hold a document people read to the writing standard.
 
-standards/writing.md sets the rules for the documents a reader outside the
-build gets (FDD, TDD, how-to, KB article, understanding doc, release notes):
+standards/writing.md sets the rules for the documents people read (the
+review versions of the FDD and TDD, how-to, KB article, understanding doc,
+release notes):
 a subset of the ASD-STE100 writing rules, plus one of its own — write about
 the system, never about how the document was made. This script flags the
 mechanical part. It is a floor, not the judgment: a coined noun stack with no

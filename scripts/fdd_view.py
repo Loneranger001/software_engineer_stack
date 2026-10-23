@@ -12,11 +12,8 @@ Usage:
 
 Both audiences drop HTML comments (template guidance) and the handoff summary.
 `business` (the default) also drops every region between
-`<!-- technical:start -->` and `<!-- technical:end -->`, any
-`## Appendix …` section, and any section whose whole body is "None." — the
-working document states it so nothing is skipped silently; a business reader
-does not need the empty heading. A "None" with a reason stays.
-`technical` keeps them.
+`<!-- technical:start -->` and `<!-- technical:end -->` and any
+`## Appendix …` section. `technical` keeps them.
 Default output: fdd.<audience>.md beside the input.
 Exit codes: 0 ok, 1 unbalanced technical markers, 2 usage error.
 """
@@ -31,15 +28,6 @@ TECH = re.compile(r"[ \t]*<!-- technical:start -->.*?<!-- technical:end -->[ \t]
 HANDOFF = re.compile(r"<!-- handoff:start -->.*?<!-- handoff:end -->\n?", re.S)
 COMMENT = re.compile(r"[ \t]*<!--.*?-->[ \t]*\n?", re.S)
 APPENDIX = re.compile(r"^## Appendix\b.*?(?=^## |\Z)", re.S | re.M)
-NONE_SECTION = re.compile(r"^(#{2,6}) [^\n]*\n\s*None\.?[ \t]*\n\s*(?=(#{1,6}) |\Z)", re.M)
-
-
-def drop_none_sections(text: str) -> str:
-    """Drop a heading whose body is only "None", unless a subsection follows it."""
-    def keep_or_drop(m: re.Match[str]) -> str:
-        nxt = m.group(2)
-        return "" if nxt is None or len(nxt) <= len(m.group(1)) else m.group(0)
-    return NONE_SECTION.sub(keep_or_drop, text)
 
 
 def render(text: str, audience: str) -> str:
@@ -50,8 +38,6 @@ def render(text: str, audience: str) -> str:
         text = TECH.sub("", text)
         text = APPENDIX.sub("", text)
     text = COMMENT.sub("", text)
-    if audience == "business":
-        text = drop_none_sections(text)
     return re.sub(r"\n{3,}", "\n\n", text).strip() + "\n"
 
 

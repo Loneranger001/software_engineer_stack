@@ -1,10 +1,12 @@
 # Writing standard — documents people read
 
-> Applies to every document a reader outside the build gets: the functional
-> design (FDD), the technical design (TDD), how-to guides, KB articles,
-> understanding documents, and release notes. It does not apply to working
-> files (scope contract, research notes, impl doc, grill log, STATUS.md,
-> handoff summaries) or to code. A writing rule in the repo's rules files
+> Applies to every document people read: the review versions of the
+> functional and technical designs (fdd.review.md, tdd.review.md), how-to
+> guides, KB articles, understanding documents, and release notes. It does
+> not apply to the agent versions of the designs (fdd.md, tdd.md) or to
+> other working files (scope contract, research notes, impl doc, grill log,
+> STATUS.md, handoff summaries): agents read those, and they are written to
+> be complete and exact. A writing rule in the repo's rules files
 > (`ses repo-rules`) or a style guide the client prescribes wins where it
 > differs.
 
@@ -27,11 +29,13 @@ a workspace that nobody hands over.
   - ✓ The system does not resend an order today.
 - Do not use framework words: research, research notes, this task, scope
   contract, workspace, fact-check, or stage names such as /intake or /grill.
-- Sources go in the source columns and in Appendix A, as code references
-  (`file:line`). Do not cite research-notes.md or any other workspace file.
-  The reader cannot open it.
-- An ID such as FR1, BR1, or S1 is a label. Put it at the end of a sentence
-  or in a column. Do not make an ID the subject of a sentence.
+- Keep sources out of the text. A review version has none: they stay in
+  the agent version. A how-to or KB article keeps them in its source
+  section, as code references (`file:line`). Do not cite research-notes.md
+  or any other workspace file. The reader cannot open it.
+- Keep IDs such as FR1, BR1, or S1 out of the sentences. A review version
+  shows none: its hidden `covers:` anchors hold them. Other documents put
+  them in a column.
 - A fact that you could not check is an open question. Write it as a
   question in the open-questions section.
 
@@ -80,8 +84,8 @@ a workspace that nobody hands over.
 
 - Write about one topic in each paragraph. A paragraph has a maximum of six
   sentences. Put the main point first.
-- Start the document with what the reader needs most: the FDD with "In
-  short", a KB article with the short answer.
+- Start the document with what the reader needs most: a review version
+  with "In short", a KB article with the short answer.
 - Use a numbered list for a sequence, a bulleted list for items at the same
   level, and a table for items that have the same attributes. Do not put
   long prose in a table.

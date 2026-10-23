@@ -4,11 +4,12 @@
 - Inputs: scope-contract.md v{n}, research-notes.md
 - Author: Claude, reviewed by {user}
 
-<!-- Written for its reader, not for the pipeline: every sentence follows
-     <root>/standards/writing.md (check: ses prose-lint <file>). State facts
-     about the system and cite them as code references (file:line); never
-     cite research-notes.md or another workspace file — the reader of the
-     handed-over TDD cannot open them. -->
+<!-- AGENT VERSION: complete and traceable — /grill, /impl-plan and the
+     reviewers read it. People read and approve tdd.review.md (template:
+     <root>/templates/tdd-review.md), written from this file at the approval
+     gate and kept in step with it (ses review-version check). Cite code
+     references (file:line) rather than research-notes.md: the fact-checker
+     verifies them, and a developer handed the full TDD can follow them. -->
 
 <!-- handoff:start -->
 ## Handoff summary
