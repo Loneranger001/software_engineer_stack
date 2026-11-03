@@ -1,4 +1,4 @@
-# Running a reviewer — scope-auditor, code-reviewer, doc-fact-checker
+# Running a reviewer — scope-auditor, code-reviewer, doc-fact-checker, and the design griller
 
 The reviewers judge work without inheriting the author's context, so they run
 apart from the session that produced the work. Their procedures live in
@@ -19,3 +19,13 @@ Every delegation prompt carries the inputs the procedure lists (task
 workspace path, repos with branch and mainline, or the documents), plus the
 `ses` command you resolved and `<root>` — a subagent may not have `ses` on
 PATH. The report comes back to the calling skill, whose gate acts on it.
+
+## The design griller
+
+`design-griller` (/grill Phase 1) is delegated the same way, with three
+differences. It writes — the grill log, the design's gap fixes, evidence —
+so it is not read-only. Its prompt carries its inputs and nothing else: no
+summary of the design, no expected findings. And option 3 does not apply: a
+pass by the session that wrote or discussed the design is the anchoring the
+griller exists to avoid. Without a subagent tool, /grill runs Phase 1 only in
+a session the user confirms is fresh (`<root>/skills/grill/SKILL.md` §1).

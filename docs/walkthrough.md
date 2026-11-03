@@ -108,7 +108,8 @@ you>     approve
 you>  /grill
 ```
 
-Phase 1 runs without you: the agent stress-tests the TDD with concrete
+Phase 1 runs without you, in a fresh `design-griller` agent that never saw the
+conversation that wrote the design: it stress-tests the TDD with concrete
 scenarios per category (data, lifecycle, interface, temporal, environment,
 security/ops, deploy/rollback) — fixing what the evidence can answer, logging
 everything to `grill-log.md`. Phase 2 is your interview; expect several short rounds:

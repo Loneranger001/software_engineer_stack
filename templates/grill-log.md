@@ -2,11 +2,14 @@
 
 > Completeness evidence for the TDD: every adversarial scenario confronted,
 > and what happened to it. Produced by /grill between tech-design and
-> impl-plan. Verdicts: covered | gap-fixed | out-of-scope | ask-user →
-> answered | deferred. A testable gap-fixed or answered row #n becomes TDD
-> §7 row `G<n>`.
+> impl-plan: Phase 1 by the design-griller agent in a fresh context, Phase 2
+> by the session that interviews the user. Verdicts: covered | gap-fixed |
+> out-of-scope | ask-user → answered | deferred. A testable gap-fixed or
+> answered row #n becomes TDD §7 row `G<n>`.
 
-- TDD version grilled: tdd.md as of {date/commit}
+- TDD version grilled: tdd.md as of {date/commit} — {approved | unapproved, grilled at user request}
+- Context: {design-griller agent | fresh subagent | fresh session (confirmed by <who> <date>) | same session (waived by <who> <date>: <reason>)}
+- Phase 1: {in progress | done <date>}
 - Grilled: {date} — phase 2 rounds: {n}
 - TDD edits: {n} — fact-check {PASS | findings resolved}; re-approved {date, by whom | not needed}
 

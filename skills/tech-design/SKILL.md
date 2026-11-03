@@ -20,7 +20,9 @@ for HOW the scope will be met.
 
 1. Load applicable lessons: `ses lessons tech-design` — it prints only
    the matching entries; don't read the lesson files whole.
-2. Locate the workspace and gate:
+2. Locate the workspace — the given task-id, else the single
+   `<workspace-root>/work/*/STATUS.md` with next action /tech-design, else
+   ask — and gate:
    `ses status require <ws> research=done`
    (`<ws>` = `<workspace-root>/work/<id>`) — non-zero exit = stop. Take
    `<work-repo>` from `ses status get <ws> work-repo`

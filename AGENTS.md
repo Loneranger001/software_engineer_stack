@@ -50,6 +50,8 @@ packaging is parked in `parked/`). Full docs: README.md.
    code-reviewer, doc-fact-checker) run apart from the authoring session as
    `<root>/core/reviewers.md` describes: the plugin's custom agent, else a
    fresh subagent, else a separate fresh pass held to the report format.
+   /grill's self-grill runs the same way in `design-griller` beside them,
+   but never in the session that wrote or discussed the design.
 6. Task workspaces never go into git: `ses new-task` excludes `work/`
    locally when it sits inside a repo, commits stage files by name, and
    `ses checkpoint` refuses or fails on workspace files.

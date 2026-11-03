@@ -12,6 +12,8 @@ AGENTS = ROOT / "com.github.copilot" / "agents"
 AGENT_PLUGINS_FIELDS = {"$schema", "name", "version", "description", "author", "homepage",
                         "repository", "license", "keywords", "extensions"}
 REVIEWERS = {"code-reviewer", "doc-fact-checker", "scope-auditor"}
+# agents that write: name → tools (Copilot maps Edit/Write→edit)
+WRITERS = {"design-griller": {"Read", "Grep", "Glob", "Bash", "Edit", "Write"}}
 
 
 def load(p):
@@ -34,16 +36,22 @@ class CopilotPluginTest(unittest.TestCase):
         entry = next(p for p in mkt["plugins"] if p["name"] == load(MANIFEST)["name"])
         self.assertEqual(entry["source"], "./")
 
-    def test_reviewers_are_copilot_agents(self):
+    def test_agents_are_copilot_agents(self):
         files = {p.name[:-len(".agent.md")]: p for p in AGENTS.glob("*.agent.md")}
-        self.assertEqual(set(files), REVIEWERS)
+        self.assertEqual(set(files), REVIEWERS | set(WRITERS))
         for name, path in files.items():
             self.assertFalse(path.is_symlink(), f"{path} must be a real file")
             text = path.read_text()
             self.assertRegex(text, rf"\A---\nname: {name}\ndescription: .+\n")
-            # Copilot maps Read→read, Grep/Glob→search, Bash→execute: read-only, no edit tool
+            # Copilot maps Read→read, Grep/Glob→search, Bash→execute: reviewers are read-only
             tools = {t.strip() for t in re.search(r"^tools: (.*)$", text, re.M).group(1).split(",")}
-            self.assertEqual(tools, {"Read", "Grep", "Glob", "Bash"}, path)
+            self.assertEqual(tools, WRITERS.get(name, {"Read", "Grep", "Glob", "Bash"}), path)
+
+    def test_every_agent_has_delegation_rules(self):
+        rules = (ROOT / "core" / "reviewers.md").read_text()
+        for path in AGENTS.glob("*.agent.md"):
+            self.assertIn(f"`{path.name[:-len('.agent.md')]}`", rules,
+                          f"core/reviewers.md must say how {path.name} is delegated")
 
     def test_parked_packaging_stays_valid_and_inactive(self):
         for p in (ROOT / "parked").rglob("*.json"):

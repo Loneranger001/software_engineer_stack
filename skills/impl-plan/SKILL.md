@@ -21,7 +21,9 @@ session) with no memory of this conversation.
 
 1. Load applicable lessons: `ses lessons impl-plan` — it prints only
    the matching entries; don't read the lesson files whole.
-2. Locate the workspace and gate:
+2. Locate the workspace — the given task-id, else the single
+   `<workspace-root>/work/*/STATUS.md` with next action /impl-plan, else
+   ask — and gate:
    `ses status require <ws> tech-design=approved grill=done,waived`
    (`<ws>` = `<workspace-root>/work/<id>`) — non-zero exit = stop. The impl
    doc plans a design that has survived the interrogation, not a first

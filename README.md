@@ -27,7 +27,7 @@ flowchart LR
 | `/research` | Investigate the codebase and external sources; every finding carries a source reference | Checklist |
 | `/func-design <task-id> \| brief <path> \| as-built <component> \| change <repo> <base>..<head>` | Optional functional design document for stakeholders: what the system does, when, and under which business rules — component logic as plain-language steps, tables/columns only where they carry meaning, no code (linted by `fdd_lint.py`). Forward (a proposed change; `/tech-design` then realises it), as-built (existing functionality), or change (a change already built, before vs after from its diff). People read and approve a short plain-English review version, written for `audience=business` (default) or `technical` | User approves the FDD's review version |
 | `/tech-design` | Produce a technical design document traceable to requirements and research, plus the short review version people approve | User approves the TDD's review version |
-| `/grill` | Adversarial interrogation of the TDD: concrete edge-case scenarios per category (data, lifecycle, interface, temporal, environment, security/ops, deploy/rollback); gaps fixed from evidence, the rest grilled out of you until answered or explicitly deferred | Zero open questions |
+| `/grill` | Adversarial interrogation of the TDD: a fresh `design-griller` agent, which never sees the conversation that wrote the design, runs concrete edge-case scenarios per category (data, lifecycle, interface, temporal, environment, security/ops, deploy/rollback) and fixes gaps from evidence; the rest are grilled out of you until answered or explicitly deferred | Zero open questions |
 | `/impl-plan` | Produce an implementation document: ordered steps, test plan, rollback plan | User approves impl doc |
 | `/implement` | Execute the impl doc step by step on a branch, verifying each step | Code review + verification evidence |
 | `/deliver` | Scope audit, evidence bundle, release notes, Word/PDF/Confluence conversion | Scope auditor passes |
@@ -50,7 +50,7 @@ The framework is a **GitHub Copilot plugin**: one install serves both the Copilo
    copilot plugin install software-engineer-stack@se-stack
    ```
    **VS Code:** turn on the `chat.plugins.enabled` setting. Plugins installed with the CLI live in `~/.copilot/installed-plugins/` and then appear under Extensions → **Agent Plugins - Installed**. Or run the same two commands as `/plugin marketplace add …` and `/plugin install …` in a Copilot chat.
-3. **Check it:** `copilot skill list` shows the 14 plugin skills, and `/agent` in a session lists the three reviewers (`scope-auditor`, `code-reviewer`, `doc-fact-checker`).
+3. **Check it:** `copilot skill list` shows the 14 plugin skills, and `/agent` in a session lists the three reviewers (`scope-auditor`, `code-reviewer`, `doc-fact-checker`) and `design-griller`, which runs `/grill`'s self-grill.
 4. **Optional — `ses` in your own terminal.** Skills don't need it: Copilot doesn't put plugin executables on PATH, so each skill runs `bin/ses` from its own plugin folder. It's handy for inspecting a task by hand:
    ```sh
    ln -s ~/.copilot/installed-plugins/se-stack/software-engineer-stack/bin/ses ~/.local/bin/ses
@@ -241,7 +241,8 @@ tests/        unittest suite for ses, the scripts, and the skill wiring (run by 
 examples/     sample work repo + a worked example task workspace
 plugin.json         the Copilot plugin manifest (Agent Plugins 1.0)
 .github/plugin/marketplace.json   the marketplace `copilot plugin marketplace add` reads
-com.github.copilot/agents/        scope-auditor, code-reviewer, doc-fact-checker — read-only reviewer agents
+com.github.copilot/agents/        scope-auditor, code-reviewer, doc-fact-checker — read-only reviewer agents;
+                                  design-griller — /grill's self-grill, in a fresh context
 parked/             Claude Code and Codex packaging, inactive (parked/README.md: how to revive)
 ```
 

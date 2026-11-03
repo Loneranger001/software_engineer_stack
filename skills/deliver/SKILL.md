@@ -20,7 +20,9 @@ audited against scope, evidenced, and converted to the formats the user needs.
 
 1. Load applicable lessons: `ses lessons deliver` — it prints only
    the matching entries; don't read the lesson files whole.
-2. Locate the workspace and gate on the prior stage:
+2. Locate the workspace — the given task-id, else the single
+   `<workspace-root>/work/*/STATUS.md` with next action /deliver, else
+   ask — and gate on the prior stage:
    `ses status require <ws> implement=done`
    (`<ws>` = `<workspace-root>/work/<id>`); for the document pipeline
    (`ses status get <ws> pipeline`) gate on `fact-check=done` instead.

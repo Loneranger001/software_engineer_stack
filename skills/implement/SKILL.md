@@ -21,7 +21,9 @@ committed before the next begins.
 1. Load applicable lessons:
    `ses lessons implement --lang <languages the impl doc touches>`
    — the language filter pulls in verify-stage lessons for that code too.
-2. Locate the workspace and gate:
+2. Locate the workspace — the given task-id, else the single
+   `<workspace-root>/work/*/STATUS.md` with next action /implement, else
+   ask — and gate:
    `ses status require <ws> impl-plan=approved`
    (`<ws>` = `<workspace-root>/work/<id>`) — non-zero exit = stop.
 3. Read the contract and impl-doc handoff summaries

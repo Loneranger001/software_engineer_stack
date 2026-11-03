@@ -40,6 +40,9 @@ it only when a case here is ambiguous.
   an open question, never a silent pick.
 
 **Resolve**
+0. Which task: the task-id given, else the single
+   `<workspace-root>/work/*/STATUS.md` whose next action names the stage
+   you run, else ask (several match, or none). Never pick one.
 1. Workspace exists — `<workspace-root>/work/<id>/STATUS.md` (a workspace
    created before this rule may sit in `<work-repo>/work/`; look there too) →
    `ses status show <ws>`

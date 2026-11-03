@@ -19,7 +19,9 @@ edits to the framework itself.
 
 ## 1. Gather the raw material
 
-1. Locate the workspace and read the task's history where it is recorded:
+1. Locate the workspace — the given task-id, else the single
+   `<workspace-root>/work/*/STATUS.md` with next action /retro, else ask —
+   and read the task's history where it is recorded:
    `ses status show <ws>` (gates with their dates and notes), each task
    branch's commits (`git -C <repo> log --format='%h %ad %s' --date=short
    <mainline>..<branch>`), the History tables and amendment notes of the

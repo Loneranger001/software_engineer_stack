@@ -2,6 +2,9 @@
 
 Run before marking the grill stage done.
 
+- [ ] Phase 1 ran in a fresh context: the grill log's Context line names the design-griller agent, a fresh subagent, or a fresh session the user confirmed — `same session` only with the user's recorded waiver — and its header reads `Phase 1: done`
+- [ ] The delegation prompt carried only the agent's inputs — no summary of the design, no expected findings
+- [ ] Phase 2 closed every `ask-user` row only by the user's answer or deferral; no verdict was moved toward `covered` from this session's memory
 - [ ] Every category (data, lifecycle, interface, temporal, environment, security/ops, deploy/rollback) has ≥1 concrete scenario using the task's real objects — or an explicit n/a with reason
 - [ ] Every `covered` verdict cites where the design handles it (TDD § / file:line) — no bare assertions
 - [ ] Every `gap-fixed` scenario had one defensible behaviour, traces to an S#/A#, and passes decision-protocol §2 — a choice between behaviours went to the user instead
