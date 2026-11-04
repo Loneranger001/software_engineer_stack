@@ -59,8 +59,8 @@ The documents must match what was actually built:
 - tdd.md, impl-doc.md, and fdd.md (when present) vs the final diff — update
   stale sections and mark
   them `(updated at delivery: <reason>)`, updating each document's handoff
-  summary — and, for fdd.md and tdd.md, its review version, re-stamped — in
-  the same edit (`ses handoff check <ws>` must pass); substantive
+  summary in the same edit (`ses handoff check <ws>` must pass, and so
+  must `ses prose-lint` on fdd.md and tdd.md); substantive
   divergence needs the user's ack since those documents were approved.
 - Every acceptance criterion → evidence file → PASS. Missing evidence means
   going back to /implement's verification, not papering over.
@@ -76,11 +76,9 @@ The documents must match what was actually built:
    into `<ws>/deliverables/`. Ask once which formats are wanted unless
    `ses status get <ws> formats` already answers it, and record the answer
    (`ses status field <ws> formats "<docx,pdf,...>"`); verify each produced
-   file is non-empty. A design goes out as its review version, rendered
-   with `ses review-version render <ws>/fdd.md` (or `<ws>/tdd.md`) into
-   `<ws>/deliverables/` and converted from there — never fdd.md or tdd.md
-   directly. A developer who asks for the full FDD gets
-   `ses fdd-view <ws>/fdd.md --audience technical`.
+   file is non-empty. An `fdd.md` is converted through its audience view
+   (`ses fdd-view <ws>/fdd.md --audience <fdd-audience>`),
+   never directly.
 3. Push every changed repo's task branch (the `branch.<repo>` fields:
    `git -C <repo> push -u origin <branch>`; retry with backoff on network
    failure). Only those branches leave the machine — the task workspace

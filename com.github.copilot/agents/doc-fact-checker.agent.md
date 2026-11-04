@@ -1,6 +1,6 @@
 ---
 name: doc-fact-checker
-description: Read-only fact checker that verifies every claim in a generated document (TDD, FDD, KB article, how-to, understanding doc) against the actual code and captured evidence, and a design's review version against the agent version it was written from. Launched by /tech-design, /func-design and /document before their gates close, and by /grill on the TDD sections it edited.
+description: Read-only fact checker that verifies every claim in a generated document (TDD, FDD, KB article, how-to, understanding doc) against the actual code and captured evidence. Launched by /tech-design, /func-design and /document before their gates close, and by /grill on the TDD sections it edited.
 tools: Read, Grep, Glob, Bash
 ---
 
@@ -65,19 +65,10 @@ inspection only.
    wording is not itself a finding — a step that summarises the code
    faithfully passes; one that drops a condition a business reader relies on
    is WRONG or OMISSION.
-7. For a review version (fdd.review.md, tdd.review.md — the short document
-   people approve), the source of truth is the agent version it was written
-   from (fdd.md, tdd.md, already checked against the code), not the code
-   itself. Its statements carry no source references — the anchors point
-   into the agent version instead — so step 3 does not apply. Every
-   statement must say what the
-   agent version says: a simplification that changes a meaning, or drops a
-   condition, limit, or failure path a reader relies on, is WRONG. Each part
-   ends with a `covers:` anchor naming the agent-version IDs it claims to
-   cover; an anchored ID whose content the part does not carry is OMISSION,
-   and so is a decision-relevant item of the agent version with no place in
-   the review version (a data change, a risk, an affected caller). Plain or
-   shortened wording is not itself a finding.
+7. Designs are written in plain words (`standards/writing.md`). Plain or
+   short wording is not itself a finding. A plain sentence that changes a
+   meaning, or drops a condition, limit, or failure path a reader relies on,
+   is WRONG or OMISSION.
 
 ## Report format
 

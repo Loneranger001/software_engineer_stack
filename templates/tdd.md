@@ -4,12 +4,17 @@
 - Inputs: scope-contract.md v{n}, research-notes.md
 - Author: Claude, reviewed by {user}
 
-<!-- AGENT VERSION: complete and traceable — /grill, /impl-plan and the
-     reviewers read it. People read and approve tdd.review.md (template:
-     <root>/templates/tdd-review.md), written from this file at the approval
-     gate and kept in step with it (ses review-version check). Cite code
-     references (file:line) rather than research-notes.md: the fact-checker
-     verifies them, and a developer handed the full TDD can follow them. -->
+<!-- ONE DOCUMENT FOR PEOPLE AND AGENTS: the user reads and approves it,
+     and /grill, /impl-plan and the reviewers work from it. Keep it complete
+     and traceable, and write every sentence in plain words and short
+     sentences per <root>/standards/writing.md (check: ses prose-lint <file>).
+     - Say what the system does and what the design changes. Never say how
+       the design was made: no research, task, scope contract, or stage
+       names.
+     - Say the thing, then give its ID in brackets or in a column.
+     - Cite code references (file:line), never research-notes.md: the
+       fact-checker verifies them, and a reader handed the TDD can follow
+       them. Signatures and pseudocode go in code blocks, not in sentences. -->
 
 <!-- handoff:start -->
 ## Handoff summary
@@ -29,8 +34,13 @@
 
 ## 1. Overview
 
-{What is being built or changed and why — one or two paragraphs,
-understandable by someone who has not read the brief.}
+<!-- Lead with what the reader needs most. A reader who stops here knows
+     the approach, the main risk, and what to decide. -->
+{What changes and why, in one or two short paragraphs that a person who has
+not read the brief can follow. For example: "The nightly order job will send
+approved orders to EDI vendors each night instead of each week. The change
+adds one procedure to PKG_ORDER_EDI and one column to ORDHEAD. The main risk
+is a longer nightly run."}
 
 Business terms used in this document:
 

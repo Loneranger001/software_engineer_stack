@@ -20,5 +20,5 @@ Run before presenting the TDD for approval.
 - [ ] ASSUMPTIONS.md reviewed — open entries presented for ratification; design-shaping ones promoted into the TDD (decision-protocol §4)
 - [ ] `tech-design=approved` is set (`ses status`) only after the user's explicit approval
 - [ ] Handoff summary written last and `ses handoff check` passes (every ID in the body is in the summary; contract version current)
-- [ ] Review version (tdd.review.md) written from the fact-checked tdd.md: In short first, two pages (four at most), plain words per `<root>/standards/writing.md`; `ses review-version check` and `ses prose-lint` pass; the doc-fact-checker found it agrees with tdd.md
-- [ ] The user approved the review version; approval and date recorded in both headers
+- [ ] Written to `<root>/standards/writing.md` throughout: §1 says the approach, the main risk, and what to decide; plain words and short sentences; about the system, never about how the design was made; no coined noun stacks or slashes; IDs in brackets or columns, never in place of the words
+- [ ] `ses prose-lint` passes on tdd.md — each finding fixed by rewriting the sentence, not by dodging the pattern

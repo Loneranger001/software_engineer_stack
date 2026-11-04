@@ -25,8 +25,8 @@ flowchart LR
 |---|---|---|
 | `/intake <brief>` | Parse a solution design / requirement brief into a requirements summary and a **scope contract** | User approves scope contract |
 | `/research` | Investigate the codebase and external sources; every finding carries a source reference | Checklist |
-| `/func-design <task-id> \| brief <path> \| as-built <component> \| change <repo> <base>..<head>` | Optional functional design document for stakeholders: what the system does, when, and under which business rules — component logic as plain-language steps, tables/columns only where they carry meaning, no code (linted by `fdd_lint.py`). Forward (a proposed change; `/tech-design` then realises it), as-built (existing functionality), or change (a change already built, before vs after from its diff). People read and approve a short plain-English review version, written for `audience=business` (default) or `technical` | User approves the FDD's review version |
-| `/tech-design` | Produce a technical design document traceable to requirements and research, plus the short review version people approve | User approves the TDD's review version |
+| `/func-design <task-id> \| brief <path> \| as-built <component> \| change <repo> <base>..<head>` | Optional functional design document for stakeholders: what the system does, when, and under which business rules — component logic as plain-language steps, tables/columns only where they carry meaning, no code (linted by `fdd_lint.py`). Forward (a proposed change; `/tech-design` then realises it), as-built (existing functionality), or change (a change already built, before vs after from its diff). Written in plain English (`standards/writing.md`, checked by `prose_lint.py`) and rendered for `audience=business` (default) or `technical` by `fdd_view.py` | User approves FDD |
+| `/tech-design` | Produce a technical design document traceable to requirements and research, written in plain English | User approves TDD |
 | `/grill` | Adversarial interrogation of the TDD: concrete edge-case scenarios per category (data, lifecycle, interface, temporal, environment, security/ops, deploy/rollback); gaps fixed from evidence, the rest grilled out of you until answered or explicitly deferred | Zero open questions |
 | `/impl-plan` | Produce an implementation document: ordered steps, test plan, rollback plan | User approves impl doc |
 | `/implement` | Execute the impl doc step by step on a branch, verifying each step | Code review + verification evidence |
@@ -86,8 +86,8 @@ work/PROJ-123/                 (never committed — see "Keeping work/ out of gi
 ├── brief.md                   # the requirement brief as received
 ├── scope-contract.md          # /intake — approved scope, the single source of scope truth
 ├── research-notes.md          # /research
-├── fdd.md, fdd.review.md      # /func-design (optional): agent version, and the review version people approve
-├── tdd.md, tdd.review.md      # /tech-design: the same pair
+├── fdd.md                     # /func-design (optional), plus fdd.<audience>.md views
+├── tdd.md                     # /tech-design
 ├── grill-log.md               # /grill — every scenario confronted and its verdict
 ├── impl-doc.md                # /impl-plan
 ├── evidence/                  # captured run outputs (summaries; raw logs in evidence/raw/)
@@ -137,7 +137,7 @@ States are `pending | in-progress | done | approved | waived` (a waiver carries 
 
 **Handoff summaries — the context management.** The scope contract, research notes, FDD (when there is one), TDD and impl doc each open with a bounded summary (≤ 40 lines, one line per ID) between `<!-- handoff:start -->` / `<!-- handoff:end -->`, written last at that stage's gate. Later stages read the summary (`ses handoff show <doc>`) and open full sections only when they need the detail — except where judging the whole document is the job: `/tech-design` on the contract, `/grill` and `/impl-plan` on the TDD, the scope auditor on everything. `ses handoff check <ws>` fails a summary that is missing an ID the body defines (S#, N#, A#, Q#, T#, numbered steps), runs over length, or names an older contract version than `scope-contract.md`. This works the same in every harness and survives any harness's compaction, because it is on disk.
 
-**Two versions of each design — one for agents, one for people.** `fdd.md` and `tdd.md` are complete and traceable: IDs, `table.column` names, source references, the handoff summary. Later stages and the reviewers read them. People read `fdd.review.md` and `tdd.review.md` instead: two pages, "In short" first, written to the plain-English standard in `standards/writing.md` (the ASD-STE100 writing rules, without its dictionary) and checked by `ses prose-lint`. Approving the review version approves the agent version, so the two are tied together. Each part of the review version carries a hidden `covers:` anchor for the IDs it covers, and its header carries a stamp of the agent version it was written from. `ses review-version check` fails when an ID is not covered, or when the agent version changed after the stamp, and `ses handoff check` runs it too. The doc-fact-checker checks that the review version says what the agent version says. Stakeholders get the review version, rendered without anchors by `ses review-version render`.
+**One design document, written for people.** `fdd.md` and `tdd.md` are what people approve and what later stages work from, so there is no separate review copy to keep in step. They stay complete and traceable — IDs, `table.column` names, source references, the handoff summary — and every sentence follows the plain-English standard in `standards/writing.md` (the ASD-STE100 writing rules, without its dictionary): plain words, one idea per sentence, active voice, the point first, about the system rather than how the document was made. `ses prose-lint` checks the mechanical part at each design gate, after `/grill` edits the TDD, and at `/deliver`; the handoff summary and source appendices are exempt.
 
 ### Keeping `work/` out of git
 
@@ -234,8 +234,7 @@ knowledge/    lessons.md (shipped lessons; yours go to ~/.ses/lessons.md), decis
 docs/         QA.md (design Q&A + testing guide), walkthrough.md (narrated example task)
 scripts/      what `ses` runs: status.py (gates), new-task.sh, list-repos.sh, workspace-root.sh,
               repo-rules.sh, handoff.py, checkpoint.py, xsearch.py, review-diff.sh, lessons.sh,
-              capture.sh, fdd_lint.py, fdd_view.py, prose_lint.py, review_version.py, md2docx.sh, md2pdf.sh,
-              md2confluence.sh;
+              capture.sh, fdd_lint.py, fdd_view.py, prose_lint.py, md2docx.sh, md2pdf.sh, md2confluence.sh;
               check_knowledge.py (maintenance)
 tests/        unittest suite for ses, the scripts, and the skill wiring (run by CI and the pre-commit hook)
 examples/     sample work repo + a worked example task workspace
@@ -260,12 +259,11 @@ Edit the canonical files — there is nothing generated to regenerate. When rele
 Deliverables are authored in Markdown and converted on `/deliver`:
 
 ```sh
-ses review-version render work/PROJ-123/tdd.md               # → deliverables/tdd.review.md
-ses md2docx work/PROJ-123/deliverables/tdd.review.md         # → deliverables/tdd.review.docx
-ses md2pdf  work/PROJ-123/deliverables/tdd.review.md         # → deliverables/tdd.review.pdf
-ses md2confluence work/PROJ-123/deliverables/tdd.review.md   # → deliverables/tdd.review.confluence.txt
+ses md2docx work/PROJ-123/tdd.md          # → deliverables/tdd.docx
+ses md2pdf  work/PROJ-123/tdd.md          # → deliverables/tdd.pdf
+ses md2confluence work/PROJ-123/tdd.md    # → deliverables/tdd.confluence.txt
 ```
 
-A design goes out as its review version; the full `tdd.md` or `fdd.md` (through `ses fdd-view --audience technical`) only when a developer asks for it.
+An FDD is converted from its audience view (`ses fdd-view work/PROJ-123/fdd.md --audience business`), never from `fdd.md` directly.
 
 The scripts require [pandoc](https://pandoc.org) (and a LaTeX engine for PDF); they print install instructions if it's missing.
