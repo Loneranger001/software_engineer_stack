@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """handoff.py — read and check the handoff summary at the top of a stage document.
 
-Each stage document (scope-contract.md, research-notes.md, fdd.md, tdd.md,
-impl-doc.md) opens with a bounded summary between these markers:
+Each stage document (scope-contract.md, research-notes.md, fdd.md, tdd.md)
+opens with a bounded summary between these markers:
 
     <!-- handoff:start -->
     ## Handoff summary
@@ -12,7 +12,9 @@ impl-doc.md) opens with a bounded summary between these markers:
 
 Later stages read the summary instead of the whole document and open full
 sections only where they need detail. That only works if the summary cannot
-silently drift from the body, so `check` enforces it.
+silently drift from the body, so `check` enforces it. impl-doc.md has no
+summary: it is terse and agent-only, and /implement reads it whole, so
+`check` skips it.
 
 Usage:
     handoff.py show  <doc.md>        print the summary block only
@@ -22,8 +24,7 @@ Usage:
 `check` fails (exit 1) when a summary is:
   - missing, or longer than MAX_LINES lines;
   - missing an ID the body defines or traces — the first cell of a table row
-    (S1, N2, A3, Q1, T4, ...) — or, for impl-doc.md, a numbered step
-    (written `step <N>` in the summary);
+    (S1, N2, A3, Q1, ...);
   - missing its `- Contract version: <n>` line, or naming a version other
     than the workspace's scope-contract.md `- Version: <n>` (a summary built
     on an older contract is stale).
@@ -35,11 +36,11 @@ import re
 import sys
 from pathlib import Path
 
-DOCS = ("scope-contract.md", "research-notes.md", "fdd.md", "tdd.md", "impl-doc.md")
+DOCS = ("scope-contract.md", "research-notes.md", "fdd.md", "tdd.md")
+NO_SUMMARY = ("impl-doc.md",)  # read whole; a summary would only repeat its step table
 MAX_LINES = 40
 START, END = "<!-- handoff:start -->", "<!-- handoff:end -->"
 ID_ROW = re.compile(r"^\|\s*([A-Z]{1,2}\d+)\s*\|", re.M)
-STEP_ROW = re.compile(r"^\|\s*(\d+)\s*\|", re.M)
 VERSION = re.compile(r"^- Contract version:\s*v?(\S+)", re.M)
 CONTRACT_VERSION = re.compile(r"^- Version:\s*v?(\d+)", re.M)
 
@@ -52,11 +53,6 @@ def split(text: str) -> tuple[str | None, str]:
     summary, tail = rest.split(END, 1)
     body = re.sub(r"<!--.*?-->", "", head + tail, flags=re.S)
     return summary.strip("\n"), body
-
-
-def section(body: str, title_re: str) -> str:
-    m = re.search(rf"^##+ [^\n]*{title_re}[^\n]*\n(.*?)(?=^## |\Z)", body, re.S | re.M | re.I)
-    return m.group(1) if m else ""
 
 
 def contract_version(doc: Path) -> str | None:
@@ -80,11 +76,6 @@ def problems(doc: Path) -> list[str]:
     missing = [i for i in ids if not re.search(rf"\b{re.escape(i)}\b", summary)]
     if missing:
         out.append(f"{doc}: summary omits ID(s) the body defines or traces: {', '.join(missing)}")
-    if doc.name == "impl-doc.md":
-        steps = sorted(set(STEP_ROW.findall(section(body, "Implementation steps"))), key=int)
-        miss = [s for s in steps if not re.search(rf"\bstep {s}\b", summary, re.I)]
-        if miss:
-            out.append(f"{doc}: summary omits step(s): {', '.join('step ' + s for s in miss)}")
     m = VERSION.search(summary)
     if not m:
         out.append(f"{doc}: summary has no '- Contract version: <n>' line")
@@ -116,15 +107,17 @@ def main(argv: list[str]) -> int:
     for t in targets:
         if t.is_dir():
             docs += [t / d for d in DOCS if (t / d).is_file()]
+        elif t.is_file() and t.name in NO_SUMMARY:
+            print(f"skipped {t}: it has no handoff summary by design — agents read it whole")
         elif t.is_file():
             docs.append(t)
         else:
             print(f"error: no such file or directory: {t}", file=sys.stderr)
             return 2
     if not docs:
-        if all(t.is_dir() for t in targets):
+        if all(t.is_dir() or t.name in NO_SUMMARY for t in targets):
             # e.g. a change-request or document workspace: nothing to hold to a summary
-            print("no stage documents (scope-contract/research-notes/fdd/tdd/impl-doc) — nothing to check")
+            print("no stage documents (scope-contract/research-notes/fdd/tdd) — nothing to check")
             return 0
         print("error: no stage documents found", file=sys.stderr)
         return 2

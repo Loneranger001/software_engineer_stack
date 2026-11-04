@@ -42,27 +42,38 @@ CONTRACT = """# Scope Contract — T-1: demo
 | A2 | rows populated | S2 | query |
 """
 
-IMPL = """# Implementation Document — T-1
+IMPL = """# Impl doc — T-1
+
+- Inputs: tdd.md (approved), scope-contract.md v1
+
+## 2. Implementation steps
+
+| # | Repo | Step | Files / objects | TDD § | Verify | Rollback |
+|---|---|---|---|---|---|---|
+| 1 | repo-a | ddl | a.sql | §5 | compile | drop |
+| 2 | repo-a | body | a.pkb | §4.1 | T1 | revert |
+
+## 3. Test plan
+
+| T# | Covers | Type | How run | Expected |
+|---|---|---|---|---|
+| T1 | A1 | unit | utPLSQL | pass |
+"""
+
+TDD = """# TDD — T-1
 
 <!-- handoff:start -->
 ## Handoff summary
 - Contract version: {version}
-- step 1: repo-a ddl — verify compile
-{step2}- Tests: T1 → A1
+- Traceability: S1 → §4.1; S2 → §5
 <!-- handoff:end -->
 
-## 2. Implementation steps
+## 2. Requirements traceability
 
-| # | Repo | Step | Files | Verification | Rollback |
-|---|---|---|---|---|---|
-| 1 | repo-a | ddl | a.sql | compile | drop |
-| 2 | repo-a | body | a.pkb | utPLSQL T1 | revert |
-
-## 3. Test plan
-
-| Test | Covers | How run | Expected |
-|---|---|---|---|
-| T1 | A1 | utPLSQL | pass |
+| Scope item | Design section(s) |
+|---|---|
+| S1 | §4.1 |
+| S2 | §5 |
 """
 
 
@@ -83,7 +94,7 @@ class HandoffTest(unittest.TestCase):
 
     def test_complete_workspace_passes(self):
         self.write("scope-contract.md", CONTRACT.format(version=2))
-        self.write("impl-doc.md", IMPL.format(version=2, step2="- step 2: repo-a body — verify T1\n"))
+        self.write("tdd.md", TDD.format(version=2))
         r = run("check", self.ws)
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertIn("2 document(s)", r.stdout)
@@ -101,16 +112,19 @@ class HandoffTest(unittest.TestCase):
         self.assertEqual(r.returncode, 1)
         self.assertIn("omits ID(s) the body defines or traces: S2", r.stderr)
 
-    def test_missing_step_fails(self):
+    def test_impl_doc_has_no_summary_and_is_skipped(self):
         self.write("scope-contract.md", CONTRACT.format(version=1))
-        self.write("impl-doc.md", IMPL.format(version=1, step2=""))
+        self.write("impl-doc.md", IMPL)
+        r = run("check", self.ws)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("1 document(s)", r.stdout)
         r = run("check", self.ws / "impl-doc.md")
-        self.assertEqual(r.returncode, 1)
-        self.assertIn("omits step(s): step 2", r.stderr)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("no handoff summary by design", r.stdout)
 
     def test_stale_contract_version_fails(self):
         self.write("scope-contract.md", CONTRACT.format(version=3))
-        self.write("impl-doc.md", IMPL.format(version=2, step2="- step 2: x — y\n"))
+        self.write("tdd.md", TDD.format(version=2))
         r = run("check", self.ws)
         self.assertEqual(r.returncode, 1)
         self.assertIn("based on contract v2 but scope-contract.md is v3", r.stderr)
@@ -149,11 +163,12 @@ class HandoffTest(unittest.TestCase):
 
     def test_templates_carry_complete_blocks(self):
         # each template alone (no sibling contract, so only structure and IDs are checked)
-        for name in ("scope-contract.md", "research-notes.md", "fdd.md", "tdd.md", "impl-doc.md"):
+        for name in ("scope-contract.md", "research-notes.md", "fdd.md", "tdd.md"):
             with tempfile.TemporaryDirectory() as d:
                 shutil.copy(ROOT / "templates" / name, d)
                 r = run("check", Path(d) / name)
                 self.assertEqual(r.returncode, 0, f"{name}: {r.stderr}")
+        self.assertNotIn("handoff:start", (ROOT / "templates" / "impl-doc.md").read_text())
 
 
 if __name__ == "__main__":

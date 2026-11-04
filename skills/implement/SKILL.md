@@ -24,10 +24,10 @@ committed before the next begins.
 2. Locate the workspace and gate:
    `ses status require <ws> impl-plan=approved`
    (`<ws>` = `<workspace-root>/work/<id>`) — non-zero exit = stop.
-3. Read the contract and impl-doc handoff summaries
-   (`ses handoff show <ws>/<doc>`) — not the whole documents.
-   For each step, read only its row in impl-doc §2 and the TDD sections it
-   cites. Also read the rules files of
+3. Read the contract's handoff summary
+   (`ses handoff show <ws>/scope-contract.md`) and impl-doc.md whole — it is
+   terse and has no summary. For each step, open only the TDD sections its
+   row cites. Also read the rules files of
    every repo the impl doc changes (`ses repo-rules <repo>
    <files>`; paths from STATUS.md — see
    `<root>/core/repo-resolution.md`; git operations and test
@@ -93,8 +93,7 @@ For each impl-doc step N, in order:
    follows that file's own conventions, the rules filling only what it
    doesn't show. Existing identifiers you call keep their names. Touch only the files the step
    names — if the step turns out to need another file, update the impl-doc row
-   first (append a note, don't rewrite history) and its `step <N>:` summary
-   line.
+   first (append a note, don't rewrite history).
 2. **Rules check**, before verifying: read the step's diff
    (`git -C <repo> diff HEAD -- <files>`; a new file whole). A new file:
    against rules-checklist.md. An existing file: against its own
