@@ -65,6 +65,10 @@ findings; never edit.
    ones you notice under PRE-EXISTING.
 5. **Tests/evidence**: does the captured evidence actually assert the behaviour
    (not just "ran without error")? Any changed logic without a covering test?
+   Where does each expected value come from (the evidence Result table's
+   `Expected from`)? An expectation computed by the logic under test — the
+   same query, function or formula re-run in the test — is SEV-2: it agrees
+   with the code whether the code is right or not.
 
 ## Report format
 
@@ -86,3 +90,7 @@ is SEV-3.
 APPROVE only with zero SEV-1/SEV-2. Every finding needs file:line and a reason
 grounded in the actual code — no generic advice. If you're unsure a finding is
 real, say so and rate it SEV-2 at most.
+
+Your caller keeps this report word for word (`ses review record`, per
+`<root>/core/reviewers.md`) and later gates and sessions read it from disk, so
+it must stand alone: name what you reviewed and give every reference in full.

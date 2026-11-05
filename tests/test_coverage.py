@@ -46,10 +46,30 @@ ANALYSIS = """# CR-9 — analysis
 """
 
 
-def results(date, *rows):
-    body = "\n".join(f"| {t} | {o} | {m} | — |" for t, o, m in rows)
+def results(date, *rows, expected="hand-derived"):
+    body = "\n".join(f"| {t} | {o} | {m} | {expected} | — |" for t, o, m in rows)
     return (f"# Test Evidence\n\n- Date: {date}\n\n## Result\n\n"
-            f"| Test or criterion | Outcome | Mode | Assertion checked |\n|---|---|---|---|\n{body}\n")
+            f"| Test or criterion | Outcome | Mode | Expected from | Assertion checked |\n"
+            f"|---|---|---|---|---|\n{body}\n")
+
+
+CONTRACT = """# Scope Contract — T-9
+
+## Acceptance criteria
+
+| # | Criterion | Verifies | How verified |
+|---|---|---|---|
+| A1 | dev run passes | S1 | run |
+| A2 | the incident shape posts once | S2 | e2e |
+"""
+FDD = """# FDD — T-9
+
+## 14. Functional test scenarios
+
+| # | Scenario | Given | When | Then | Covers |
+|---|---|---|---|---|---|
+| TS1 | happy path | x | y | z | FR1, A1 |
+"""
 
 
 def py(*args):
@@ -159,6 +179,65 @@ class FullPipelineTest(CoverageBase):
         self.assertEqual(r.returncode, 0, r.stdout)
         self.assertRegex(r.stdout, r"G2\s+WAIVED\s+was NOT-RUN")
         self.assertIn("waived (release note: not verified): G2", r.stdout)
+
+    def test_contract_row_missing_from_tdd_is_not_met(self):
+        # the trial's failure: A2 dropped from TDD §7 left coverage green
+        (self.ws / "scope-contract.md").write_text(CONTRACT)
+        self.evidence("tests-20261105.txt", results("2026-11-05T05:00Z", ("T1", "PASS", "live"),
+                                                   ("T2", "PASS", "live")))
+        r = self.coverage()
+        self.assertEqual(r.returncode, 3, r.stdout)
+        self.assertRegex(r.stdout, r"A2\s+NOT-IN-TDD\s+scope-contract.md defines it")
+        self.assertIn("3 row(s)", r.stdout)
+        self.assertIn("amend TDD §7", r.stdout)
+
+    def test_approved_fdd_scenario_missing_from_tdd_is_not_met(self):
+        (self.ws / "fdd.md").write_text(FDD)
+        self.evidence("tests-20261105.txt", results("2026-11-05T05:00Z", ("T1", "PASS", "live"),
+                                                   ("T2", "PASS", "live")))
+        self.assertEqual(self.coverage().returncode, 0, "a draft FDD is not a source of rows")
+        py(SCRIPTS / "status.py", "field", self.ws, "fdd", "approved 2026-11-05 by u")
+        r = self.coverage()
+        self.assertEqual(r.returncode, 3, r.stdout)
+        self.assertRegex(r.stdout, r"TS1\s+NOT-IN-TDD\s+fdd.md defines it")
+
+    def test_several_ids_in_one_tdd_row(self):
+        (self.ws / "tdd.md").write_text(TDD.replace("| A1 | integration |", "| A1, TS1 | integration |"))
+        (self.ws / "impl-doc.md").write_text(IMPL.replace("| T1 | A1 |", "| T1 | A1, TS1 |"))
+        (self.ws / "fdd.md").write_text(FDD)
+        py(SCRIPTS / "status.py", "field", self.ws, "fdd", "approved 2026-11-05 by u")
+        self.evidence("tests-20261105.txt", results("2026-11-05T05:00Z", ("T1", "PASS", "live"),
+                                                   ("T2", "PASS", "live")))
+        r = self.coverage()
+        self.assertEqual(r.returncode, 0, r.stdout)
+        self.assertRegex(r.stdout, r"TS1\s+PASS")
+
+    def test_pass_without_independent_expectation_is_no_oracle(self):
+        self.evidence("tests-20261105.txt", results("2026-11-05T05:00Z", ("T1", "PASS", "live"),
+                                                   ("T2", "PASS", "live"), expected=""))
+        r = self.coverage()
+        self.assertEqual(r.returncode, 3, r.stdout)
+        self.assertRegex(r.stdout, r"A1\s+NO-ORACLE")
+        self.assertIn("never the code under test", r.stdout)
+        self.evidence("tests-20261106.txt", results("2026-11-06T05:00Z", ("T1", "PASS", "live"),
+                                                   ("T2", "PASS", "live"), expected="same query as the code"))
+        self.assertRegex(self.coverage().stdout, r"A1\s+NO-ORACLE")
+        self.evidence("tests-20261107.txt", results("2026-11-07T05:00Z", ("T1", "PASS", "live"),
+                                                   ("T2", "PASS", "live"), expected="spec: contract A1"))
+        self.assertEqual(self.coverage().returncode, 0)
+
+    def test_plan_mode_checks_mapping_only(self):
+        (self.ws / "scope-contract.md").write_text(CONTRACT.replace(
+            "| A2 | the incident shape posts once | S2 | e2e |\n", ""))
+        r = py(SCRIPTS / "coverage.py", self.ws, "--plan")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("2 planned, 0 without a test", r.stdout)
+        (self.ws / "impl-doc.md").write_text(IMPL.replace("| T2 | G2, §6 regression |", "| T2 | §6 regression |"))
+        (self.ws / "scope-contract.md").write_text(CONTRACT)
+        r = py(SCRIPTS / "coverage.py", self.ws, "--plan")
+        self.assertEqual(r.returncode, 3, r.stdout)
+        self.assertRegex(r.stdout, r"G2\s+NO-TEST")
+        self.assertRegex(r.stdout, r"A2\s+NOT-IN-TDD")
 
     def test_missing_tdd_is_an_error(self):
         (self.ws / "tdd.md").unlink()

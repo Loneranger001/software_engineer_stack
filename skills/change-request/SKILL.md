@@ -20,7 +20,10 @@ verification, same scope discipline.
 ## 0. Preamble
 
 1. Load applicable lessons: `ses lessons change-request` — it prints only
-   the matching entries; don't read the lesson files whole.
+   the matching entries; don't read the lesson files whole. Once the
+   workspace exists, re-run it as `ses lessons change-request --ws <ws>`: the
+   repos and languages then come from STATUS.md, and lessons tagged for
+   another repo drop out.
 2. Resolve `<work-repo>`, `<workspace-root>`, and the `<repo-set>` per
    `<root>/core/repo-resolution.md` (cwd is not assumed to be
    the repo; sibling repos are in analysis scope by default), then create the
@@ -142,7 +145,8 @@ On approval: `ses status set <ws> mini-contract=approved --note "by <who>"`.
    `evidence/raw/`; only its summary goes into the evidence file; a rerun
    after a commit gets a new name). The evidence's Result table has one row
    per acceptance criterion it proves (A1…An): PASS, FAIL, PARTIAL or
-   NOT-RUN, and the mode it ran in.
+   NOT-RUN, the mode it ran in, and `Expected from` — where the expected
+   value came from (hand-derived, spec, fixture; never the code under test).
 4. All PASS → commit, one commit per logical unit referencing the task id:
    - first inspect the repo's `commit-msg` hook and follow its exact format
      (as /implement §1 step 4 — the hook, not recent history, decides);
@@ -164,6 +168,8 @@ A change request delivers itself — /deliver is the full pipeline's stage.
    multi-file changes, also run the audit procedure in
    `<root>/com.github.copilot/agents/scope-auditor.agent.md` against the mini contract —
    delegated per `<root>/core/reviewers.md` — passing `analysis.md` as the contract.
+   Keep the report (`ses review record <ws> scope-auditor cr --mode <mode> <report>`);
+   `ses review require <ws> scope-auditor cr` must pass before the push.
 2. Always, the audit or not: `ses checkpoint verify <ws> --delivery` —
    non-zero exit = stop. It proves the committed evidence hashes still
    match, that the branch holds this task's commits and each carries its

@@ -15,7 +15,7 @@ Run before presenting the TDD for approval.
 - [ ] Verification-approach table covers every acceptance criterion (an untestable criterion blocks approval); operational impact stated line by line, "none" explicit
 - [ ] Non-functional section addresses performance, security, operability — or states why not applicable
 - [ ] At least one alternative was considered and its rejection justified
-- [ ] doc-fact-checker agent ran on the TDD and its findings were resolved
+- [ ] doc-fact-checker ran on the TDD, its report is kept (`ses review record`), its findings were resolved, and `ses review require <ws> doc-fact-checker tdd` passes; a self-pass is named to the user
 - [ ] Open questions from research are resolved or explicitly carried as risks
 - [ ] ASSUMPTIONS.md reviewed — open entries presented for ratification; design-shaping ones promoted into the TDD (decision-protocol §4)
 - [ ] `tech-design=approved` is set (`ses status`) only after the user's explicit approval

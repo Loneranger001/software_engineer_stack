@@ -31,6 +31,10 @@ Usage:
   - missing its `- Contract version: <n>` line, or naming a version other
     than the workspace's scope-contract.md `- Version: <n>` (a summary built
     on an older contract is stale).
+`check` also fails a tdd.md whose §7 Verification approach leaves out an
+acceptance criterion of scope-contract.md (A#) or a test scenario of an
+approved fdd.md (TS#): the test plan is built from §7, so a row missing there
+is never tested, and `ses coverage` would never see it.
 Exit codes: 0 ok, 1 problems found, 2 usage error.
 """
 from __future__ import annotations
@@ -38,6 +42,9 @@ from __future__ import annotations
 import re
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from doctables import rows_missing_from_tdd  # noqa: E402
 
 DOCS = ("scope-contract.md", "research-notes.md", "fdd.md", "tdd.md")
 NO_SUMMARY = ("impl-doc.md",)  # read whole; a summary would only repeat its step table
@@ -101,6 +108,12 @@ def problems(doc: Path) -> list[str]:
         if want is not None and m.group(1) != want:
             out.append(f"{doc}: summary is based on contract v{m.group(1)} but scope-contract.md "
                        f"is v{want} — the document (and its summary) is stale")
+    if doc.name == "tdd.md":
+        gaps = rows_missing_from_tdd(doc.parent)
+        if gaps:
+            out.append(f"{doc}: §7 Verification approach has no row for " +
+                       ", ".join(f"{i} ({src})" for i, src in gaps) +
+                       " — every acceptance criterion and approved test scenario needs a §7 row")
     return out
 
 

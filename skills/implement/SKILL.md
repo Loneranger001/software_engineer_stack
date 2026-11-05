@@ -18,9 +18,10 @@ committed before the next begins.
 
 ## 0. Preamble
 
-1. Load applicable lessons:
-   `ses lessons implement --lang <languages the impl doc touches>`
-   — the language filter pulls in verify-stage lessons for that code too.
+1. Load applicable lessons once step 2 has located `<ws>`:
+   `ses lessons implement --ws <ws>` — the repos and languages come from
+   STATUS.md, so verify-stage lessons for that code come in too; add
+   `--lang <languages the impl doc touches>` if a language is new to the repos.
 2. Locate the workspace and gate:
    `ses status require <ws> impl-plan=approved`
    (`<ws>` = `<workspace-root>/work/<id>`) — non-zero exit = stop.
@@ -166,8 +167,11 @@ After the last step, run the full impl-doc test plan (unit, integration,
 regression) through `ses capture` with log names starting `tests-<date>-`
 — never a step's log name, whose hash is already committed — summary to
 `evidence/tests-<date>.txt`, with one row per T# in its Result table
-(`<root>/templates/test-evidence.md`): PASS, FAIL, PARTIAL or NOT-RUN, and
-the mode it ran in. Every TDD §7 row (A#, TS#, G#) must reach PASS through
+(`<root>/templates/test-evidence.md`): PASS, FAIL, PARTIAL or NOT-RUN, the
+mode it ran in, and where its expected value came from (`Expected from`).
+Derive each expectation from the scenario, the spec or a fixture — never by
+re-running the code under test or a copy of its query; a PASS without an
+independent expectation is NO-ORACLE. Every TDD §7 row (A#, TS#, G#) must reach PASS through
 its T#: `ses coverage <ws>` walks row → T# → recorded result and is the
 judge — a T# that could not run is NOT-RUN, never left out.
 
@@ -188,13 +192,19 @@ judge — a T# that could not run is NOT-RUN, never left out.
    on the branch of every changed repo (it reads the diff file by file via
    `ses review-diff`; one pass per repo, each
    judged against that repo's own rules files) — delegated per `<root>/core/reviewers.md`.
+   Keep each pass's report:
+   `ses review record <ws> code-reviewer <repo-name> --mode <mode> <report>`.
    Resolve findings — each fix committed as `<task-id> step <N>: fix <what>`
    for the step whose files it touches, re-verified with its own evidence
    and trailer, as in §3 —
    or record a conscious waiver (with the user for anything non-trivial).
    A standards finding (a repo rule in a new file, the file's convention in
    an existing one) is fixed, or waived by the user only; the reviewer's
-   PRE-EXISTING list goes to PARKED.md.
+   PRE-EXISTING list goes to PARKED.md. Review again after the fixes;
+   `ses review require <ws> code-reviewer <repo-name>` must pass for every
+   changed repo (a user waiver of a finding is recorded in the next report,
+   not by skipping the gate). Tell the user how each review ran — a
+   self-pass by name.
 2. Self-check with `<root>/checklists/implement.md`.
 3. Record: `ses status set <ws> implement=done --next "Run /deliver."`. If
    `ses coverage <ws>` exits 3 (a row NOT-RUN, PARTIAL — static fallback —

@@ -100,3 +100,7 @@ SCOPE:   whole document | §… (when the caller scoped the check)
 
 PASS only when WRONG, UNSOURCED, and STALE-REF are empty. Quote the actual
 code (short excerpt) for every WRONG finding so the fix is unambiguous.
+
+Your caller keeps this report word for word (`ses review record`, per
+`<root>/core/reviewers.md`) and later gates and sessions read it from disk, so
+it must stand alone: name what you reviewed and give every reference in full.

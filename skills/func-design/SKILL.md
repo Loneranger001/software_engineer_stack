@@ -46,8 +46,10 @@ One template for all modes (`<root>/templates/fdd.md`):
 
 ## 0. Preamble
 
-1. Load applicable lessons: `ses lessons func-design` — it prints only
-   the matching entries; don't read the lesson files whole.
+1. Load applicable lessons once step 2 has located `<ws>`:
+   `ses lessons func-design --ws <ws>` — it takes the repos and languages from
+   STATUS.md and prints only the matching entries (a lesson tagged for
+   another repo is left out); don't read the lesson files whole.
 2. Workspace and gate (`<ws>` = `<workspace-root>/work/<id>`):
    - **Attached** (a task-id): take `<work-repo>` from `ses status get <ws> work-repo`
      (`<root>/core/repo-resolution.md`) and the mode from the
@@ -242,14 +244,17 @@ common forms:
    delegated per `<root>/core/reviewers.md`; pass the mode and, in change mode, the repo with
    `change-base`/`change-head`. Resolve every finding; fixes keep the
    functional level (a WRONG step is corrected in plain language, not
-   replaced by the code it summarises). Standalone:
-   `ses status set <ws> fact-check=done`.
+   replaced by the code it summarises). Keep each report:
+   `ses review record <ws> doc-fact-checker fdd --mode <mode> <report>`, and
+   re-check until one says PASS — `ses review require <ws> doc-fact-checker fdd`
+   must pass. Standalone: `ses status set <ws> fact-check=done`.
 3. Write the **handoff summary** block now — after the fact-check fixes —
    then run `ses handoff check <ws>/fdd.md`, `ses fdd-lint` and
    `ses prose-lint` again; all must pass.
 4. Render the audience view (§4 step 1) and present the FDD from it, then
    the summary: requirements and traceability, before vs after, business
-   rules, exceptions, open Q# items, plus open ASSUMPTIONS.md entries for
+   rules, exceptions, open Q# items, how the fact-check ran (name a
+   self-pass), plus open ASSUMPTIONS.md entries for
    ratification (decision-protocol §4). Approval with a Q# still open needs
    the user to defer it explicitly, recorded in its §13 status. Iterate until
    approved — each revision updates the summary in the same edit and re-runs

@@ -2,13 +2,19 @@
 # lessons.sh — print only the lessons a stage should apply, instead of every
 # skill reading all of the lessons into context (run as `ses lessons`).
 #
-# Usage: lessons.sh <stage> [--lang plsql,sql,...] [--repo <name>]
+# Usage: lessons.sh <stage> [--ws <ws>] [--lang plsql,sql,...] [--repo a,b,...]
 #        lessons.sh --add '<lesson line>'     validate and append to your lessons file
 #        lessons.sh --path                    print your lessons file's path
 #
 #   Prints lessons tagged [stage:<stage>] or [stage:any], plus — when given —
 #   lessons for any stage whose [lang:...] is in --lang or whose [repo:...] is
-#   --repo (a stage:verify PL/SQL lesson matters to /implement on PL/SQL code).
+#   in --repo (a stage:verify PL/SQL lesson matters to /implement on PL/SQL code).
+#   With --repo, a lesson tagged with ANOTHER repo is left out, whatever else
+#   it matches: "compile as ALASKAR in MFCS DEV" is no lesson for this repo.
+#   --ws <ws> derives both from the task's STATUS.md: the repos are work-repo
+#   and every repos-analyzed entry (by folder name); the languages are those
+#   their tracked files use (.pks .pkb .pls .plb .trg → plsql, .sql → sql,
+#   .ksh .sh → ksh, .py → python). Explicit --lang / --repo add to them.
 #   Ends with a one-line count so "no lessons" is visible, not silent.
 #
 # Two sources: the framework's knowledge/lessons.md (ships with the framework,
@@ -52,20 +58,45 @@ EOF
     exit 0 ;;
 esac
 
-STAGE="${1:?usage: lessons.sh <stage> [--lang a,b] [--repo name] | --add LINE | --path}"
+STAGE="${1:?usage: lessons.sh <stage> [--ws ws] [--lang a,b] [--repo a,b] | --add LINE | --path}"
 shift
 LANGS=""
 REPO=""
+WS=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --lang) LANGS="${2:?--lang needs a value}"; shift 2 ;;
     --lang=*) LANGS="${1#--lang=}"; shift ;;
     --repo) REPO="${2:?--repo needs a value}"; shift 2 ;;
     --repo=*) REPO="${1#--repo=}"; shift ;;
-    -h|--help) sed -n '2,17p' "$0"; exit 0 ;;
+    --ws) WS="${2:?--ws needs a workspace}"; shift 2 ;;
+    --ws=*) WS="${1#--ws=}"; shift ;;
+    -h|--help) sed -n '2,25p' "$0"; exit 0 ;;
     *) echo "error: unknown argument $1" >&2; exit 2 ;;
   esac
 done
+
+# --ws: repos (folder names) and languages from the task's STATUS.md
+if [ -n "$WS" ]; then
+  ST="$WS"; [ -d "$WS" ] && ST="$WS/STATUS.md"
+  [ -f "$ST" ] || { echo "error: no STATUS.md at $WS" >&2; exit 2; }
+  PATHS=$( { sed -n 's/^- work-repo: *//p' "$ST"; sed -n 's/^- repos-analyzed: *//p' "$ST" | tr ',' '\n'; } \
+           | sed 's/^ *//; s/ *$//' | sed '/^$/d' | sort -u)
+  for p in $PATHS; do
+    REPO="$REPO,$(basename "$p")"
+    EXTS=$(git -C "$p" ls-files 2>/dev/null | sed -n 's/.*\.\([A-Za-z0-9]*\)$/\1/p' | tr 'A-Z' 'a-z' | sort -u)
+    for e in $EXTS; do
+      case "$e" in
+        pks|pkb|pls|plb|trg|fnc|prc) LANGS="$LANGS,plsql" ;;
+        sql) LANGS="$LANGS,sql" ;;
+        ksh|sh) LANGS="$LANGS,ksh" ;;
+        py) LANGS="$LANGS,python" ;;
+      esac
+    done
+  done
+  REPO=$(printf '%s\n' "$REPO" | tr ',' '\n' | sed '/^$/d' | sort -u | paste -sd, -)
+  LANGS=$(printf '%s\n' "$LANGS" | tr ',' '\n' | sed '/^$/d' | sort -u | paste -sd, -)
+fi
 
 case "$STAGE" in
   *[!a-z-]*) echo "error: stage must be a stage tag like implement or tech-design" >&2; exit 2 ;;
@@ -77,18 +108,31 @@ esac
 # in user-supplied values so a repo like "a.b" matches literally
 esc() { printf '%s' "$1" | sed 's/[][\.*^$|+?(){}\\/]/\\&/g'; }
 
+# alternation of a comma list, each value escaped; printf '%s\n' so `read`
+# also sees the last value (an unterminated last line is dropped by read)
+alt() { printf '%s\n' "$1" | tr ',' '\n' | while IFS= read -r v; do [ -n "$v" ] && esc "$v" && printf '|'; done; }
+
 PAT="\\[stage:($STAGE|any)\\]"
 if [ -n "$LANGS" ]; then
-  ALT=$(printf '%s' "$LANGS" | tr ',' '\n' | while read -r l; do [ -n "$l" ] && esc "$l" && printf '|'; done)
+  ALT=$(alt "$LANGS")
   PAT="$PAT|\\[lang:(${ALT%|})\\]"
 fi
-[ -n "$REPO" ] && PAT="$PAT|\\[repo:$(esc "$REPO")\\]"
+REPO_ALT=""
+if [ -n "$REPO" ]; then
+  REPO_ALT=$(alt "$REPO")
+  REPO_ALT=${REPO_ALT%|}
+  PAT="$PAT|\\[repo:($REPO_ALT)\\]"
+fi
 
 # only lesson lines (below the marker), never the format examples in a header
 below() { sed -n '/<!-- lessons below this line -->/,$p' "$1" | grep -E '^- \[' || true; }
 ALL=$(below "$FILE")
 [ -f "$USER_FILE" ] && ALL=$(printf '%s\n%s' "$ALL" "$(below "$USER_FILE")")
 OUT=$(printf '%s\n' "$ALL" | grep -E "$PAT" || true)
+# with --repo: a lesson tagged for another repo does not apply here
+if [ -n "$REPO_ALT" ] && [ -n "$OUT" ]; then
+  OUT=$(printf '%s\n' "$OUT" | grep -E "\\[repo:(-|$REPO_ALT)\\]" || true)
+fi
 if [ -n "$OUT" ]; then
   printf '%s\n' "$OUT"
   N=$(printf '%s\n' "$OUT" | wc -l | tr -d ' ')

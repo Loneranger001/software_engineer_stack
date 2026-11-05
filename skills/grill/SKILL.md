@@ -20,8 +20,9 @@ proving which scenarios were confronted.
 
 ## 0. Preamble
 
-1. Load applicable lessons: `ses lessons grill` — prior corrected
-   assumptions and missed edge cases are exactly the scenarios to re-run.
+1. Load applicable lessons once step 3 has located `<ws>`:
+   `ses lessons grill --ws <ws>` — prior corrected assumptions and missed
+   edge cases are exactly the scenarios to re-run.
 2. Fresh context: the session that wrote the TDD is anchored on its own
    reasoning and grills it least hard. If this conversation authored the
    target document, say so and recommend a fresh session (or `/clear`)
@@ -147,7 +148,10 @@ Take the `ask-user` list and interview the user until it is EMPTY:
    `<root>/com.github.copilot/agents/doc-fact-checker.agent.md` on tdd.md,
    scoped to the edited sections — delegated per `<root>/core/reviewers.md`.
    A fix that adds a claim about existing behaviour is exactly what the
-   tech-design fact-check never saw. Resolve all findings.
+   tech-design fact-check never saw. Keep each report
+   (`ses review record <ws> doc-fact-checker tdd-grill --mode <mode> --scope "§…" <report>`)
+   and resolve all findings until `ses review require <ws> doc-fact-checker tdd-grill`
+   passes.
 3. Every TDD edit updates the TDD's handoff summary in the same edit — its
    Verification line names every `G#` row, which
    `ses handoff check <ws>/tdd.md` enforces like A#; re-run it before
@@ -156,7 +160,8 @@ Take the `ask-user` list and interview the user until it is EMPTY:
 4. An approved TDD the grill edited is re-approved, never silently changed —
    whatever the size of the edits. Present ONE change list built from the
    grill log's TDD-changing rows (`#n · TDD § · before → after`, one line
-   each) with the fact-check verdict; one approval covers it. Record it as a
+   each) with the fact-check verdict and how it ran (name a self-pass); one
+   approval covers it. Record it as a
    TDD header note (`re-approved after /grill <date>: <n> edits`) and with
    `ses status set <ws> tech-design=approved --note "re-approved after grill, <n> edits"`.
    An edit the user rejects is reverted and its row goes back to `ask-user`.

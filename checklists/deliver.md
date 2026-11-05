@@ -3,7 +3,7 @@
 Run before declaring the task delivered.
 
 - [ ] ASSUMPTIONS.md has no open entries — all ratified, corrected, or resolved-by-user (decision-protocol §4); nothing ships on an unratified guess
-- [ ] scope-auditor agent ran on the final diff + artifacts and reported PASS (violations resolved or user-waived in writing)
+- [ ] scope-auditor ran on the final diff + artifacts, its report is kept, and `ses review require <ws> scope-auditor delivery` passes (violations resolved or user-waived in writing); how it ran was told to the user
 - [ ] Release notes produced from template, including deployment and rollback sections usable stand-alone
 - [ ] `ses prose-lint` passes on the release notes — written to `<root>/standards/writing.md`, about the system rather than the task
 - [ ] `ses prose-lint` passes on fdd.md and tdd.md after the consistency sweep; an FDD goes out as its `ses fdd-view` rendering, never fdd.md itself

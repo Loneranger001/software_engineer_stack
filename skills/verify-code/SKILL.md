@@ -21,7 +21,9 @@ fallback proves it parses and conforms. Every run produces an evidence file
 ## Lessons and output capture (all recipes)
 
 - Load applicable lessons:
-  `ses lessons verify --lang <languages of the files>`.
+  `ses lessons verify --lang <languages of the files>` — inside a task, add
+  `--ws <ws>` so lessons tagged for the task's repos come in and other
+  repos' lessons drop out.
 - Run every command below through `ses capture`:
   `ses capture <evidence-dir> <run>-<file>-<check> --grep '<errors>' -- <command>`,
   where `<run>` is the caller's prefix: `step<N>` in /implement's step loop,
@@ -134,6 +136,8 @@ For each file verified, append to the evidence file: recipe used, mode
 code, error-line matches, tail — plus the raw log path), PASS/FAIL/PARTIAL,
 and the assertion that justifies the verdict. A run for a test (T#) or an
 acceptance criterion (A#) also gets its row in the Result table — PASS,
-FAIL, PARTIAL or NOT-RUN, with its mode — which `ses coverage` reads. Never paste a full raw log
+FAIL, PARTIAL or NOT-RUN, with its mode and where its expected value came
+from (`Expected from`: hand-derived, spec or fixture — never the code under
+test) — which `ses coverage` reads. Never paste a full raw log
 into the evidence file. /implement and /change-request treat
 anything but PASS as a blocker to resolve or escalate.

@@ -20,8 +20,10 @@ explanation (**Style** below).
 
 ## 0. Preamble
 
-1. Load applicable lessons: `ses lessons impl-plan` — it prints only
-   the matching entries; don't read the lesson files whole.
+1. Load applicable lessons once step 2 has located `<ws>`:
+   `ses lessons impl-plan --ws <ws>` — it takes the repos and languages from
+   STATUS.md and prints only the matching entries (a lesson tagged for
+   another repo is left out); don't read the lesson files whole.
 2. Locate the workspace and gate:
    `ses status require <ws> tech-design=approved grill=done,waived`
    (`<ws>` = `<workspace-root>/work/<id>`) — non-zero exit = stop. The impl

@@ -19,3 +19,29 @@ Every delegation prompt carries the inputs the procedure lists (task
 workspace path, repos with branch and mainline, or the documents), plus the
 `ses` command you resolved and `<root>` — a subagent may not have `ses` on
 PATH. The report comes back to the calling skill, whose gate acts on it.
+
+## Keep every report, and say how it ran
+
+The calling skill saves each report, whole, the moment it returns — a
+review nobody can find later did not happen, as far as a gate or a resumed
+session can tell:
+
+```sh
+ses review record <ws> <reviewer> <target> --mode <custom-agent|subagent|self-pass> <report-file|->
+```
+
+`<mode>` is the option above that actually ran (1 = `custom-agent`,
+2 = `subagent`, 3 = `self-pass`); `<target>` names what was reviewed — `fdd`,
+`tdd`, `tdd-grill` (the grill's scoped re-check), the repo name for each
+code-review pass, `delivery` for the /deliver scope audit, `cr` for a change
+request, the document's name for /document. It lands in
+`<ws>/reviews/<reviewer>-<target>-<n>.md` and in STATUS
+(`review.<reviewer>.<target>`). Each gate then checks the latest report
+instead of trusting memory: `ses review require <ws> <reviewer> <target>`
+exits 3 unless it passes.
+
+A **self-pass** is the author re-reading its own work. It is better than no
+review, and much weaker than an independent one: every gate that rests on
+one says so to the user in the approval it asks for ("the fact-check was a
+self-pass — no independent reviewer was available"), so the user can get an
+independent review first.

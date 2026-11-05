@@ -12,6 +12,6 @@ Run before marking the grill stage done.
 - [ ] Terminology challenges resolved by the user, never by assumption; load-bearing resolutions recorded in the TDD
 - [ ] Checkable scenarios were checked against code/dev DB, not reasoned about (decision-protocol §1)
 - [ ] Full pipeline: TDD handoff summary names every `G#` row; `ses handoff check` and `ses prose-lint` pass on tdd.md
-- [ ] Every TDD edit was fact-checked (doc-fact-checker scoped to the edited sections) and its findings resolved
+- [ ] Every TDD edit was fact-checked (doc-fact-checker scoped to the edited sections), its report kept, its findings resolved, and `ses review require <ws> doc-fact-checker tdd-grill` passes
 - [ ] An approved TDD the grill edited was re-approved once, from a single change list, and the re-approval recorded in the TDD header and STATUS (no edits → none needed)
 - [ ] Full pipeline: STATUS.md updated — grill → done (or waived, with who/when), next action /impl-plan, or TDD approval first when it was grilled unapproved. Change request: the grill log's Close line written; an already-approved mini contract the grill changed was re-approved

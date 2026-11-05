@@ -86,3 +86,7 @@ Notes (non-blocking observations):                 […]
 FAIL if any of the first seven categories is non-empty. Borderline judgement
 calls (e.g. a mechanical rename needed to implement S1 touching an extra file)
 go under Notes with your reasoning — flag, don't fabricate certainty either way.
+
+Your caller keeps this report word for word (`ses review record`, per
+`<root>/core/reviewers.md`) and later gates and sessions read it from disk, so
+it must stand alone: name what you reviewed and give every reference in full.

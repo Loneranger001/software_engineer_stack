@@ -52,6 +52,38 @@ class LessonsTest(unittest.TestCase):
         self.assertIn("Verify PL/SQL lesson", out)
         self.assertNotIn("Research ksh", out)
 
+    def test_single_language_is_not_dropped(self):
+        # the trial's bug: `read` never saw the last, unterminated value, so --lang plsql matched nothing
+        out = self.run_lessons("implement", "--lang", "plsql").stdout
+        self.assertIn("Verify PL/SQL lesson", out)
+        out = self.run_lessons("implement", "--lang", "sql,plsql").stdout
+        self.assertIn("Verify PL/SQL lesson", out)
+
+    def test_repo_tagged_lesson_for_another_repo_is_left_out(self):
+        out = self.run_lessons("verify", "--repo", "orders").stdout
+        self.assertNotIn("Verify PL/SQL lesson", out, "tagged repo:billing — not this repo's lesson")
+        self.assertIn("Any-stage lesson", out)
+        out = self.run_lessons("verify", "--repo", "orders,billing").stdout
+        self.assertIn("Verify PL/SQL lesson", out)
+        out = self.run_lessons("verify").stdout     # no --repo: the stage match stands
+        self.assertIn("Verify PL/SQL lesson", out)
+
+    def test_ws_derives_repos_and_languages(self):
+        base = Path(self.tmp.name)
+        repo = base / "billing"
+        subprocess.run(["git", "init", "-q", str(repo)], check=True)
+        (repo / "pkg.pkb").write_text("x\n")
+        subprocess.run(["git", "-C", str(repo), "add", "pkg.pkb"], check=True)
+        ws = base / "work" / "T-1"
+        ws.mkdir(parents=True)
+        (ws / "STATUS.md").write_text(f"# STATUS\n\n- task-id: T-1\n- work-repo: {repo}\n"
+                                      f"- repos-analyzed: {repo}\n")
+        r = self.run_lessons("implement", "--ws", str(ws))
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("Verify PL/SQL lesson", r.stdout)
+        self.assertIn("lang:plsql repo:billing", r.stdout)
+        self.assertEqual(self.run_lessons("implement", "--ws", str(base / "nope")).returncode, 2)
+
     def test_repo_matches_literally(self):
         out = self.run_lessons("intake", "--repo", "a.b").stdout
         self.assertIn("Research ksh lesson", out)

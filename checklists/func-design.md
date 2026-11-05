@@ -18,7 +18,7 @@ Run before presenting the FDD for approval.
 - [ ] §1 lists every business term relied on: global ones with their `Meaning` line copied verbatim from `<workspace-root>/work/domain-glossary.md` (none re-defined), repo-specific ones defined for their repo
 - [ ] No section dropped — "None" stated explicitly where nothing applies
 - [ ] Open Q# items answered, or explicitly deferred by the user and recorded in §13
-- [ ] doc-fact-checker ran on the FDD and its findings were resolved at the functional level
+- [ ] doc-fact-checker ran on the FDD, its report is kept, its findings were resolved at the functional level, and `ses review require <ws> doc-fact-checker fdd` passes; a self-pass is named to the user
 - [ ] ASSUMPTIONS.md reviewed — open entries presented for ratification (decision-protocol §4)
 - [ ] Handoff summary written last and `ses handoff check` passes
 - [ ] Written to `<root>/standards/writing.md` throughout: §1 says what changes and what to decide; plain words and short sentences; about the system, never about how the document was made; no coined noun stacks or slashes; IDs in brackets or columns, never in place of the words

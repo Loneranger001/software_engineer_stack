@@ -19,9 +19,10 @@ the user has explicitly approved. Nothing downstream may begin before that appro
 
 ## 0. Preamble (every stack skill starts this way)
 
-1. Load applicable lessons: `ses lessons intake`,
-   re-run with `--repo <work-repo name> --lang <languages>` once step 2 and
-   the brief tell you them. Apply them; don't read the lesson files whole.
+1. Load applicable lessons: `ses lessons intake`; once §1 has created the
+   workspace, re-run it as `ses lessons intake --ws <ws>` (repos and
+   languages from STATUS.md; add `--lang` for a language the brief brings
+   in). Apply them; don't read the lesson files whole.
 2. Resolve `<work-repo>`, `<workspace-root>`, and the `<repo-set>` per
    `<root>/core/repo-resolution.md` — do NOT assume the current
    directory is the repo. If cwd is a parent folder holding several repos, ask
