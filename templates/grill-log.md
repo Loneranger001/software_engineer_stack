@@ -18,7 +18,7 @@
      turns these into lessons. -->
 | # | Category | Scenario (concrete, real objects) | Verdict | Answer / TDD ref | Upstream miss |
 |---|---|---|---|---|---|
-| 1 | data | {e.g. customers row with NULL currency_code on extract night} | {covered} | {tdd §4.2: fails the account loudly, per Q3} | {-} |
+| 1 | data | {e.g. customers row with NULL currency_code on extract night} | {covered} | {tdd §4.2: fails the account loudly, per contract Q3} | {-} |
 | 2 | lifecycle | {e.g. rerun for a date with snapshot rows: §4.1's delete and insert commit separately, so a failure between leaves the date empty} | {gap-fixed} | {tdd §4.1: one transaction — a defect, the replace behaviour is unchanged; §7 row G2 added} | {tech-design} |
 
 <!-- Categories (min 1 scenario each, or n/a with reason):

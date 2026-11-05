@@ -86,7 +86,8 @@ The documents must match what was actually built:
    `ses status get <ws> formats` already answers it, and record the answer
    (`ses status field <ws> formats "<docx,pdf,...>"`); verify each produced
    file is non-empty. An `fdd.md` is converted through its audience view
-   (`ses fdd-view <ws>/fdd.md --audience <fdd-audience>`),
+   (`ses fdd-view <ws>/fdd.md --audience <fdd-audience>`, the audience from
+   `ses status get <ws> fdd-audience`),
    never directly.
 3. Push every changed repo's task branch (the `branch.<repo>` fields:
    `git -C <repo> push -u origin <branch>`; retry with backoff on network

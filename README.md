@@ -36,6 +36,7 @@ flowchart LR
 | `/document <type> <target>` | Produce a how-to, KB article, or understanding document for an existing interface | Fact-checker passes |
 | `/verify-code <files>` | Run per-language verification (live DB/host where available, static fallback) | — |
 | `/retro` | Capture lessons from a finished task into the framework's knowledge base | User approves framework edits |
+| `/meeting-minutes` | Structured minutes from meeting notes or a transcript | — |
 
 ## Installation
 
@@ -90,6 +91,7 @@ work/PROJ-123/                 (never committed — see "Keeping work/ out of gi
 ├── tdd.md                     # /tech-design
 ├── grill-log.md               # /grill — every scenario confronted and its verdict
 ├── impl-doc.md                # /impl-plan
+├── rules-checklist.md         # /implement — the repo rules as a per-task worksheet, rebuilt each session
 ├── evidence/                  # captured run outputs (summaries; raw logs in evidence/raw/)
 ├── release-notes.md           # /deliver (a change request: /change-request §5)
 ├── deliverables/              # converted docx / pdf / Confluence outputs

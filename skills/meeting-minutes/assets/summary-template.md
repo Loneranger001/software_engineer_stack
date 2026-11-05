@@ -7,7 +7,7 @@
 | Time | <time and timezone or TBD> |
 | Location | <location/platform or TBD> |
 | Facilitator | <name or TBD> |
-| Note-taker | GitHub Copilot |
+| Note-taker | <name from the source, or "not recorded"> |
 | Project | <project or TBD> |
 
 ## Attendees
@@ -33,4 +33,4 @@
 | A-01 | <imperative task> | <name or TBD> | <date or TBD> | Open |
 
 ---
-Minutes prepared by GitHub Copilot on <YYYY-MM-DD>. Review against the source and correct any inaccuracies.
+Minutes drafted by <the assistant that drafted them> on <YYYY-MM-DD>. Review against the source and correct any inaccuracies.

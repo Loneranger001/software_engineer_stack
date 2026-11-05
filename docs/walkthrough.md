@@ -42,7 +42,7 @@ you>  /intake ../sample-brief.md DEMO-1
 ```
 
 The agent creates `work/DEMO-1/` (STATUS.md, ASSUMPTIONS.md, PARKED.md,
-evidence/), stores the brief, reads it fully, and classifies every statement:
+evidence/, deliverables/), stores the brief, reads it fully, and classifies every statement:
 in-scope item, exclusion, constraint, or open question. Business terms the
 brief leans on ("balance", "extract") are looked up in `work/domain-glossary.md`
 first — known terms link their entry; unknown ones become research targets. Then it asks you the
@@ -171,9 +171,10 @@ passed** — the task is delivered.
 you>  /retro
 ```
 
-It asks you 2–3 pointed questions, distills actionable lessons into
-`knowledge/lessons.md` (which every future run loads), and proposes concrete
-template/checklist edits for your approval.
+It asks you 2–3 pointed questions, distills actionable lessons into your
+lessons file (`~/.ses/lessons.md`, through `ses lessons --add`; every future
+run loads it), and proposes concrete template/checklist edits for your
+approval.
 
 ---
 

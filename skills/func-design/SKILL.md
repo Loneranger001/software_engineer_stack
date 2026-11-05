@@ -268,10 +268,11 @@ common forms:
 ## 4. Deliver
 
 1. Render the view for the recorded audience:
-   `ses fdd-view <ws>/fdd.md --audience <fdd-audience>`
-   → `<ws>/fdd.<audience>.md`. `business` drops the handoff summary, the
-   technical regions, and Appendix A; `technical` keeps them. Both drop
-   template guidance. Never hand stakeholders `fdd.md` itself.
+   `ses fdd-view <ws>/fdd.md --audience <fdd-audience>` (from
+   `ses status get <ws> fdd-audience`) → `<ws>/fdd.<audience>.md`. Both
+   audiences drop template guidance and the handoff summary; `business` also
+   drops the technical regions and Appendix A, which `technical` keeps.
+   Never hand stakeholders `fdd.md` itself.
 2. Ask which output formats are needed unless `ses status get <ws> formats`
    answers it, and record them (`ses status field <ws> formats "<docx,pdf,...>"`).
    Convert the view (not fdd.md) via

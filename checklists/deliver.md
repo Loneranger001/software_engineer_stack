@@ -13,5 +13,5 @@ Run before declaring the task delivered.
 - [ ] PARKED.md items summarized in release notes as follow-ups
 - [ ] Work branch pushed in every changed repo; commits reference the task id
 - [ ] Multi-repo changes: release notes state the deploy order across repos and the intermediate state between deployments
-- [ ] STATUS.md updated: deliver → done; retro is the recorded next action
+- [ ] Ready to record `deliver=done` with /retro as the next action (§4 step 3, right after this checklist)
 - [ ] User prompted to run /retro

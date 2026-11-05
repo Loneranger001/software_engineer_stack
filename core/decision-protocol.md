@@ -60,11 +60,14 @@ ask immediately. **Non-blocking** questions accumulate and are asked as one
 batch at the stage boundary — never one-at-a-time interruptions. Every asked
 question and its answer is recorded where it lands (scope contract Q-table,
 research open questions, or ASSUMPTIONS.md as a `resolved-by-user` row).
+Each document numbers its own questions from Q1, so a reference from
+another document names its source: "contract Q3", "research Q2", "FDD Q1".
 
 ## 4. Gate ratification
 
-Every approval gate — intake, tech-design, impl-plan, deliver, and the
-change-request mini-contract — MUST present all `open` ASSUMPTIONS.md entries
+Every approval gate — intake, func-design (FDD approval), tech-design and
+its re-approval after /grill, impl-plan, deliver, and the change-request
+mini-contract — MUST present all `open` ASSUMPTIONS.md entries
 alongside the artifact being approved:
 
 - **Ratified** → status `ratified (gate, date)`. Assumptions that shape scope

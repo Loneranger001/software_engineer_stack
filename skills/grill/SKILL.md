@@ -64,8 +64,9 @@ category; a category that truly cannot apply is marked `n/a` with a reason.
   failure, concurrent execution, partial success/failure ordering
 - **Interface**: callers sending the old format, missing/extra fields,
   consumers NOT in the research call graph (search with broader patterns via
-  `ses search`; reuse research's recorded rows for repos whose sha is
-  unchanged), contract version skew
+  `ses search`; a research row is reused only for the same pattern, in a
+  repo whose sha is unchanged — a broader pattern is a new search),
+  contract version skew
 - **Temporal**: date boundaries, month/year-end, DST/timezone, late-arriving
   or backdated data
 - **Environment**: DB unreachable mid-run, missing config/env var, disk
