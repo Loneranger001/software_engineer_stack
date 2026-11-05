@@ -154,8 +154,8 @@ After the last step, run the full impl-doc test plan (unit, integration,
 regression) through `ses capture` with log names starting `tests-<date>-`
 — never a step's log name, whose hash is already committed — summary to
 `evidence/tests-<date>.txt`.
-Every acceptance criterion must reach PASS; failures loop back to the step
-loop.
+Every TDD §7 row (A#, TS#, G#) must reach PASS through its T#; failures
+loop back to the step loop.
 
 ## 4. Review gate
 

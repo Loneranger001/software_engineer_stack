@@ -3,7 +3,7 @@
 - Date: {UTC timestamp}
 - Environment: {dev DB / host / local} — mode: live | static-fallback
 - Verified by: /verify-code (recipes: {plsql|sql|ksh|python})
-- Relates to: impl-doc.md step {N} / acceptance criterion {A#}
+- Relates to: {repo} — impl-doc.md step {N} | test T{n} — criterion {A# | TS# | G#}
 
 ## What was run
 

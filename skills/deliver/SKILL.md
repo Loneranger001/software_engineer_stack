@@ -63,7 +63,7 @@ The documents must match what was actually built:
   summaries in the same edit (`ses handoff check <ws>` and `ses prose-lint`
   on both must pass). Substantive divergence needs the user's ack, since
   those documents were approved.
-- Every acceptance criterion → evidence file → PASS. Missing evidence means
+- Every TDD §7 row (A#, TS#, G#) → its T# → evidence file → PASS. Missing evidence means
   going back to /implement's verification, not papering over.
 
 ## 3. Package

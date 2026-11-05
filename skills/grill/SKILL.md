@@ -176,10 +176,10 @@ categories, verdicts and both phases are unchanged; these parts differ:
 
 - **Inputs** (§0.4): analysis.md and ASSUMPTIONS.md; there is no contract,
   research or FDD summary to read.
-- **Traceability**: the mini contract has no IDs. A `gap-fixed` fix traces
-  to one of its **Change** bullets instead of an S#/A#, and is edited into
-  analysis.md. A testable fix or answer adds an **Acceptance criteria**
-  bullet tagged `(grill #<n>)` instead of a TDD §7 `G<n>` row. An
+- **Traceability**: the mini contract's **Change** bullets carry no IDs, so
+  a `gap-fixed` fix traces to one of them instead of an S#, and is edited
+  into analysis.md. A testable fix or answer adds the next acceptance criterion
+  A# tagged `(grill #<n>)` instead of a TDD §7 `G<n>` row. An
   `out-of-scope` verdict cites a **Not changing** bullet. An answer that
   pushes the change past the escalation rule stops the grill: tell the user.
 - **Deferrals**: the user's words go verbatim into the grill log and

@@ -7,7 +7,7 @@ Run before declaring the task delivered.
 - [ ] Release notes produced from template, including deployment and rollback sections usable stand-alone
 - [ ] `ses prose-lint` passes on the release notes — written to `<root>/standards/writing.md`, about the system rather than the task
 - [ ] `ses prose-lint` passes on fdd.md and tdd.md after the consistency sweep; an FDD goes out as its `ses fdd-view` rendering, never fdd.md itself
-- [ ] Evidence bundle complete: every acceptance criterion → evidence file → PASS
+- [ ] Evidence bundle complete: every TDD §7 row (A#, TS#, G#) → T# → evidence file → PASS
 - [ ] All task documents are internally consistent (TDD ↔ impl-doc ↔ actual diff; stale sections updated)
 - [ ] Requested output formats produced (docx/pdf/Confluence) and files open/render correctly
 - [ ] PARKED.md items summarized in release notes as follow-ups

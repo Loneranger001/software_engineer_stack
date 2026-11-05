@@ -34,7 +34,7 @@
 
 ## 3. Test plan
 
-<!-- Every TDD §7 row (A#, G#) → at least one T#. Regression rows re-check
+<!-- Every TDD §7 row (A#, TS#, G#) → at least one T#. Regression rows re-check
      the callers in TDD §6. The repo's own tooling. A long before/after
      query goes in a fenced block under the table, named by its T#. -->
 | T# | Covers | Type | How run | Expected |

@@ -4,7 +4,7 @@ Run before presenting the TDD for approval.
 
 - [ ] Traceability table maps EVERY in-scope item to a design section (no orphans either way)
 - [ ] Nothing in the design implements an out-of-scope/non-goal item
-- [ ] If an approved FDD exists: every FR# is traced, and no section contradicts its business rules (BR#) or exceptions (EX#) — a needed departure was re-approved as an FDD amendment
+- [ ] If an approved FDD exists: every FR# is traced in §2 and every TS# has its own §7 row, and no section contradicts its business rules (BR#) or exceptions (EX#) — a needed departure was re-approved as an FDD amendment
 - [ ] Every claim about existing behaviour carries a source reference (`<repo>:<path>:<line>`, query, doc) — never research-notes.md or another workspace file
 - [ ] §1 Overview lists every business term relied on: global ones with their `Meaning` line copied verbatim from `<workspace-root>/work/domain-glossary.md` (none re-defined), repo-specific ones defined for their repo
 - [ ] Interface impact analysis is backed by the research call graph — "no callers affected" is proven, not assumed

@@ -81,8 +81,9 @@ Append to `analysis.md` and get explicit user approval before touching code
 
 - **Change**: exactly what will change (objects, behaviour before → after)
 - **Not changing**: adjacent things deliberately left alone
-- **Acceptance criteria**: how each is verified (≥1 per change, plus a
-  regression check per impacted caller)
+- **Acceptance criteria** A1…An: how each is verified (≥1 per change, plus
+  a regression check per impacted caller) — the IDs the evidence, release
+  note and scope audit key on
 - **Rollback**: the exact revert/redeploy step
 
 On approval: `ses status set <ws> mini-contract=approved --note "by <who>"`.

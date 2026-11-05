@@ -37,8 +37,9 @@ only (git diff/log/show, ls) — never commands that modify anything.
    step table (full pipeline) as the claimed mapping, then verify the claim
    against the actual hunks — don't take the doc's word.
 3. **Scope → diff mapping**: for every in-scope item, confirm work exists that
-   plausibly satisfies it, and every acceptance criterion has an evidence file
-   with PASS.
+   plausibly satisfies it, and every criterion has an evidence file with
+   PASS — the contract's A#, plus, in the full pipeline, every TDD §7 row
+   (TS# from an approved FDD, G# from /grill).
 4. Check exclusions: nothing in the diff implements an N# item.
    **Repo scope**: every repo carrying commits must be listed in the contract
    as a repo this task changes. Commits in a repo that was analysis-only are a

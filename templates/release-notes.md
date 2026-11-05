@@ -29,9 +29,9 @@ to run after each step.}
 
 ## Verification evidence
 
-| Acceptance criterion | Evidence file | Result |
-|---|---|---|
-| A1 | evidence/{…} | PASS |
+| Criterion (A#, TS#, G#) | Test | Evidence file | Result |
+|---|---|---|---|
+| A1 | {T1} | evidence/{…} | PASS |
 
 ## Known limitations / follow-ups
 
