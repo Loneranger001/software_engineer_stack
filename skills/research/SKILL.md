@@ -96,7 +96,7 @@ expand it:
 
 ### Accuracy rules
 
-- Every finding row gets a source: `file:line`, the query used, or the doc/URL.
+- Every finding row gets a source: `<repo>:<path>:<line>`, the query used, or the doc/URL.
 - If you infer something (e.g. "this job appears to run nightly"), label it
   `INFERRED` with the evidence, and add an open question to confirm.
 - Do not trust names/comments over code: verify what a proc actually does

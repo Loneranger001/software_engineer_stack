@@ -22,8 +22,8 @@ findings; never edit.
   Every review file is read; a skipped file that should not be in the diff at
   all is a finding.)
 - Task workspace path (the handoff summaries of scope-contract.md and
-  tdd.md for intent — `ses handoff show <doc>`; the impl-doc §2 row for the
-  step under review and the TDD section it cites;
+  tdd.md for intent — `ses handoff show <doc>`; the impl-doc §2 rows for
+  the repo under review and the TDD sections they cite;
   evidence/ for what verification already ran — read the summary files;
   open `evidence/raw/` logs only to check a specific claim)
 

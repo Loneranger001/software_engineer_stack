@@ -16,13 +16,16 @@
 
 ## Deployment
 
-{Ordered deployment steps, or reference to impl-doc.md §4. Include environment
-prerequisites and the verification to run after each step.}
+<!-- Written out in full from impl-doc.md §4 — the impl doc is agent-only
+     and is not handed over. -->
+{Ordered deployment steps, with the environment prerequisites and the check
+to run after each step.}
 
 ## Rollback
 
-{Reference to impl-doc.md §5, restated briefly so operations can act on this
-document alone.}
+<!-- Written out in full from impl-doc.md §5, so operations can act on
+     this document alone. -->
+{Ordered rollback steps for each repo, in reverse deployment order.}
 
 ## Verification evidence
 

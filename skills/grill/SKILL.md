@@ -77,7 +77,7 @@ category; a category that truly cannot apply is marked `n/a` with a reason.
   the window between, rollback after a backfill or migration already ran
 
 For each scenario, answer FROM the TDD and the code — with a source reference
-(TDD §, file:line, or evidence). Decision-protocol §1 applies hard: if the
+(TDD §, `<repo>:<path>:<line>`, or evidence). Decision-protocol §1 applies hard: if the
 code or dev DB can answer it, check it, don't reason about it — run queries
 through `ses capture <ws>/evidence grill-<n> -- …` so the cited evidence can
 be re-run. Verdicts:
@@ -128,9 +128,10 @@ Take the `ask-user` list and interview the user until it is EMPTY:
   of an approved FDD amends the FDD first, re-approved per /func-design
   "Changes after approval"; the TDD follows it, never leads.
 - The user may DEFER a question ("accept the risk", "later CR") — record the
-  deferral verbatim in TDD §11 Risks (Mitigation: `accepted by <who> <date>:
-  "<their words>"`), in the grill log, and as a PARKED.md row (found during
-  grill), which is what /deliver's release notes and scope audit read — an
+  user's words verbatim in the grill log and as a PARKED.md row (found during
+  grill), which is what /deliver's release notes and scope audit read, and
+  add a TDD §11 Risks row in plain words per `<root>/standards/writing.md`
+  (Mitigation: `Accepted by <who> on <date>: <what they accepted>`) — an
   accepted risk is handed over, not forgotten.
   Deferred is a user decision; unanswered is not a terminal state.
 

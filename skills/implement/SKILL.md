@@ -66,6 +66,10 @@ committed before the next begins.
 1. Ensure each repo the impl-doc changes is clean. If one isn't, show the
    user what is uncommitted and ask — never stash, commit, or discard their
    work unasked.
+   Confirm each impl-doc §1 precondition (check it, or ask the user), and
+   probe the dev environment once (`$SES_DB_CONN`, `$SES_KSH_HOST`, `$SES_PY`
+   — whichever the steps need): tell the user which steps will run in
+   static-fallback mode before step 1, not after it.
 2. In each, create the branch named in the impl-doc from that repo's mainline.
 3. Record the branch per repo:
    `ses status field <ws> branch.<repo-name> <branch>`, then
@@ -104,7 +108,7 @@ For each impl-doc step N, in order:
    change, or an existing identifier that breaks a rule, stays as it is:
    one PARKED.md line (file or name, rule). The result goes into the Rules check section of the step's
    evidence file (written in 3).
-3. **Verify** using the step's verification column — invoke the /verify-code
+3. **Verify** using the step's Verify column — invoke the /verify-code
    recipes for each changed file (live mode via `$SES_DB_CONN`/`$SES_KSH_HOST`/
    `$SES_PY` when reachable; static fallback otherwise, recorded as such).
    Run each command through `ses capture` and

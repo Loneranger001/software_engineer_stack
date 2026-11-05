@@ -3,7 +3,7 @@
 Run before marking the grill stage done.
 
 - [ ] Every category (data, lifecycle, interface, temporal, environment, security/ops, deploy/rollback) has ≥1 concrete scenario using the task's real objects — or an explicit n/a with reason
-- [ ] Every `covered` verdict cites where the design handles it (TDD § / file:line) — no bare assertions
+- [ ] Every `covered` verdict cites where the design handles it (TDD § / `<repo>:<path>:<line>`) — no bare assertions
 - [ ] Every `gap-fixed` scenario had one defensible behaviour, traces to an S#/A#, and passes decision-protocol §2 — a choice between behaviours went to the user instead
 - [ ] Every `gap-fixed` scenario was actually edited into the TDD (design section, plus a §7 `G#` row when testable), not just logged
 - [ ] Every `out-of-scope` verdict cites the contract exclusion it relies on

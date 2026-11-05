@@ -90,7 +90,7 @@ summary is for agents and is not held to the standard.
 
 - Write about the system, never about how the design was made.
   - ✗ "Research found that the job retries a failed transfer twice."
-  - ✓ "The job retries a failed transfer twice (`run_orders.ksh:48`)."
+  - ✓ "The job retries a failed transfer twice (`repo-a:bin/run_orders.ksh:48`)."
 - Describe the thing; do not coin noun stacks or join words with a slash.
   - ✗ "the task-owned message / publication identity"
   - ✓ "the ID that the system gives each message that it publishes"
@@ -98,8 +98,8 @@ summary is for agents and is not held to the standard.
 ### Accuracy
 
 - Claims about existing behaviour keep their source references: copy the
-  code references (`file:line`) over from research-notes.md and add new ones
-  for anything newly read. Never cite research-notes.md itself — it stays
+  code references (`<repo>:<path>:<line>`, per `<root>/core/repo-resolution.md`)
+  over from research-notes.md and add new ones for anything newly read. Never cite research-notes.md itself — it stays
   in the workspace, so the reader of the handed-over TDD cannot open it.
 - Pseudocode/signatures must compile against reality: correct object names,
   parameter types from the actual specs.

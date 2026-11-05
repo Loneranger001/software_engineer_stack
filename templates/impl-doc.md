@@ -22,12 +22,14 @@
 
 <!-- In order; one commit-sized step per row, in exactly one repo; producer
      before consumer. A step that leaves the system inconsistent says so in
-     Step, and the next step restores it. Files: exact paths (ses checkpoint
+     Step, and the next step restores it. Repo: the repo's folder name, as
+     in STATUS.md branch.<repo>. Files: exact paths, relative to the repo
+     root, including the test files the step adds or changes (ses checkpoint
      reads them). Verify: a T# from §3 or a one-line check. -->
 | # | Repo | Step | Files / objects | TDD § | Verify | Rollback |
 |---|---|---|---|---|---|---|
 | 1 | {repo-a} | {add ORDHEAD.EDI_SENT_DATE} | {src/sql/ordhead_add_col.sql} | {§5} | {compile; describe ORDHEAD} | {src/sql/ordhead_drop_col.sql} |
-| 2 | {repo-a} | {send proc in PKG_ORDER_EDI} | {src/plsql/pkg_order_edi.pkb} | {§4.1} | {T1} | {git revert} |
+| 2 | {repo-a} | {send proc in PKG_ORDER_EDI} | {src/plsql/pkg_order_edi.pkb, test/ut_pkg_order_edi.pkb} | {§4.1} | {T1} | {git revert} |
 | 3 | {repo-b} | {loader reads new column} | {src/py/loader.py} | {§6} | {T2} | {git revert} |
 
 ## 3. Test plan

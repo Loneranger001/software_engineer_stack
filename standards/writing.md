@@ -30,13 +30,14 @@ a workspace that nobody hands over.
   contract, workspace, fact-check, or stage names such as /intake or /grill.
 - Keep sources out of the flow of a sentence. Put them in a source column,
   in a source section or appendix, or in brackets after the sentence, as
-  code references (`file:line`). Do not cite research-notes.md or any other
-  workspace file. The reader cannot open it.
+  code references (`<repo>:<path>:<line>`). Do not cite research-notes.md or
+  any other workspace file. The reader cannot open it.
 - Do not let an ID such as FR1, BR1, or S1 stand in for the words. Say the
   thing, then give the ID in brackets or in a column: "The system skips the
   order (BR1)", not "BR1 applies".
 - A fact that you could not check is an open question. Write it as a
-  question in the open-questions section.
+  question in the open-questions section, or in a TDD, as a row in §11
+  Risks.
 
 ## 2. Words
 

@@ -12,9 +12,9 @@
        the design was made: no research, task, scope contract, or stage
        names.
      - Say the thing, then give its ID in brackets or in a column.
-     - Cite code references (file:line), never research-notes.md: the
-       fact-checker verifies them, and a reader handed the TDD can follow
-       them. Signatures and pseudocode go in code blocks, not in sentences. -->
+     - Cite code references as <repo>:<path>:<line>, never bare file:line
+       and never research-notes.md: the fact-checker verifies them, and a
+       reader handed the TDD can follow them. Signatures and pseudocode go in code blocks, not in sentences. -->
 
 <!-- handoff:start -->
 ## Handoff summary
@@ -68,8 +68,8 @@ Business terms used in this document:
 
 <!-- Condensed from research-notes.md: carry over its code references, not
      the notes themselves. -->
-{How the function works today, with a code reference (file:line) for each
-claim.}
+{How the function works today, with a code reference (repo:path:line) for
+each claim.}
 
 ### As-is flow
 
@@ -103,7 +103,7 @@ flowchart TD
 - Change type: new | modify | drop
 - Design: {signatures, pseudocode where useful, data flow}
 - Error handling: {…}
-- Source references for claims about existing behaviour: {file:line}
+- Source references for claims about existing behaviour: {repo:path:line}
 
 ### 4.2 {Component / object 2}
 

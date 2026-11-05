@@ -57,11 +57,13 @@ audited against scope, evidenced, and converted to the formats the user needs.
 The documents must match what was actually built:
 
 - tdd.md, impl-doc.md, and fdd.md (when present) vs the final diff — update
-  stale sections and mark
-  them `(updated at delivery: <reason>)`, updating each document's handoff
-  summary in the same edit (`ses handoff check <ws>` must pass, and so
-  must `ses prose-lint` on fdd.md and tdd.md); substantive
-  divergence needs the user's ack since those documents were approved.
+  stale sections. impl-doc.md takes an inline `(updated at delivery:
+  <reason>)` note. tdd.md and fdd.md are handed over, so their body says
+  only what the system does: record the update in the header's Status line
+  (`updated at delivery <date>: <reason>`), and update their handoff
+  summaries in the same edit (`ses handoff check <ws>` and `ses prose-lint`
+  on both must pass). Substantive divergence needs the user's ack, since
+  those documents were approved.
 - Every acceptance criterion → evidence file → PASS. Missing evidence means
   going back to /implement's verification, not papering over.
 

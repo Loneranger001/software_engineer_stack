@@ -58,9 +58,11 @@ explanation (**Style** below).
      own. The header's cross-repo line states the window between deploys —
      a consumer released before its producer is an outage the plan avoids or
      declares acceptable.
-3. Every step row: its repo, the exact files, the TDD §, its OWN
-   verification (a T# or a one-line check), and its OWN rollback (the exact
-   revert action). Multi-repo rollback runs per repo, in reverse dependency
+3. Every step row: its repo (the folder name, as in STATUS.md), the exact
+   files relative to the repo root — the test files it adds or changes
+   included, since /implement touches only the files a step names — the
+   TDD §, its OWN verification (a T# or a one-line check), and its OWN
+   rollback (the exact revert action). Multi-repo rollback runs per repo, in reverse dependency
    order.
 4. Name a task branch **per changed repo**, following that repo's rules
    files (`ses repo-rules`), else its existing branch naming

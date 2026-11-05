@@ -38,8 +38,9 @@ packaging is parked in `parked/`). Full docs: README.md.
 | `/understand` | Code-verified working understanding of an existing interface. | `skills/understand/SKILL.md` |
 | `/verify-code` | Run PL/SQL, SQL, KSH, or Python against live dev environments. | `skills/verify-code/SKILL.md` |
 
-4. Task state lives in `work/<task-id>/`: the stage documents (each opening
-   with a handoff summary), `scope-contract.md` (scope truth),
+4. Task state lives in `work/<task-id>/`: the stage documents (the scope
+   contract, research notes, FDD and TDD each open with a handoff summary;
+   the terse, agent-only impl doc is read whole), `scope-contract.md` (scope truth),
    `ASSUMPTIONS.md`, `PARKED.md`, `evidence/`, and a minimal `STATUS.md`
    whose gates are checked and set only with `ses status` (`require` exits
    non-zero when a gate is not met). The one domain glossary — only terms whose
