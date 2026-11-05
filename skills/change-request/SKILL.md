@@ -109,7 +109,8 @@ On approval: `ses status set <ws> mini-contract=approved --note "by <who>"`.
    carries into the change, or an existing name that breaks a rule, stays
    as it is: one PARKED.md line.
    The result goes into the evidence's Rules check section (§4).
-5. Record the branch (`ses status field <ws> branch.<repo-name> <branch>`) and
+5. Record the branch and its base (`ses status field <ws> branch.<repo-name> <branch>`,
+   `ses status field <ws> base.<repo-name> <mainline>`) and
    `ses status set <ws> change=done`. Nothing is committed yet — commits
    follow verification (§4), so each carries the hashes of the evidence that
    proves it.

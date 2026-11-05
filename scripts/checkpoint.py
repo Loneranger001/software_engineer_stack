@@ -254,7 +254,7 @@ def cmd_verify(ws_arg: str) -> int:
         print(f"  {b}")
     if unrecorded:
         print(f"warning: {len(unrecorded)} evidence file(s) with no recorded hash "
-              f"(fine for research/test-plan evidence; a step's evidence should be recorded):")
+              f"(fine for research evidence; step and test-plan evidence should be recorded):")
         for u in unrecorded[:20]:
             print(f"  {u}")
     return 1 if bad else 0

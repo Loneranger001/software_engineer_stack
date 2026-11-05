@@ -45,11 +45,13 @@ only (git diff/log/show, ls) — never commands that modify anything.
    as a repo this task changes. Commits in a repo that was analysis-only are a
    finding — analysis scope is not permission to write.
 5. Check PARKED.md: parked items must NOT appear in the diff.
-6. Check ASSUMPTIONS.md: every entry must be `ratified` or `corrected` — an
-   `open` entry at delivery is a finding; also spot-check that ratified
+6. Check ASSUMPTIONS.md: every entry must be `ratified`, `corrected`, or
+   `resolved-by-user` — an `open` entry at delivery is a finding; also spot-check that ratified
    assumptions promoted into the contract/TDD actually appear there.
 7. Check commit messages reference the task id and, in the full pipeline,
-   that `<task-id> step <N>` commits match the impl-doc's steps.
+   that `<task-id> step <N>` commits match the impl-doc's steps (a
+   `<task-id> step <N>: fix …` commit belongs to step N; one
+   `<task-id> tests:` commit records the test-plan evidence).
 8. Run `ses checkpoint verify <workspace>`.
    Recorded evidence that is MISSING or ALTERED is a finding: the evidence a
    PASS rests on is no longer the evidence that was captured. A workspace

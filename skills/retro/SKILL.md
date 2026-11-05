@@ -22,7 +22,8 @@ edits to the framework itself.
 1. Locate the workspace and read the task's history where it is recorded:
    `ses status show <ws>` (gates with their dates and notes), each task
    branch's commits (`git -C <repo> log --format='%h %ad %s' --date=short
-   <mainline>..<branch>`), the History tables and amendment notes of the
+   <mainline>..<branch>`, both from STATUS.md's `base.<repo>` and
+   `branch.<repo>`), the History tables and amendment notes of the
    stage documents, PARKED.md, ASSUMPTIONS.md (corrected entries =
    over-confidence, see decision-protocol §5), grill-log.md rows with an
    "Upstream miss" (a scenario an earlier stage should have caught), the

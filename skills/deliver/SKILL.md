@@ -41,6 +41,7 @@ audited against scope, evidenced, and converted to the formats the user needs.
    an unratified guess.
 2. Run the audit procedure in `<root>/com.github.copilot/agents/scope-auditor.agent.md`
    with: the scope contract, each changed repo's path, mainline and branch
+   (`base.<repo>` and `branch.<repo>` in STATUS.md)
    (the auditor reads the diff itself via `ses review-diff`),
    PARKED.md, ASSUMPTIONS.md, and the evidence directory (it runs
    `ses checkpoint verify` against the hashes in the checkpoint commits) —
@@ -48,8 +49,11 @@ audited against scope, evidenced, and converted to the formats the user needs.
 3. Outcomes:
    - PASS → proceed.
    - Violations → either remove the out-of-scope change (preferred) or get an
-     explicit written user waiver / scope-contract version bump. Re-run the
-     audit after fixes. Never deliver with an unresolved violation.
+     explicit written user waiver / scope-contract version bump. A version
+     bump also updates the `Contract version` line of every stage document's
+     handoff summary, after checking each still holds, or the re-run audit
+     fails on stale summaries. Re-run the audit after fixes. Never deliver
+     with an unresolved violation.
 
 ## 2. Consistency sweep
 
@@ -65,6 +69,10 @@ The documents must match what was actually built:
   those documents were approved.
 - Every TDD §7 row (A#, TS#, G#) → its T# → evidence file → PASS. Missing evidence means
   going back to /implement's verification, not papering over.
+- Every evidence file marked `mode: static-fallback` (and any pending live
+  check in STATUS.md's next action): list them for the user, who runs the
+  live checks now or accepts them; accepted ones go under the release
+  notes' Known limitations.
 
 ## 3. Package
 

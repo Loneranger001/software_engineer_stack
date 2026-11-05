@@ -145,6 +145,17 @@ class HandoffTest(unittest.TestCase):
         self.assertEqual(r.returncode, 1)
         self.assertIn("fdd.md: summary omits ID(s) the body defines or traces: FR2", r.stderr)
 
+    def test_draft_fdd_is_skipped_in_a_full_workspace_until_approved(self):
+        self.write("scope-contract.md", CONTRACT.format(version=1))
+        self.write("fdd.md", "# FDD draft, no summary yet\n")
+        self.write("STATUS.md", "# STATUS\n\n- task-id: T-1\n- pipeline: full\n")
+        r = run("check", self.ws)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("an FDD draft", r.stdout)
+        self.assertEqual(run("check", self.ws / "fdd.md").returncode, 1)  # by name: checked
+        self.write("STATUS.md", "# STATUS\n\n- task-id: T-1\n- pipeline: full\n- fdd: approved 2026-11-05 by u\n")
+        self.assertEqual(run("check", self.ws).returncode, 1)
+
     def test_grill_rows_in_tdd_verification_must_reach_summary(self):
         self.write("scope-contract.md", CONTRACT.format(version=1))
         self.write("tdd.md", "<!-- handoff:start -->\n- Contract version: 1\n- Verification: A1 → unit\n"
