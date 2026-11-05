@@ -105,7 +105,9 @@ Also collect **terminology challenges**: any term the brief/TDD uses that has
 two defensible readings ("balance: ledger or available?"). Consult
 `<workspace-root>/work/domain-glossary.md` first — a documented, user-confirmed term with one
 meaning is not a challenge; a term the brief BENDS away from its entry, or an
-entry still `unconfirmed`, IS. Surviving challenges are always
+entry still `unconfirmed`, IS. An entry marked `from-code` was read from the
+code but never confirmed: when this design relies on it, it is a challenge
+too — the user's answer makes it `user-confirmed`. Surviving challenges are always
 `ask-user` — never resolve terminology by assumption.
 
 ## 2. Phase 2 — grill the user

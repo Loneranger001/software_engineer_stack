@@ -37,7 +37,9 @@ verification, same scope discipline.
 ## 1. Impact analysis
 
 1. Read the target interface fully (spec and body / whole script, not just the
-   lines to change).
+   lines to change). If /understand left an interface map that names it
+   (`<workspace-root>/work/*/interface-map.md`), start from it — check its
+   recorded commit for staleness, then deepen rather than re-derive.
 2. Find ALL callers and dependents **in every repo of `<repo-set>`** (from
    STATUS.md, else enumerate with
    `ses list-repos <repos-folder>` and record the

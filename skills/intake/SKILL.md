@@ -29,7 +29,9 @@ the user has explicitly approved. Nothing downstream may begin before that appro
    the rest with `ses list-repos <repos-folder>`:
    they are all in ANALYSIS scope by default, because siblings in a workspace
    usually call each other. Show the user the list and confirm it; a repo they
-   want excluded becomes an exclusion row, not a silent omission.
+   want excluded becomes an `excluded` row of the contract's Repos table,
+   with the reason, and stays out of the `<repo-set>` passed to
+   `ses new-task` — not a silent omission.
 3. Unknowns follow `<root>/core/decision-protocol.md`: check
    checkable facts; proceed only on high-confidence, reversible, in-scope
    calls logged to the workspace ASSUMPTIONS.md; stop and ask for everything

@@ -77,7 +77,7 @@ No questions for you unless it hits a blocker. The agent reads the affected
 objects (package spec AND body, the ksh job, the Python tool), builds the
 caller graph both directions with recorded grep commands, captures data-model
 facts (running queries against dev if `SES_DB_CONN` is set), and writes
-`research-notes.md` where every finding has a `file:line` or query source.
+`research-notes.md` where every finding has a `<repo>:<path>:<line>` or query source.
 Side discoveries land in PARKED.md, not in your lap.
 
 ## 3. /tech-design — the TDD, traceable and fact-checked

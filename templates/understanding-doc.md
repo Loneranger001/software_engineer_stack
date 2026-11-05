@@ -20,7 +20,7 @@
 
 | Aspect | Value | Source |
 |---|---|---|
-| Entry points | {procedure, script, or endpoint} | {file:line} |
+| Entry points | {procedure, script, or endpoint} | {repo:path:line} |
 | Trigger and schedule | {cron, event, or manual} | {…} |
 | Inputs | {files, tables, parameters} | {…} |
 | Outputs | {files, tables, return codes} | {…} |
@@ -33,7 +33,7 @@ flowchart TD
     {diagram of the main path}
 ```
 
-{Narrative walk-through of the flow. Reference each hop: file:line.}
+{Narrative walk-through of the flow. Reference each hop: repo:path:line.}
 
 ## 4. Components
 
@@ -41,7 +41,7 @@ flowchart TD
 
 - Location: {path}
 - Responsibility: {…}
-- Key logic: {described with file:line references}
+- Key logic: {described with repo:path:line references}
 - Error handling: {…}
 
 ## 5. Data
@@ -51,8 +51,15 @@ flowchart TD
 
 ## 6. Dependencies & associated objects — the complete picture
 
-<!-- Both directions, exhaustively. Record the grep/queries used so the map
+<!-- Both directions, exhaustively. Record the searches below so the map
      is reproducible. "None found" requires showing the search that found none. -->
+
+### Searches used
+
+<!-- The rows `ses search` prints, one per repo, kept as printed: a row is
+     reused while that repo's sha is unchanged. -->
+| Repo | Ref@sha | Search command | Result |
+|---|---|---|---|
 
 ### Dependency map
 
@@ -82,7 +89,7 @@ flowchart LR
 
 | Dependency | Type | How used | Source |
 |---|---|---|---|
-| {feed file, table, package, or service} | {…} | {…} | {file:line / query} |
+| {feed file, table, package, or service} | {…} | {…} | {repo:path:line / query} |
 
 ### Downstream (what depends on this interface)
 
@@ -120,3 +127,12 @@ interface is restarted and recovered. Source references required.}
 ## 9. Open questions / unverified areas
 
 {Anything the code alone could not answer.}
+
+## Appendix A. Fact table
+
+<!-- Every statement in this document traces to a row here — the
+     doc-fact-checker's input and the resume point. Sentences above keep
+     sources out of their flow; the rows hold them. -->
+| # | Claim | Source (repo:path:line / query / run output) |
+|---|---|---|
+| 1 | {…} | {…} |
