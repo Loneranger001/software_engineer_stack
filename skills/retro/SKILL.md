@@ -90,16 +90,12 @@ user approves — and apply it where it lasts:
    install is replaced on update and the edit would vanish. Otherwise ask
    the user for the software-engineer-stack checkout and edit `skills/`,
    `com.github.copilot/agents/`, `templates/`, `checklists/`, `core/`,
-   `standards/`, or `scripts/` there. No checkout available → write the approved diff to
-   `<ws>/deliverables/framework-edits.patch` and record the entry as pending
-   (step 3), not applied.
-2. **Commit and check** in the framework checkout: commit the edit, then run
-   `python3 scripts/check_knowledge.py` and the tests
-   (`python3 -m unittest discover -s tests`) — both must pass. A plugin
-   installed from GitHub picks the edit up once it is pushed and the plugin
-   is updated (README → Updating); one installed from the local checkout
-   reads it directly.
-3. **Record** under "Applied changes" in the framework repo's
+   `standards/`, or `scripts/` there. No checkout available → write the
+   approved diff to `<ws>/deliverables/framework-edits.patch`, with its
+   `knowledge/decisions.md` entry (step 2, tagged `[pending-upstream]`)
+   inside the same patch, and tell the user where it is; whoever applies it
+   records it in the same commit. Steps 2-3 then do not apply.
+2. **Record** under "Applied changes" in the checkout's
    `knowledge/decisions.md`, naming every edited file by its repo-root path
    in backticks:
    `- [YYYY-MM-DD] <change> in `skills/<x>/SKILL.md` — motivated by <lesson> (task <id>)`
@@ -108,6 +104,15 @@ user approves — and apply it where it lasts:
    than none, because it tells the next retro the problem is solved. A
    change that is approved but not yet in the framework repo is recorded as
    `- [YYYY-MM-DD] [pending-upstream] <change> — <where the patch is>`.
+3. **Commit and check** in the framework checkout: one commit holds the
+   edit and its decisions.md entry. When the edit should reach installed
+   plugins, bump `version` in `plugin.json` in the same commit — installs
+   only update when it changes (README → Maintaining). Then run
+   `python3 scripts/check_knowledge.py` and the tests
+   (`python3 -m unittest discover -s tests`) — both must pass. A plugin
+   installed from GitHub picks the edit up once it is pushed and the plugin
+   is updated (README → Updating); one installed from the local checkout
+   reads it directly.
 
 ## 4. Curation (when the lessons grow)
 
