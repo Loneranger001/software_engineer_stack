@@ -20,6 +20,9 @@ inspection only.
   (`work-repo` and every repo under `repos-analyzed`), because references
   are `<repo>:<path>:<line>` and may point into a sibling repo; its
   `evidence/` directory holds the run outputs claims cite
+- For an FDD: its mode (forward, as-built, or change) and, in change mode,
+  the pinned refs (`change-base` / `change-head`, or `change-base.<repo>` /
+  `change-head.<repo>` per repo for a multi-repo change)
 - Optional scope: sections to check (e.g. the TDD sections /grill edited).
   Check every claim in them, plus claims elsewhere that rely on what they
   changed; skip the rest and name the scope in the report
@@ -41,7 +44,7 @@ inspection only.
 4. Check business-term usage against the workspace glossary,
    `<workspace-root>/work/domain-glossary.md` (`workspace-root` from the
    task's STATUS.md, not the caller's cwd), when present: a document using a
-   term contrary to its user-confirmed entry, or a business-terms row for a
+   term contrary to its entry (whatever its status), or a business-terms row for a
    glossary term that is not its `Meaning` line verbatim, is a finding (report
    as STALE-REF, naming the entry) — one of the two is wrong, and the author
    must reconcile them. A row for a term the glossary leaves out is a claim
@@ -55,7 +58,8 @@ inspection only.
    the existing behaviour it relies on (forward), using its Appendix A as the
    claim → source table. Change mode: "after" claims are checked at the
    head commit and "before" claims at the base commit (`change-head` /
-   `change-base` in the workspace), and every changed file in
+   `change-base` in the workspace, per repo for a multi-repo change), and
+   every changed file in
    `ses review-diff <repo> <base> <head>` must be reflected somewhere in the
    FDD — a business-visible change the FDD omits is an OMISSION. Every
    existing table, column, and code value it
@@ -69,6 +73,17 @@ inspection only.
    short wording is not itself a finding. A plain sentence that changes a
    meaning, or drops a condition, limit, or failure path a reader relies on,
    is WRONG or OMISSION.
+
+8. For a technical design (tdd.md), the proposed design does not exist in
+   the code yet — §4's new or changed objects, the to-be flow, §5's DDL. Do
+   not report those as missing. Check them for consistency with what does
+   exist: no name collides with an existing object, every existing callee
+   it calls has that signature, parameter types match the real specs.
+   Claims about existing behaviour (§3, the as-is flow, §6's callers) are
+   checked like any other.
+9. A dependency map drawn as a diagram (understanding doc, interface map):
+   every node and edge has a row in its dependency tables, and every row
+   has a node. A mismatch either way is an OMISSION.
 
 ## Report format
 

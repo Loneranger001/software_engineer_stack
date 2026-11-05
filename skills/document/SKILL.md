@@ -65,16 +65,18 @@ skill documents what the code DOES, not what anyone believes it does.
      repo, counts first) and its per-repo rows recorded so the map is
      reproducible. "Nothing depends on this" requires showing the search
      that found nothing. Then
-     draw it as the §6 mermaid diagram (upstream / interface / downstream
-     subgraphs, labelled edges) — the diagram and the tables must agree in
+     draw it as a mermaid diagram (an understanding doc's §6): upstream /
+     interface / downstream subgraphs, labelled edges. The diagram and the
+     tables must agree in
      both directions; the fact-checker treats a node without a table row (or
      vice versa) as a finding.
 2. Where the environment is reachable, RUN things to confirm behaviour
    (queries, `--help`, dry-run modes) and capture outputs to `evidence/`.
    For a howto: execute each step yourself where safe; steps you could not
    execute are marked `⚠ UNVERIFIED` in the final doc.
-3. Build a fact table as you go: claim → source (`file:line` / run output).
-   This becomes the doc's verification section.
+3. Build a fact table as you go: claim → source (`<repo>:<path>:<line>` /
+   run output). It becomes the doc's verification section — a howto's or KB
+   article's Verification section, an understanding doc's Appendix A.
 4. `ses status set <ws> analyze=done`.
 
 ## 2. Draft

@@ -16,7 +16,7 @@ argument-hint: "<interface/integration name, entry point, or question about it>"
 The deliverable is understanding, not a document: a layered, source-referenced
 explanation the user can interrogate until their mental model matches the code.
 Everything learned lands in an **interface map** (`<ws>/interface-map.md`)
-that later stages — /document, /change-request, /intake — reuse instead of
+that later stages — /document, /change-request, /research, /func-design — reuse instead of
 re-investigating.
 
 The defining rule is shared with /document: explain what the code DOES, not
@@ -81,13 +81,13 @@ describes behaviour.
 
 1. Follow the main path from trigger to final effect: scheduler/caller →
    entry point → every intermediate hop → outputs/side effects. Record each
-   hop with `file:line`.
+   hop with `<repo>:<path>:<line>`.
 2. Where the environment is reachable (`$SES_DB_CONN`, `$SES_KSH_HOST`,
    `$SES_PY`), RUN things to confirm behaviour — queries, `--help`, dry-run
    modes, log inspection — and capture outputs to `evidence/`. Never execute
    anything with side effects on shared data.
 3. Build the fact table in interface-map.md as you go: claim → source
-   (`file:line` / query / run output). It is both the backbone of every later
+   (`<repo>:<path>:<line>` / query / run output). It is both the backbone of every later
    explanation and the resume point if the session dies.
 4. Error paths are part of the flow, not an appendix: how failure surfaces
    (return codes, exceptions, alert/log tables), what state is left behind,

@@ -64,8 +64,9 @@ category; a category that truly cannot apply is marked `n/a` with a reason.
   failure, concurrent execution, partial success/failure ordering
 - **Interface**: callers sending the old format, missing/extra fields,
   consumers NOT in the research call graph (search with broader patterns via
-  `ses search`; reuse research's recorded rows for repos whose sha is
-  unchanged), contract version skew
+  `ses search`; a research row is reused only for the same pattern, in a
+  repo whose sha is unchanged — a broader pattern is a new search),
+  contract version skew
 - **Temporal**: date boundaries, month/year-end, DST/timezone, late-arriving
   or backdated data
 - **Environment**: DB unreachable mid-run, missing config/env var, disk
@@ -105,7 +106,9 @@ Also collect **terminology challenges**: any term the brief/TDD uses that has
 two defensible readings ("balance: ledger or available?"). Consult
 `<workspace-root>/work/domain-glossary.md` first — a documented, user-confirmed term with one
 meaning is not a challenge; a term the brief BENDS away from its entry, or an
-entry still `unconfirmed`, IS. Surviving challenges are always
+entry still `unconfirmed`, IS. An entry marked `from-code` was read from the
+code but never confirmed: when this design relies on it, it is a challenge
+too — the user's answer makes it `user-confirmed`. Surviving challenges are always
 `ask-user` — never resolve terminology by assumption.
 
 ## 2. Phase 2 — grill the user
@@ -176,10 +179,10 @@ categories, verdicts and both phases are unchanged; these parts differ:
 
 - **Inputs** (§0.4): analysis.md and ASSUMPTIONS.md; there is no contract,
   research or FDD summary to read.
-- **Traceability**: the mini contract has no IDs. A `gap-fixed` fix traces
-  to one of its **Change** bullets instead of an S#/A#, and is edited into
-  analysis.md. A testable fix or answer adds an **Acceptance criteria**
-  bullet tagged `(grill #<n>)` instead of a TDD §7 `G<n>` row. An
+- **Traceability**: the mini contract's **Change** bullets carry no IDs, so
+  a `gap-fixed` fix traces to one of them instead of an S#, and is edited
+  into analysis.md. A testable fix or answer adds the next acceptance criterion
+  A# tagged `(grill #<n>)` instead of a TDD §7 `G<n>` row. An
   `out-of-scope` verdict cites a **Not changing** bullet. An answer that
   pushes the change past the escalation rule stops the grill: tell the user.
 - **Deferrals**: the user's words go verbatim into the grill log and

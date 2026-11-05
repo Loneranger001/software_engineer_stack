@@ -7,14 +7,14 @@
 
 <!-- Working map built by /understand. Lighter than an understanding-doc: it
      records what was verified and where, so explanations, Q&A, and later
-     stages (/document, /change-request, /intake) build on it instead of
+     stages (/document, /change-request, /research, /func-design) build on it instead of
      re-investigating. Same emphasis-by-type rules as understanding-doc.md. -->
 
 ## 1. Identity
 
 | Aspect | Value | Source |
 |---|---|---|
-| Entry points | {proc / script / endpoint} | {file:line} |
+| Entry points | {proc / script / endpoint} | {repo:path:line} |
 | Trigger / schedule | {cron, event, manual, caller} | {…} |
 | Inputs | {files, tables, parameters} | {…} |
 | Outputs / side effects | {files, tables, return codes, messages} | {…} |
@@ -27,7 +27,7 @@ flowchart TD
     {main path, trigger → final effect}
 ```
 
-{Narrative of the main path. Every hop: file:line. Error paths included —
+{Narrative of the main path. Every hop: repo:path:line. Error paths included —
 how failure surfaces, what state is left, how it recovers.}
 
 ## 3. Dependency map
@@ -68,14 +68,16 @@ flowchart LR
 
 ### Searches used
 
-| Looking for | Command / query | Result summary |
-|---|---|---|
+<!-- The rows `ses search` prints, one per repo, kept as printed: a row is
+     reused while that repo's sha is unchanged. -->
+| Repo | Ref@sha | Search command | Result |
+|---|---|---|---|
 
 ## 4. Fact table
 
 <!-- The backbone of every explanation given, and the resume point. -->
 
-| # | Claim | Source (file:line / query / run output) | Status |
+| # | Claim | Source (repo:path:line / query / run output) | Status |
 |---|---|---|---|
 | 1 | {…} | {…} | verified \| INFERRED |
 

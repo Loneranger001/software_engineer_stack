@@ -182,8 +182,9 @@ common forms:
      component, read the code at both ends (`git -C <repo> show <sha>:<path>`)
      — a diff hunk alone hides the surrounding flow that gives it meaning.
      FR# are what the change makes the system do, each citing the head
-     commit; attached, also the S# it meets. A change with no S# or a planned
-     S# with no change is reported to the user as a Q#.
+     commit; attached, also the S# it meets (a change request: the mini
+     contract's Change bullet in analysis.md, or its A#). A change with no
+     S# or a planned S# with no change is reported to the user as a Q#.
 2. Existing behaviour, in every mode, comes from the code, not the brief or
    folklore: entry points, callers and schedules (§3 actors), data read and
    changed (§7), outputs and their consumers (§8), error paths (§9). Search
@@ -258,16 +259,20 @@ common forms:
    - Attached: `ses status field <ws> fdd "approved <date> by <who>"`.
      Forward mode while `tech-design` is pending:
      `ses status next <ws> "Run /tech-design — the TDD realises the approved FDD."`
+     Forward mode when `tech-design` is already approved: the TDD must take
+     the FDD in before /impl-plan — tell the user, and
+     `ses status next <ws> "Amend the TDD for the approved FDD (FR# in §2, TS# in §7), re-fact-check and re-approve it."`
    - Standalone (gate first: `ses status require <ws> fact-check=done`):
      `ses status set <ws> approval=approved --next "Deliver the FDD (/func-design §4)."`
 
 ## 4. Deliver
 
 1. Render the view for the recorded audience:
-   `ses fdd-view <ws>/fdd.md --audience <fdd-audience>`
-   → `<ws>/fdd.<audience>.md`. `business` drops the handoff summary, the
-   technical regions, and Appendix A; `technical` keeps them. Both drop
-   template guidance. Never hand stakeholders `fdd.md` itself.
+   `ses fdd-view <ws>/fdd.md --audience <fdd-audience>` (from
+   `ses status get <ws> fdd-audience`) → `<ws>/fdd.<audience>.md`. Both
+   audiences drop template guidance and the handoff summary; `business` also
+   drops the technical regions and Appendix A, which `technical` keeps.
+   Never hand stakeholders `fdd.md` itself.
 2. Ask which output formats are needed unless `ses status get <ws> formats`
    answers it, and record them (`ses status field <ws> formats "<docx,pdf,...>"`).
    Convert the view (not fdd.md) via
@@ -282,8 +287,12 @@ common forms:
 ## Changes after approval
 
 Never edit an approved FDD silently — a change needs re-approval and a note
-in the header. Amendments follow **Writing** like the first draft, and
-`ses prose-lint` passes again before re-approval. Attached forward mode: when /tech-design, /grill, or
+in the header. An amendment re-runs the §3 gates on what it changed: the
+fact-check scoped to the changed sections, `ses fdd-lint`, `ses prose-lint`
+(it follows **Writing** like the first draft), and `ses handoff check` with
+the summary updated in the same edit. Re-approval is recorded in the header
+and in STATUS: `ses status field <ws> fdd "approved <date> by <who> (amended)"`
+attached, `ses status set <ws> approval=approved --note "amended"` standalone. Attached forward mode: when /tech-design, /grill, or
 /implement finds the FDD wrong or incomplete, the FDD is amended and
 re-approved first; the TDD never quietly departs from it. Change mode: if
 the code changes after approval, re-pin `change-head` and re-run from §1.

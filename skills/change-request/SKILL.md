@@ -37,7 +37,9 @@ verification, same scope discipline.
 ## 1. Impact analysis
 
 1. Read the target interface fully (spec and body / whole script, not just the
-   lines to change).
+   lines to change). If /understand left an interface map that names it
+   (`<workspace-root>/work/*/interface-map.md`), start from it — check its
+   recorded commit for staleness, then deepen rather than re-derive.
 2. Find ALL callers and dependents **in every repo of `<repo-set>`** (from
    STATUS.md, else enumerate with
    `ses list-repos <repos-folder>` and record the
@@ -81,8 +83,9 @@ Append to `analysis.md` and get explicit user approval before touching code
 
 - **Change**: exactly what will change (objects, behaviour before → after)
 - **Not changing**: adjacent things deliberately left alone
-- **Acceptance criteria**: how each is verified (≥1 per change, plus a
-  regression check per impacted caller)
+- **Acceptance criteria** A1…An: how each is verified (≥1 per change, plus
+  a regression check per impacted caller) — the IDs the evidence, release
+  note and scope audit key on
 - **Rollback**: the exact revert/redeploy step
 
 On approval: `ses status set <ws> mini-contract=approved --note "by <who>"`.
@@ -108,7 +111,8 @@ On approval: `ses status set <ws> mini-contract=approved --note "by <who>"`.
    carries into the change, or an existing name that breaks a rule, stays
    as it is: one PARKED.md line.
    The result goes into the evidence's Rules check section (§4).
-5. Record the branch (`ses status field <ws> branch.<repo-name> <branch>`) and
+5. Record the branch and its base (`ses status field <ws> branch.<repo-name> <branch>`,
+   `ses status field <ws> base.<repo-name> <mainline>`) and
    `ses status set <ws> change=done`. Nothing is committed yet — commits
    follow verification (§4), so each carries the hashes of the evidence that
    proves it.

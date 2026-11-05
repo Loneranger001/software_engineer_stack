@@ -72,7 +72,7 @@ Watch for: STATUS.md gates advancing, open questions surfacing at intake (the sa
 ```sh
 python3 -m unittest discover -s tests                # scripts, ses, skill wiring, examples
 python3 scripts/check_knowledge.py                   # decisions log + lesson format
-bin/ses new-task T1 /tmp/x full                      # workspace scaffold + STATUS.md
+mkdir -p /tmp/x && bin/ses new-task T1 /tmp/x full  # workspace scaffold + STATUS.md
 bin/ses md2docx examples/sample-brief.md             # needs pandoc; prints install hint otherwise
 ```
 

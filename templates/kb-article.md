@@ -16,7 +16,7 @@ would search for it.}
 ## Details
 
 {Full explanation. Every statement about system behaviour must be traceable —
-cite `file:line`, object names, or a captured run in the Verification section.}
+cite `<repo>:<path>:<line>`, object names, or a captured run in the Verification section.}
 
 ### How it works
 
@@ -35,7 +35,7 @@ cite `file:line`, object names, or a captured run in the Verification section.}
 
 | Claim | Source |
 |---|---|
-| {…} | {file:line / run output} |
+| {…} | {repo:path:line / run output} |
 
 ## Related
 

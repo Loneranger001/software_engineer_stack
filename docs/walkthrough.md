@@ -42,7 +42,7 @@ you>  /intake ../sample-brief.md DEMO-1
 ```
 
 The agent creates `work/DEMO-1/` (STATUS.md, ASSUMPTIONS.md, PARKED.md,
-evidence/), stores the brief, reads it fully, and classifies every statement:
+evidence/, deliverables/), stores the brief, reads it fully, and classifies every statement:
 in-scope item, exclusion, constraint, or open question. Business terms the
 brief leans on ("balance", "extract") are looked up in `work/domain-glossary.md`
 first — known terms link their entry; unknown ones become research targets. Then it asks you the
@@ -77,7 +77,7 @@ No questions for you unless it hits a blocker. The agent reads the affected
 objects (package spec AND body, the ksh job, the Python tool), builds the
 caller graph both directions with recorded grep commands, captures data-model
 facts (running queries against dev if `SES_DB_CONN` is set), and writes
-`research-notes.md` where every finding has a `file:line` or query source.
+`research-notes.md` where every finding has a `<repo>:<path>:<line>` or query source.
 Side discoveries land in PARKED.md, not in your lap.
 
 ## 3. /tech-design — the TDD, traceable and fact-checked
@@ -171,9 +171,10 @@ passed** — the task is delivered.
 you>  /retro
 ```
 
-It asks you 2–3 pointed questions, distills actionable lessons into
-`knowledge/lessons.md` (which every future run loads), and proposes concrete
-template/checklist edits for your approval.
+It asks you 2–3 pointed questions, distills actionable lessons into your
+lessons file (`~/.ses/lessons.md`, through `ses lessons --add`; every future
+run loads it), and proposes concrete template/checklist edits for your
+approval.
 
 ---
 

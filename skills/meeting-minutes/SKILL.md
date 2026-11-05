@@ -74,7 +74,7 @@ Replace an unsupported table or list with `None identified.` Do not leave templa
 
 Unless the user specifies another destination:
 
-1. Save under `docs/temp/` relative to the relevant workspace or repository root.
+1. Save under `docs/temp/` relative to the repository root, or the current folder when it is not a repository. Inside a repository that folder is not git-ignored: never stage or commit the file, and tell the user it is untracked.
 2. Build a lowercase, hyphen-separated slug from the meeting subject.
 3. Remove unsafe filename characters and collapse repeated hyphens.
 4. Use `<meeting-subject>-<YYYY-MM-DD>.md`, where the date is the current date on which the minutes are prepared.

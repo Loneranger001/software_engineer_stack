@@ -19,7 +19,7 @@
 - Repo rules binding this change: {repo}: {file — the rule}
 - Repo-specific terms: {Upload: repo1 → TABLE1, repo2 → TABLE2; the brief means repo1's} | none
 - Risks: {one line each}
-- Blocking questions: {none | Q# one line}
+- Open questions: {Q1 blocking — one line; Q2 answered — one line} | none
 - Evidence: evidence/research-*.txt
 <!-- handoff:end -->
 

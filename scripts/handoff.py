@@ -14,7 +14,10 @@ Later stages read the summary instead of the whole document and open full
 sections only where they need detail. That only works if the summary cannot
 silently drift from the body, so `check` enforces it. impl-doc.md has no
 summary: it is terse and agent-only, and /implement reads it whole, so
-`check` skips it.
+`check` skips it. In a full or change-request workspace the FDD is optional:
+a workspace check covers fdd.md only once STATUS.md records it approved (the
+`fdd` field), so an abandoned draft never blocks a later gate. Name the file
+to check a draft.
 
 Usage:
     handoff.py show  <doc.md>        print the summary block only
@@ -63,6 +66,20 @@ def contract_version(doc: Path) -> str | None:
     return m.group(1) if m else None
 
 
+def fdd_in_play(ws: Path) -> bool:
+    """Whether a workspace check covers ws/fdd.md: always in a standalone
+    func-design workspace, else only once the STATUS `fdd` field says approved."""
+    status = ws / "STATUS.md"
+    if not status.is_file():
+        return True
+    text = status.read_text()
+    pipeline = re.search(r"^- pipeline:\s*(\S+)", text, re.M)
+    if not pipeline or pipeline.group(1) == "func-design":
+        return True
+    fdd = re.search(r"^- fdd:\s*(.*)$", text, re.M)
+    return bool(fdd and fdd.group(1).strip().startswith("approved"))
+
+
 def problems(doc: Path) -> list[str]:
     text = doc.read_text()
     summary, body = split(text)
@@ -106,7 +123,13 @@ def main(argv: list[str]) -> int:
     docs: list[Path] = []
     for t in targets:
         if t.is_dir():
-            docs += [t / d for d in DOCS if (t / d).is_file()]
+            for d in DOCS:
+                if not (t / d).is_file():
+                    continue
+                if d == "fdd.md" and not fdd_in_play(t):
+                    print(f"skipped {t / d}: an FDD draft (not approved in STATUS.md) — name it to check it")
+                    continue
+                docs.append(t / d)
         elif t.is_file() and t.name in NO_SUMMARY:
             print(f"skipped {t}: it has no handoff summary by design — agents read it whole")
         elif t.is_file():

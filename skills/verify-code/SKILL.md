@@ -80,7 +80,7 @@ first.
    queries/anonymous blocks.
 
 **Static fallback**: careful read-through against the repo rules
-(`ses repo-rules`) + `standards/plsql.md`: balanced blocks, exception handling present, no implicit
+(`ses repo-rules`) + `<root>/standards/plsql.md`: balanced blocks, exception handling present, no implicit
 commits in unexpected places, object/parameter naming. State clearly this did
 not compile anything.
 

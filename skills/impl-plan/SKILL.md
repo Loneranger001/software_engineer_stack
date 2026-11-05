@@ -72,7 +72,8 @@ explanation (**Style** below).
 
 ## 2. Test plan
 
-- Every TDD §7 row — acceptance criterion A# and grill scenario G# — maps
+- Every TDD §7 row — acceptance criterion A#, FDD test scenario TS#, and
+  grill scenario G# — maps
   to at least one T#. A row without a test is a planning failure.
 - The repo's own test tooling (utPLSQL, pytest, script harnesses — the rules
   files and `tooling:` lines from `ses repo-rules`); new tooling only with
@@ -93,7 +94,7 @@ explanation (**Style** below).
    `ses handoff check <ws>` — the documents the plan rests on must still be
    current.
 2. Present it in a few lines: step count per repo, branches, deploy order,
-   test coverage (every A#/G# has a T#), plus open ASSUMPTIONS.md entries for
+   test coverage (every A#/TS#/G# has a T#), plus open ASSUMPTIONS.md entries for
    ratification (decision-protocol §4). Point to the file; don't paste it.
    Iterate until approved; record approval in the header.
 3. Record:

@@ -70,10 +70,14 @@ committed before the next begins.
    probe the dev environment once (`$SES_DB_CONN`, `$SES_KSH_HOST`, `$SES_PY`
    — whichever the steps need): tell the user which steps will run in
    static-fallback mode before step 1, not after it.
-2. In each, create the branch named in the impl-doc from that repo's mainline.
-3. Record the branch per repo:
-   `ses status field <ws> branch.<repo-name> <branch>`, then
-   `ses status set <ws> implement=in-progress`.
+2. In each, create the branch named in the impl-doc from that repo's
+   mainline (the branch it releases from; ask when it is not obvious).
+3. Record the branch and its base per repo:
+   `ses status field <ws> branch.<repo-name> <branch>` and
+   `ses status field <ws> base.<repo-name> <mainline>`, then
+   `ses status set <ws> implement=in-progress`. Every later
+   `<mainline>` — the scope guard, the review gate, /deliver, /retro — is
+   `ses status get <ws> base.<repo-name>`, never a guess.
 4. **Commit-message preflight**, before the first checkpoint commit in each
    repo: inspect its `commit-msg` hook (`git -C <repo> config core.hooksPath`,
    else `.git/hooks/commit-msg`; also a `commit-msg` stage in
@@ -139,7 +143,8 @@ For each impl-doc step N, in order:
 
 Before each commit, after staging the step's files by name, check what the
 commit will add (`git -C <repo> diff --cached --name-only`) and what the
-branch already holds (`ses review-diff <repo> <mainline> HEAD` — committed
+branch already holds (`ses review-diff <repo> <mainline> HEAD`, `<mainline>`
+from `base.<repo>` — committed
 work only, so it cannot see the step being committed) against the scope
 contract's handoff summary (S# items, repos allowed to change): every file
 must map to an in-scope item via the impl-doc, and its repo must be one the
@@ -154,8 +159,17 @@ After the last step, run the full impl-doc test plan (unit, integration,
 regression) through `ses capture` with log names starting `tests-<date>-`
 — never a step's log name, whose hash is already committed — summary to
 `evidence/tests-<date>.txt`.
-Every acceptance criterion must reach PASS; failures loop back to the step
-loop.
+Every TDD §7 row (A#, TS#, G#) must reach PASS through its T#.
+
+- A failure loops back: fix it in the step whose files it touches,
+  re-verify (log names starting `step<N>-fix-`), and commit it as
+  `<task-id> step <N>: fix <what>` with its own evidence and trailer. Then
+  re-run the affected T#s under a new `tests-<date>-` name.
+- Once all pass, record the test-plan evidence like a step: an empty commit
+  on `<work-repo>`'s task branch (else the first changed repo's),
+  `git commit --allow-empty -m "<task-id> tests: test plan <date>" -m
+  "<trailer>"`, with the trailer from `ses checkpoint trailer <ws>
+  evidence/tests-<date>.txt <its raw logs>`.
 
 ## 4. Review gate
 
@@ -163,13 +177,17 @@ loop.
    on the branch of every changed repo (it reads the diff file by file via
    `ses review-diff`; one pass per repo, each
    judged against that repo's own rules files) — delegated per `<root>/core/reviewers.md`.
-   Resolve findings
+   Resolve findings — each fix committed as `<task-id> step <N>: fix <what>`
+   for the step whose files it touches, re-verified with its own evidence
+   and trailer, as in §3 —
    or record a conscious waiver (with the user for anything non-trivial).
    A standards finding (a repo rule in a new file, the file's convention in
    an existing one) is fixed, or waived by the user only; the reviewer's
    PRE-EXISTING list goes to PARKED.md.
 2. Self-check with `<root>/checklists/implement.md`.
-3. Record: `ses status set <ws> implement=done --next "Run /deliver."`.
+3. Record: `ses status set <ws> implement=done --next "Run /deliver."`. If
+   any evidence is `mode: static-fallback`, keep the pending live checks in
+   it: `--next "Run /deliver. Pending live checks: <step or T#, each>"`.
 
 ## Fault tolerance
 

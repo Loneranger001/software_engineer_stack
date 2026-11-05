@@ -50,8 +50,10 @@ it only when a case here is ambiguous.
    repo. Fails → child dirs with `.git`: one → use it and say so; several →
    ASK (decision-protocol §3); none → ask for the path.
 3. Repo set: `ses list-repos <repos-folder>`;
-   show the list and confirm. An exclusion is the user's call, recorded in
-   the scope contract's out-of-scope table with the reason (scope-affecting).
+   show the list and confirm. An exclusion is the user's call, recorded as
+   an `excluded` row of the scope contract's Repos table with the reason
+   (scope-affecting), and the repo stays out of the `<repo-set>` passed to
+   `ses new-task`.
 4. Record via
    `ses new-task <task-id> auto <pipeline> <work-repo> <repo-set>`
    (`auto` = the workspace-root rule above; paths land absolutised).

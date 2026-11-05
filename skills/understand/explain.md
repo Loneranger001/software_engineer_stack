@@ -17,7 +17,7 @@ depth they need:
 4. **Dependency picture** — what feeds it, what would break without it.
 5. **Failure & recovery** — how it fails, how you know, how it restarts.
 
-Tie statements visibly to sources (`file:line` inline) — the references are
+Tie statements visibly to sources (`<repo>:<path>:<line>` inline) — the references are
 what lets the user trust the explanation and jump into the code themselves.
 Label `INFERRED` items and open questions honestly: an admitted gap keeps
 trust; a confident guess destroys it the first time the user checks.

@@ -27,7 +27,7 @@
 - Traceability: S1 → §4.1, §5
 - Data changes: {object — DDL one-liner, backfill yes/no} (§5)
 - Interface impact: {repo}:{caller} — {impact, one line} (§6)
-- Verification: A1 → {unit|integration|regression}; G2 → {…} (§7)
+- Verification: A1 → {unit|integration|regression}; TS1 → {…}; G2 → {…} (§7)
 - Operational: {deploy/runtime one-liner} (§8)
 - Top risks: {one line each} (§11)
 <!-- handoff:end -->
@@ -59,7 +59,8 @@ Business terms used in this document:
 ## 2. Requirements traceability
 
 <!-- Every in-scope item from the scope contract must map to at least one design section.
-     With an approved fdd.md, each of its FR# items gets a row too. -->
+     With an approved fdd.md, each of its FR# items gets a row too, even
+     when the FDD is approved after this TDD (the TDD is then re-approved). -->
 | Scope item | Design section(s) |
 |---|---|
 | S1 | §4.1, §5 |
@@ -127,12 +128,13 @@ callers keep working.}
 
 ## 7. Verification approach
 
-<!-- Every acceptance criterion from the scope contract appears here. A
-     criterion with no viable test blocks TDD approval — fix the design or
-     renegotiate the criterion. /grill adds G# rows (grill-log scenario #) for
-     the edge cases it closes; they get tests like any A#. The detailed test
-     plan lands in impl-doc §3. -->
-| Criterion (A#, or G# from /grill) | Test type (unit / integration / regression) | Sketch |
+<!-- Every acceptance criterion from the scope contract appears here, and
+     with an approved fdd.md each of its test scenarios (TS#) gets its own
+     row. A criterion with no viable test blocks TDD approval — fix the
+     design or renegotiate the criterion. /grill adds G# rows (grill-log
+     scenario #) for the edge cases it closes; they get tests like any A#.
+     The detailed test plan lands in impl-doc §3. -->
+| Criterion (A#, TS# from the FDD, or G# from /grill) | Test type (unit / integration / regression) | Sketch |
 |---|---|---|
 | A1 | {…} | {…} |
 

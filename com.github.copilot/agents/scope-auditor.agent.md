@@ -37,18 +37,21 @@ only (git diff/log/show, ls) — never commands that modify anything.
    step table (full pipeline) as the claimed mapping, then verify the claim
    against the actual hunks — don't take the doc's word.
 3. **Scope → diff mapping**: for every in-scope item, confirm work exists that
-   plausibly satisfies it, and every acceptance criterion has an evidence file
-   with PASS.
+   plausibly satisfies it, and every criterion has an evidence file with
+   PASS — the contract's A#, plus, in the full pipeline, every TDD §7 row
+   (TS# from an approved FDD, G# from /grill).
 4. Check exclusions: nothing in the diff implements an N# item.
    **Repo scope**: every repo carrying commits must be listed in the contract
    as a repo this task changes. Commits in a repo that was analysis-only are a
    finding — analysis scope is not permission to write.
 5. Check PARKED.md: parked items must NOT appear in the diff.
-6. Check ASSUMPTIONS.md: every entry must be `ratified` or `corrected` — an
-   `open` entry at delivery is a finding; also spot-check that ratified
+6. Check ASSUMPTIONS.md: every entry must be `ratified`, `corrected`, or
+   `resolved-by-user` — an `open` entry at delivery is a finding; also spot-check that ratified
    assumptions promoted into the contract/TDD actually appear there.
 7. Check commit messages reference the task id and, in the full pipeline,
-   that `<task-id> step <N>` commits match the impl-doc's steps.
+   that `<task-id> step <N>` commits match the impl-doc's steps (a
+   `<task-id> step <N>: fix …` commit belongs to step N; one
+   `<task-id> tests:` commit records the test-plan evidence).
 8. Run `ses checkpoint verify <workspace>`.
    Recorded evidence that is MISSING or ALTERED is a finding: the evidence a
    PASS rests on is no longer the evidence that was captured. A workspace
