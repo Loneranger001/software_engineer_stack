@@ -36,8 +36,16 @@ verification, same scope discipline.
 
 ## 1. Impact analysis
 
-1. Read the target interface fully (spec and body / whole script, not just the
-   lines to change). If /understand left an interface map that names it
+Analyse the mainline, never a checkout: a repo's checkout may be on another
+task's unmerged branch. First `git -C <repo> fetch origin <mainline>` in every
+repo of `<repo-set>` (`<mainline>`: the branch the repo releases from —
+`git -C <repo> symbolic-ref --short refs/remotes/origin/HEAD` names it when
+set, else ask; a failed fetch is recorded as "searched a possibly-stale
+local ref", never skipped silently).
+
+1. Read the target interface fully at `origin/<mainline>` (spec and body /
+   whole script, not just the lines to change —
+   `git -C <repo> show origin/<mainline>:<path>`). If /understand left an interface map that names it
    (`<workspace-root>/work/*/interface-map.md`), start from it — check its
    recorded commit for staleness, then deepen rather than re-derive.
 2. Find ALL callers and dependents **in every repo of `<repo-set>`** (from
@@ -45,8 +53,8 @@ verification, same scope discipline.
    `ses list-repos <repos-folder>` and record the
    list): search object/proc/script names, imports, scheduler references,
    config and deployment manifests with
-   `ses search --ws <ws> -- <patterns>` — counts first in every
-   repo, then open only the hits that matter. Paste its per-repo rows
+   `ses search --ws <ws> --ref origin/<mainline> -- <patterns>` — counts
+   first in every repo, then open only the hits that matter. Paste its per-repo rows
    (command, sha, result) into analysis.md, including repos that returned
    nothing — "no other repo uses this" is
    a claim, and on the fast path it is the claim most likely to be wrong,
@@ -93,9 +101,15 @@ On approval: `ses status set <ws> mini-contract=approved --note "by <who>"`.
 ## 3. Change
 
 0. Gate: `ses status require <ws> mini-contract=approved` — non-zero exit = stop.
-1. Branch per the repo rules (else the repo's existing branch naming).
-   Only the repos the mini contract names are touched — a caller found in
-   another repo is reported, not quietly fixed.
+1. Check the branch out in its own worktree:
+   `ses worktree add <ws> <repo-name> <branch> --base <mainline>`, the branch
+   named per the repo rules (else the repo's existing branch naming). It is
+   cut from `origin/<mainline>`, the repo's own checkout is left as it is,
+   and it records `branch.<repo>`, `base.<repo>` and `worktree.<repo>`. From
+   here `<wt>` is `ses status get <ws> worktree.<repo-name>`: every edit,
+   diff, test and commit happens there. Only the repo the mini contract
+   names is touched — a caller found in another repo is reported, not
+   quietly fixed. A second repo exits 3: that is the escalation rule (§1).
 2. Surgical diff only. Anything else you itch to fix → PARKED.md.
 3. Follow the rules of the repo the file lives in (`ses repo-rules <repo>
    <file>` — not necessarily `<work-repo>`'s), split as
@@ -103,7 +117,7 @@ On approval: `ses status set <ws> mini-contract=approved --note "by <who>"`.
    strictly; any change to an existing file — a new procedure or function
    included — follows that file's own conventions, the rules filling what
    it doesn't show, then the standards defaults.
-4. **Rules check**: read the diff (`git -C <repo> diff HEAD -- <files>`; a
+4. **Rules check**: read the diff (`git -C <wt> diff HEAD -- <files>`; a
    new file whole) and check every new or renamed identifier and every
    added or changed line against the standard that governs it — the rules
    files for a new file, the file's own conventions for an existing one.
@@ -111,15 +125,14 @@ On approval: `ses status set <ws> mini-contract=approved --note "by <who>"`.
    carries into the change, or an existing name that breaks a rule, stays
    as it is: one PARKED.md line.
    The result goes into the evidence's Rules check section (§4).
-5. Record the branch and its base (`ses status field <ws> branch.<repo-name> <branch>`,
-   `ses status field <ws> base.<repo-name> <mainline>`) and
-   `ses status set <ws> change=done`. Nothing is committed yet — commits
+5. `ses status set <ws> change=done` (`ses worktree add` already recorded
+   the branch and its base). Nothing is committed yet — commits
    follow verification (§4), so each carries the hashes of the evidence that
    proves it.
 
 ## 4. Verify
 
-1. Run /verify-code recipes on every changed file (live via `$SES_DB_CONN`/
+1. Run /verify-code recipes on every changed file, in `<wt>` (live via `$SES_DB_CONN`/
    `$SES_KSH_HOST`/`$SES_PY` where reachable; static fallback recorded).
 2. Run the regression checks for the impacted callers from §1 — the change
    isn't verified until its callers still work.
@@ -127,16 +140,21 @@ On approval: `ses status set <ws> mini-contract=approved --note "by <who>"`.
    `<root>/templates/test-evidence.md`, running each command
    through `ses capture` with log names starting `cr-` (raw logs land in
    `evidence/raw/`; only its summary goes into the evidence file; a rerun
-   after a commit gets a new name).
+   after a commit gets a new name). The evidence's Result table has one row
+   per acceptance criterion it proves (A1…An): PASS, FAIL, PARTIAL or
+   NOT-RUN, and the mode it ran in.
 4. All PASS → commit, one commit per logical unit referencing the task id:
    - first inspect the repo's `commit-msg` hook and follow its exact format
      (as /implement §1 step 4 — the hook, not recent history, decides);
-   - stage the changed files by name (`git -C <repo> add <files>`, never
+   - stage the changed files by name (`git -C <wt> add <files>`, never
      `git add -A` / `git add .` — `work/` may sit inside the repo);
    - end each message with its evidence hash lines from
      `ses checkpoint trailer <ws> <evidence files>` (it refuses while any
      workspace file is staged) (`git commit -m "<subject>" -m "<trailer lines>"`).
-   Then `ses status set <ws> verify=done`.
+   Then `ses coverage <ws>`: every A# needs a recorded PASS. Exit 3 → run
+   what it lists, or the user waives a criterion they accept unverified
+   (`ses status field <ws> waiver.<A#> "by <who> <date>: <reason>"`; the
+   release note names it). Then `ses status set <ws> verify=done`.
 
 ## 5. Deliver
 
@@ -146,20 +164,26 @@ A change request delivers itself — /deliver is the full pipeline's stage.
    multi-file changes, also run the audit procedure in
    `<root>/com.github.copilot/agents/scope-auditor.agent.md` against the mini contract —
    delegated per `<root>/core/reviewers.md` — passing `analysis.md` as the contract.
-2. Always, the audit or not: `ses checkpoint verify <ws>` — non-zero exit =
-   stop. It proves the committed evidence hashes still match and that no
-   workspace file is on the branch about to be pushed.
+2. Always, the audit or not: `ses checkpoint verify <ws> --delivery` —
+   non-zero exit = stop. It proves the committed evidence hashes still
+   match, that the branch holds this task's commits and each carries its
+   evidence lines, that no other repo holds a commit of this task, and that
+   no workspace file is on the branch about to be pushed.
 3. Short release note `<ws>/release-notes.md` (template: release-notes.md,
    trimmed): change, deploy step, rollback step, evidence table — written
    to `<root>/standards/writing.md`; `ses prose-lint <ws>/release-notes.md`
    must pass.
-4. Push the branch; report to the user; `ses status set <ws> deliver=done`; offer
-   /retro (a one-lesson retro is fine for CRs).
+4. Push the branch (`git -C <wt> push -u origin <branch>`); then
+   `ses worktree remove <ws> <repo-name>` (the branch stays; a review fix
+   later re-adds the worktree). Report to the user;
+   `ses status set <ws> deliver=done`; offer /retro (a one-lesson retro is
+   fine for CRs).
 
 ## Fault tolerance
 
 Same recovery model as /implement: STATUS.md + branch commits + evidence/ let
-any session resume mid-CR without redoing the analysis. On resume run
+any session resume mid-CR without redoing the analysis; a missing worktree is
+recreated from its branch (`ses worktree add <ws> <repo-name> <branch>`). On resume run
 `ses checkpoint resume <ws>`; exit 3
 means uncommitted work — show it and ask keep-or-discard, never fold it in
 silently. Each commit ends with the evidence hash lines from

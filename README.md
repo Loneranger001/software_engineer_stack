@@ -93,6 +93,7 @@ work/PROJ-123/                 (never committed — see "Keeping work/ out of gi
 ├── impl-doc.md                # /impl-plan
 ├── rules-checklist.md         # /implement — the repo rules as a per-task worksheet, rebuilt each session
 ├── evidence/                  # captured run outputs (summaries; raw logs in evidence/raw/)
+├── wt/<repo>/                 # /implement, /change-request — the task branch in its own git worktree (ses worktree)
 ├── release-notes.md           # /deliver (a change request: /change-request §5)
 ├── deliverables/              # converted docx / pdf / Confluence outputs
 ├── ASSUMPTIONS.md             # proceed-and-log decisions awaiting gate ratification
@@ -135,7 +136,11 @@ ses status validate work/PROJ-123                            # structure + skipp
 
 States are `pending | in-progress | done | approved | waived` (a waiver carries who/why as free text after the state).
 
-**Step record and evidence live in git.** Each `/implement` step is one checkpoint commit `<task-id> step <N>: …` ending with `Evidence-SHA256: <hash> <path>` lines (`ses checkpoint trailer`). On resume, `ses checkpoint resume` reports the last checkpoint step, branch mismatches, and every uncommitted file (the next step's own files vs anything unexpected), so a half-done step is kept or discarded by your choice, never folded silently into the next commit. `ses checkpoint verify` — run by the scope auditor at `/deliver` — fails if any recorded evidence file is missing or was edited afterwards.
+**Step record and evidence live in git.** Each `/implement` step is one checkpoint commit `<task-id> step <N>: …` ending with `Evidence-SHA256: <hash> <path>` lines (`ses checkpoint trailer`). On resume, `ses checkpoint resume` reports the last checkpoint step, branch mismatches, and every uncommitted file (the next step's own files vs anything unexpected), so a half-done step is kept or discarded by your choice, never folded silently into the next commit. `ses checkpoint verify` fails if any recorded evidence file is missing or was edited afterwards, or if a repo the task does not change holds one of its commits; before anything is pushed — the scope audit at `/deliver`, `/change-request` §5 — `--delivery` also fails an empty task branch and a task commit without evidence lines.
+
+**Verified means a recorded PASS.** `ses coverage <ws>` walks every acceptance row — a TDD §7 row (A#, TS#, G#) through its impl-doc T#, or a change request's A# — to the latest result in the evidence files' Result tables, and counts it only when that evidence's hash is committed. A test that could not run is NOT-RUN, and a static-fallback PASS is PARTIAL: neither meets the gate. `/deliver` and the scope auditor need every row met; a row you accept unverified is waived one by one (`ses status field <ws> waiver.<ID> "by <who> <date>: <reason>"`) and named in the release notes.
+
+**One worktree per task branch.** `ses worktree add <ws> <repo> <branch> --base <mainline>` checks the task branch out in `work/<task-id>/wt/<repo>/`, cut from `origin/<mainline>` after a fetch, and records it (`worktree.<repo>`, `branch.<repo>`, `base.<repo>`). Your own checkout of the repo is never switched, so your uncommitted work there is safe, and two tasks in one repo never see each other's files. Analysis reads the mainline (`ses search --ref origin/<mainline>`), never a checkout. A change request takes one repo: `ses worktree add` refuses a second, which is the escalation rule.
 
 **Handoff summaries — the context management.** The scope contract, research notes, FDD (when there is one) and TDD each open with a bounded summary (≤ 40 lines, one line per ID) between `<!-- handoff:start -->` / `<!-- handoff:end -->`, written last at that stage's gate. Later stages read the summary (`ses handoff show <doc>`) and open full sections only when they need the detail — except where judging the whole document is the job: `/tech-design` on the contract, `/grill` and `/impl-plan` on the TDD, the scope auditor on everything. `ses handoff check <ws>` fails a summary that is missing an ID the body defines (S#, N#, A#, Q#, FR#, …), runs over length, or names an older contract version than `scope-contract.md`. This works the same in every harness and survives any harness's compaction, because it is on disk. The impl doc has no summary: it is written terse, for agents only — tables and fragments citing TDD sections — and `/implement` reads it whole.
 
@@ -148,7 +153,8 @@ Task workspaces never reach a repository or its remote — no setup needed:
 - **Multi-repo workspace:** `work/` sits in the folder holding the repos, outside all of them.
 - **Standalone repo:** `work/` sits inside the repo, and `ses new-task` adds `/work/` to that clone's `.git/info/exclude` — a local ignore list that is never committed or pushed, so your team's `.gitignore` stays untouched. An existing `.gitignore` entry of your own works just as well; if `work/` is already tracked, `ses new-task` warns you.
 - **Commits** stage the step's own files by name, never `git add -A`; `ses checkpoint trailer` refuses to produce a commit's evidence lines while any workspace file is staged.
-- **Before anything is pushed,** `ses checkpoint verify` runs (in the `/deliver` scope audit, and in `/change-request` §5). It fails if any workspace file is on a task branch, and only the task branches are pushed.
+- **Task worktrees** live under `work/<task-id>/wt/`, so they are kept out of git with the rest of the workspace.
+- **Before anything is pushed,** `ses checkpoint verify --delivery` runs (in the `/deliver` scope audit, and in `/change-request` §5). It fails if any workspace file is on a task branch, and only the task branches are pushed.
 
 What does go into git is a hash: each checkpoint commit message ends with `Evidence-SHA256: <hash> evidence/<file>` lines, which prove later that the evidence wasn't altered — file names and hashes, never the content.
 
@@ -171,7 +177,7 @@ Which standard wins depends on whether the file is new. **A new file** follows t
 Repos share a workspace because they talk to each other, so a task's **analysis** scope is wider than its **write** scope:
 
 - **`<repo-set>`** — every repo under the workspace folder (enumerated by `ses list-repos`, recorded in `STATUS.md`). Impact analysis, caller/dependent searches, call graphs, and dependency maps run across ALL of them. A repo searched with no hits is reported as *searched, no references found*, with the command — because a repo nobody searched and a repo with no callers produce the same silence. References are qualified `<repo>:<path>:<line>`.
-- **`<changed-repos>`** — the subset the scope contract says may be modified. It starts as the primary repo and grows only with the user's approval at a gate. Each changed repo gets its own branch and follows its own rules files; the impl doc names a repo per step and states the cross-repo deploy order.
+- **`<changed-repos>`** — the subset the scope contract says may be modified. It starts as the primary repo and grows only with the user's approval at a gate. Each changed repo gets its own branch, checked out in its own worktree, and follows its own rules files; the impl doc names a repo per step and states the cross-repo deploy order.
 
 Searches go through `ses search --ws <ws> [--ref origin/<mainline>] -- <patterns>`: one command per repo, counts and top files first (full per-file list with `--save`), and ready-made rows for the research notes' search record, each carrying the commit searched — so a later stage reuses a row while that repo hasn't moved and re-searches only the repos that have. Reviews go through `ses review-diff <repo> <mainline> <branch>`: a `--stat`-style plan first, then one file at a time with `--file`, with workspace, evidence, framework-generated and lockfiles listed but not read.
 
@@ -235,7 +241,7 @@ checklists/   per-stage quality gates
 knowledge/    lessons.md (shipped lessons; yours go to ~/.ses/lessons.md), decisions.md (framework decision log)
 docs/         QA.md (design Q&A + testing guide), walkthrough.md (narrated example task)
 scripts/      what `ses` runs: status.py (gates), new-task.sh, list-repos.sh, workspace-root.sh,
-              repo-rules.sh, handoff.py, checkpoint.py, xsearch.py, review-diff.sh, lessons.sh,
+              repo-rules.sh, handoff.py, checkpoint.py, worktree.py, coverage.py, xsearch.py, review-diff.sh, lessons.sh,
               capture.sh, fdd_lint.py, fdd_view.py, prose_lint.py, md2docx.sh, md2pdf.sh, md2confluence.sh;
               check_knowledge.py (maintenance)
 tests/        unittest suite for ses, the scripts, and the skill wiring (run by CI and the pre-commit hook)

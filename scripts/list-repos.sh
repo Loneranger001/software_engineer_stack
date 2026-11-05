@@ -38,7 +38,14 @@ ABS=$(cd "$DIR" && pwd)
 # parent precedes its children, but NOT that they are adjacent
 # (repo-a.x sorts between repo-a and repo-a/vendor), so each candidate is
 # tested against every root kept so far.
+# A linked worktree (`ses worktree add` makes one per task branch) has a .git
+# FILE pointing into <repo>/.git/worktrees/ — a checkout of a repo already
+# listed, not a repo of its own — so it is skipped.
 FOUND=$(find "$ABS" -maxdepth "$DEPTH" -name .git \( -type d -o -type f \) 2>/dev/null \
+        | while IFS= read -r g; do
+            if [ -f "$g" ] && grep -q '/worktrees/' "$g" 2>/dev/null; then continue; fi
+            printf '%s\n' "$g"
+          done \
         | sed 's#/\.git$##' | LC_ALL=C sort -u \
         | awk '{ for (i = 1; i <= n; i++) if (index($0, kept[i]) == 1) next
                  kept[++n] = $0 "/"; print }')
