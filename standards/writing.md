@@ -1,14 +1,13 @@
 # Writing standard — documents people read
 
-> Applies to every document people read: the review versions of the
-> functional and technical designs (fdd.review.md, tdd.review.md), how-to
-> guides, KB articles, understanding documents, and release notes. It does
-> not apply to the agent versions of the designs (fdd.md, tdd.md) or to
-> other working files (scope contract, research notes, impl doc, grill log,
-> STATUS.md, handoff summaries): agents read those, and they are written to
-> be complete and exact. A writing rule in the repo's rules files
-> (`ses repo-rules`) or a style guide the client prescribes wins where it
-> differs.
+> Applies to every document people read: the functional and technical
+> designs (fdd.md, tdd.md), how-to guides, KB articles, understanding
+> documents, and release notes. A design is one document for people and
+> agents alike: it stays complete and exact, and it says so in plain words.
+> The rules do not apply to the working files that only agents read (scope
+> contract, research notes, impl doc, grill log, STATUS.md, handoff
+> summaries). A writing rule in the repo's rules files (`ses repo-rules`) or
+> a style guide the client prescribes wins where it differs.
 
 These rules are a subset of the writing rules of ASD-STE100 Simplified
 Technical English. The STE dictionary is not used: business and technical
@@ -29,15 +28,16 @@ a workspace that nobody hands over.
   - ✓ The system does not resend an order today.
 - Do not use framework words: research, research notes, this task, scope
   contract, workspace, fact-check, or stage names such as /intake or /grill.
-- Keep sources out of the text. A review version has none: they stay in
-  the agent version. A how-to or KB article keeps them in its source
-  section, as code references (`file:line`). Do not cite research-notes.md
-  or any other workspace file. The reader cannot open it.
-- Keep IDs such as FR1, BR1, or S1 out of the sentences. A review version
-  shows none: its hidden `covers:` anchors hold them. Other documents put
-  them in a column.
+- Keep sources out of the flow of a sentence. Put them in a source column,
+  in a source section or appendix, or in brackets after the sentence, as
+  code references (`<repo>:<path>:<line>`). Do not cite research-notes.md or
+  any other workspace file. The reader cannot open it.
+- Do not let an ID such as FR1, BR1, or S1 stand in for the words. Say the
+  thing, then give the ID in brackets or in a column: "The system skips the
+  order (BR1)", not "BR1 applies".
 - A fact that you could not check is an open question. Write it as a
-  question in the open-questions section.
+  question in the open-questions section, or in a TDD, as a row in §11
+  Risks.
 
 ## 2. Words
 
@@ -84,8 +84,10 @@ a workspace that nobody hands over.
 
 - Write about one topic in each paragraph. A paragraph has a maximum of six
   sentences. Put the main point first.
-- Start the document with what the reader needs most: a review version
-  with "In short", a KB article with the short answer.
+- Start the document with what the reader needs most: a design with what
+  changes and why, a KB article with the short answer. A reader who stops
+  after the first section of a design knows the approach, the main risk,
+  and what to decide.
 - Use a numbered list for a sequence, a bulleted list for items at the same
   level, and a table for items that have the same attributes. Do not put
   long prose in a table.

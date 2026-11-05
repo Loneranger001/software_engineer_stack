@@ -1,6 +1,6 @@
 ---
 name: impl-plan
-description: Produce an implementation document from the approved TDD - ordered commit-sized steps with per-step verification and rollback, a test plan covering every acceptance criterion, and deployment steps. Gates on user approval. Use after the TDD is approved.
+description: Produce an implementation document from the approved TDD - a terse, agent-only plan of ordered commit-sized steps with per-step verification and rollback, a test plan covering every acceptance criterion, and deployment steps. Gates on user approval. Use after the TDD is approved.
 argument-hint: "[task-id]"
 ---
 
@@ -13,9 +13,10 @@ argument-hint: "[task-id]"
 > every `ses` below. If neither runs, stop and ask the user (README →
 > Install); never guess another path.
 
-Produce `<ws>/impl-doc.md` and get it user-approved. /implement will
-execute this document literally, so it must be executable by someone (or some
-session) with no memory of this conversation.
+Produce `<ws>/impl-doc.md` and get it user-approved. /implement executes it
+literally, so a session with no memory of this conversation must be able to
+follow it. Only agents work from it: spend words on precision, not on
+explanation (**Style** below).
 
 ## 0. Preamble
 
@@ -25,8 +26,7 @@ session) with no memory of this conversation.
    `ses status require <ws> tech-design=approved grill=done,waived`
    (`<ws>` = `<workspace-root>/work/<id>`) — non-zero exit = stop. The impl
    doc plans a design that has survived the interrogation, not a first
-   draft. A user who skips
-   the grill at this point is recorded first
+   draft. A user who skips the grill at this point is recorded first
    (`ses status set <ws> grill="waived by <who> <date>: <reason>"`), never
    assumed.
 3. Read the approved tdd.md fully (you decompose all of it) and the
@@ -36,58 +36,66 @@ session) with no memory of this conversation.
    planning calls passing §2 → ASSUMPTIONS.md; anything touching data,
    external contracts, or scope stops and asks.
 
+## Style
+
+- Tables and fragments. No prose paragraphs, introductions, or recaps.
+- Never restate the TDD. Each step cites the TDD section that holds its
+  design; signatures, pseudocode, DDL, and rationale stay there.
+- Exact where an executor would otherwise guess: paths, objects, commands,
+  test names, previous versions. Nothing else.
+- "—" for none. No handoff summary: the document is short enough to read
+  whole. `<root>/standards/writing.md` does not apply.
+
 ## 1. Plan the steps
 
 1. Copy `<root>/templates/impl-doc.md` → `<ws>/impl-doc.md`.
-2. Decompose the TDD into ordered, commit-sized steps. Ordering rules:
-   - The system stays consistent between steps (DDL before code that needs it;
-     backward-compatible interface changes before caller updates).
-   - Any step that leaves a temporary inconsistency says so and is immediately
-     followed by the step that restores consistency.
-   - **Across repos**: producer before consumer. When the change spans repos,
-     order the steps so each repo is deployable on its own, and state what the
-     window between deployments looks like — a consumer released before its
-     producer is an outage the plan must either avoid or declare acceptable.
-3. Every step row gets: **its repo**, files/objects touched, its OWN
-   verification (what /verify-code or which test proves it), and its OWN
-   rollback note naming the exact revert action. Rollback for a multi-repo
-   change is per repo AND in reverse dependency order.
-4. Name a task branch **per changed repo**, each following that repo's
-   rules files (`ses repo-rules`), else its existing branch naming (`git
-   branch -r`), else ask — e.g. `feature/<task-id>`.
-   Only repos the scope contract lists as changing get a branch; if planning
-   reveals another repo must change, that is a scope-contract amendment with
-   the user's approval, not a new branch.
+2. Decompose the TDD into ordered, commit-sized steps:
+   - The system stays consistent between steps (DDL before code that needs
+     it; backward-compatible interface changes before caller updates). A step
+     that leaves a temporary inconsistency says so, and the next step
+     restores it.
+   - **Across repos**: producer before consumer, each repo deployable on its
+     own. The header's cross-repo line states the window between deploys —
+     a consumer released before its producer is an outage the plan avoids or
+     declares acceptable.
+3. Every step row: its repo (the folder name, as in STATUS.md), the exact
+   files relative to the repo root — the test files it adds or changes
+   included, since /implement touches only the files a step names — the
+   TDD §, its OWN verification (a T# or a one-line check), and its OWN
+   rollback (the exact revert action). Multi-repo rollback runs per repo, in reverse dependency
+   order.
+4. Name a task branch **per changed repo**, following that repo's rules
+   files (`ses repo-rules`), else its existing branch naming
+   (`git branch -r`), else ask — e.g. `feature/<task-id>`. Only repos the
+   scope contract lists as changing get a branch; another repo that must
+   change is a scope-contract amendment with the user's approval.
 
 ## 2. Test plan
 
-- Map every TDD §7 row — acceptance criterion A# and grill scenario G# — to
-  at least one test T#. A row without a test is a planning failure.
-- Reuse the repo's existing test tooling (utPLSQL, pytest, script harnesses —
-  the rules files and `tooling:` lines from `ses repo-rules`); only introduce
-  new tooling with user agreement.
-- Include regression: which existing behaviours are touched (from the TDD §6
-  interface impact) and how each is re-checked.
-- For DB changes, specify before/after queries for the evidence bundle.
+- Every TDD §7 row — acceptance criterion A# and grill scenario G# — maps
+  to at least one T#. A row without a test is a planning failure.
+- The repo's own test tooling (utPLSQL, pytest, script harnesses — the rules
+  files and `tooling:` lines from `ses repo-rules`); new tooling only with
+  user agreement.
+- Regression rows re-check each existing behaviour in TDD §6.
+- DB changes: before/after queries for the evidence bundle.
 
 ## 3. Deployment and rollback
 
-- §4 deployment steps: exact commands per environment, each with its
-  verification. Assume the executor has the release notes and this document only.
-- §5 whole-change rollback: concrete (scripts, previous object versions,
-  data restoration), not "revert the change".
+- §4: exact commands per environment, each with its verification. The
+  executor has the release notes and this document only.
+- §5: whole-change rollback — scripts, previous object versions, data
+  restoration; never "revert the change".
 
 ## 4. Gate
 
-1. Self-check with `<root>/checklists/impl-plan.md`. Write the
-   impl doc's **handoff summary** last — a `step <N>:` line per step, the
-   branches, tests, deploy order — and run
-   `ses handoff check <ws>` (all documents so far) — it must pass.
-2. Present to the user, starting from the summary: step table,
-   test-to-criterion mapping, rollback summary — plus open ASSUMPTIONS.md
-   entries for ratification (decision-protocol §4). Iterate until approved —
-   each revision updates the summary in the same edit and re-runs the check.
-   Record approval in the header.
+1. Self-check with `<root>/checklists/impl-plan.md`, and run
+   `ses handoff check <ws>` — the documents the plan rests on must still be
+   current.
+2. Present it in a few lines: step count per repo, branches, deploy order,
+   test coverage (every A#/G# has a T#), plus open ASSUMPTIONS.md entries for
+   ratification (decision-protocol §4). Point to the file; don't paste it.
+   Iterate until approved; record approval in the header.
 3. Record:
    `ses status set <ws> impl-plan=approved --next "Run /implement."`
 

@@ -25,8 +25,10 @@ trailer — prints one `Evidence-SHA256: <sha256> <path>` line per file, path
   stays out of every repository. Refuses (exit 1) while any file under work/
   is staged in a recorded repo: workspaces never go into git.
 
-verify — reads every Evidence-SHA256 line on each recorded task branch and
-  re-hashes the file. Exit 1 if any recorded evidence is missing or altered,
+verify — reads every Evidence-SHA256 line in this task's commits (subject
+  carries the task id) on each recorded task branch and re-hashes the file.
+  Commits of other tasks — already on mainline, and so in the branch's
+  history — are not this workspace's evidence and are ignored. Exit 1 if any recorded evidence is missing or altered,
   or if any file under work/ is committed on a task branch (it would be
   pushed). Evidence files with no recorded hash are a warning, not a failure.
 """
@@ -213,17 +215,27 @@ def cmd_trailer(ws_arg: str, files: list[str]) -> int:
     return 0
 
 
+def task_token(task: str) -> re.Pattern[str]:
+    """The task id as a whole token: T-1 matches "T-1 step 2" but not "T-12" or "T-1-hotfix"."""
+    return re.compile(rf"(?<![\w-]){re.escape(task)}(?![\w-])")
+
+
 def cmd_verify(ws_arg: str) -> int:
     ws, st = load(ws_arg)
     repos = changed_repos(st)
     if not repos:
         print("no task branches recorded (e.g. a document task) — no checkpoint evidence to verify")
         return 0
+    own = task_token(st.field("task-id"))
     recorded: dict[str, str] = {}
     bad = []
     for name, (repo, branch) in sorted(repos.items()):
-        for digest, rel in TRAILER_RE.findall(git(repo, "log", "--format=%B", branch)):
-            recorded.setdefault(rel, digest)  # newest commit first: its hash wins
+        for entry in git(repo, "log", "--format=%x1e%s%n%B", branch).split("\x1e")[1:]:
+            subject, _, message = entry.partition("\n")
+            if not own.search(subject):
+                continue  # another task's commit, inherited from mainline
+            for digest, rel in TRAILER_RE.findall(message):
+                recorded.setdefault(rel, digest)  # newest commit first: its hash wins
         prefix = work_prefix(ws, repo)
         if prefix is not None:
             for p in git(repo, "ls-tree", "-r", "--name-only", branch, "--", prefix).splitlines():

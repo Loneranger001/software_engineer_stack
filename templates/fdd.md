@@ -14,14 +14,16 @@
      business flows. Not allowed: code, SQL, pseudocode, DDL, data types,
      indexes, hints, commit points, variable names, error codes.
      Mechanical floor: ses fdd-lint <file>.
-     AGENT VERSION: complete and exact — /tech-design, /grill and the
-     reviewers read it. People read and approve fdd.review.md (template:
-     <root>/templates/fdd-review.md), written from this file at the approval
-     gate and kept in step with it (ses review-version check). A developer
-     who asks for this full version gets a rendering (ses fdd-view); its
-     business audience drops the handoff summary, every technical:start/end
-     region, and Appendix A — keep the markers around developer-only
-     detail. -->
+     ONE DOCUMENT FOR PEOPLE AND AGENTS: stakeholders read and approve it,
+     and /tech-design, /grill and the reviewers work from it. Keep it
+     complete and exact, and write every sentence in plain words and short
+     sentences per <root>/standards/writing.md (check: ses prose-lint
+     <file>). Say what the system does, never how the design was made: no
+     research, task, scope contract, or stage names. Say the thing, then
+     give its ID in brackets or in a column.
+     Stakeholders get a rendered view (ses fdd-view): the business audience
+     drops the handoff summary, every technical:start/end region, and
+     Appendix A — keep the markers around developer-only detail. -->
 
 <!-- handoff:start -->
 ## Handoff summary
@@ -44,8 +46,14 @@
 
 ## 1. Purpose and business context
 
-{The business problem, who benefits, and what changes for them — two
-paragraphs at most, readable by someone who has not seen the brief.}
+<!-- Lead with what the reader needs most. A reader who stops here knows
+     what changes for them and what to decide. -->
+{The business problem, who benefits, and what changes for them. Use two
+short paragraphs at most, which a person who has not seen the brief can
+follow. For
+example: "Today, a purchase order waits for the weekly run before it goes to
+the vendor. After this change, the nightly run sends each approved order on
+the day that the buyer approves it."}
 
 Business terms used in this document:
 
@@ -211,7 +219,7 @@ handled — in business roles, not grants.}
 
 <!-- Business view, one line each; "None" stated, not implied. -->
 - Volumes: {…}
-- Timing window / service level: {…}
+- Timing window and service level: {…}
 - Rerun behaviour: {what a rerun does to records already processed}
 - Audit and retention: {…}
 

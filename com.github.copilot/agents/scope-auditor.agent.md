@@ -17,7 +17,7 @@ only (git diff/log/show, ls) — never commands that modify anything.
 
 - Path to the task workspace (the contract — `scope-contract.md`, or for a
   change request the mini contract in `analysis.md` — PARKED.md,
-  ASSUMPTIONS.md, evidence/, and for document tasks the produced docs)
+  ASSUMPTIONS.md, evidence/)
 - The changed repos with their branches and mainline (usually one; a task
   may span several). Read each diff yourself through `ses review-diff` (step
   2), plus `git log <mainline>..<branch>` for the commit list, per repo —

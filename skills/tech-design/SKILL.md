@@ -14,7 +14,10 @@ argument-hint: "[task-id]"
 > Install); never guess another path.
 
 Produce `<ws>/tdd.md` and get it user-approved. The TDD is the contract
-for HOW the scope will be met.
+for HOW the scope will be met. It is one document for people and agents:
+the user reads and approves it, and /grill and /impl-plan work from it, so
+it is complete and traceable and written in plain words (**Writing**
+below).
 
 ## 0. Preamble
 
@@ -74,11 +77,29 @@ for HOW the scope will be met.
   genuinely needs something the contract excludes, stop and ask the user for a
   scope-contract version bump — do not design around the contract.
 
+### Writing
+
+Every sentence follows `<root>/standards/writing.md`: plain words, one idea
+per sentence, 25 words at most (20 in a numbered step), active voice, the
+main point first. §1 carries the point: a reader who stops there knows the
+approach, the main risk, and what to decide. Exact and plain are not in
+conflict — name the package, table, and column, then say what happens to
+them in a short sentence. Signatures, pseudocode, and DDL go in code blocks;
+IDs go in brackets after the words they label or in a column. The handoff
+summary is for agents and is not held to the standard.
+
+- Write about the system, never about how the design was made.
+  - ✗ "Research found that the job retries a failed transfer twice."
+  - ✓ "The job retries a failed transfer twice (`repo-a:bin/run_orders.ksh:48`)."
+- Describe the thing; do not coin noun stacks or join words with a slash.
+  - ✗ "the task-owned message / publication identity"
+  - ✓ "the ID that the system gives each message that it publishes"
+
 ### Accuracy
 
 - Claims about existing behaviour keep their source references: copy the
-  code references (`file:line`) over from research-notes.md and add new ones
-  for anything newly read. Never cite research-notes.md itself — it stays
+  code references (`<repo>:<path>:<line>`, per `<root>/core/repo-resolution.md`)
+  over from research-notes.md and add new ones for anything newly read. Never cite research-notes.md itself — it stays
   in the workspace, so the reader of the handed-over TDD cannot open it.
 - Pseudocode/signatures must compile against reality: correct object names,
   parameter types from the actual specs.
@@ -90,32 +111,17 @@ for HOW the scope will be met.
    `<root>/com.github.copilot/agents/doc-fact-checker.agent.md` on tdd.md (it verifies
    every claim against the code) — delegated per `<root>/core/reviewers.md`. Resolve all
    findings.
-3. Write the TDD's **handoff summary** block now — after the fact-check
+3. Run `ses prose-lint <ws>/tdd.md` and fix every finding by rewriting the
+   sentence, never by working around the pattern.
+4. Write the TDD's **handoff summary** block now — after the fact-check
    fixes — and run `ses handoff check <ws>/tdd.md`; it must pass.
-4. **Review version.** tdd.md is the agent version: complete and traceable,
-   read by /grill, /impl-plan and the reviewers. People read and approve a
-   short review version written from it. Copy
-   `<root>/templates/tdd-review.md` → `<ws>/tdd.review.md` and fill it from
-   tdd.md: In short first, two pages (four at most), plain words per
-   `<root>/standards/writing.md` — about the system, never about how the
-   design was made; no coined noun stacks or slashes; no visible IDs. Each
-   part ends with a hidden `covers:` anchor naming the tdd.md IDs it covers;
-   every S, FR, A and G of tdd.md is covered somewhere. Then run
-   `ses review-version stamp <ws>/tdd.md`,
-   `ses review-version check <ws>/tdd.md` and
-   `ses prose-lint <ws>/tdd.review.md`; all must pass.
-5. **Agreement check.** Run the doc-fact-checker procedure on tdd.review.md
-   against tdd.md — delegated per `<root>/core/reviewers.md` — and fix every
-   finding in the review version (in tdd.md first when tdd.md is unclear).
-6. Render the review version (`ses review-version render <ws>/tdd.md` →
-   `<ws>/deliverables/tdd.review.md`) and present it — it is what the user
-   approves — plus open ASSUMPTIONS.md entries for ratification
-   (decision-protocol §4); promote design-shaping ones into the TDD. Iterate
-   until approved — each revision changes tdd.md first, then its summary
-   and the review version in the same edit; re-stamp, re-run the checks,
-   and re-run the agreement check on the changed parts. Record approval +
-   date in both headers.
-7. Record:
+5. Present the TDD to the user for approval, starting from §1 and the
+   summary: key decisions, traceability table, risks — plus open
+   ASSUMPTIONS.md entries for ratification (decision-protocol §4); promote
+   design-shaping ones into the TDD. Iterate until approved — each revision
+   updates the summary in the same edit and re-runs the handoff check and
+   the prose lint. Record approval + date in the TDD header.
+6. Record:
    `ses status set <ws> tech-design=approved --next "Run /grill."`
    (the
    adversarial completeness interrogation runs before any implementation
@@ -126,6 +132,4 @@ for HOW the scope will be met.
 Write the TDD incrementally. On resume, diff the traceability table against
 the scope contract to find unfinished sections. Never edit an approved TDD
 silently — changes after approval require re-approval and a note in the
-header. Every change to tdd.md updates tdd.review.md in the same edit and is
-re-approved on it; `ses handoff check` fails until the review version is
-re-stamped.
+header. Amendments follow **Writing** like the first draft.

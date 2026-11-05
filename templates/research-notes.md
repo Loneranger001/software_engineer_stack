@@ -1,6 +1,6 @@
 # Research Notes — {TASK_ID}: {TITLE}
 
-> Every finding MUST carry a source reference: `file:line`, object name + query used,
+> Every finding MUST carry a source reference: `<repo>:<path>:<line>`, object name + query used,
 > document section, or URL. A finding without a source is a guess — label it as such.
 
 - Scope contract: ./scope-contract.md (version {n})

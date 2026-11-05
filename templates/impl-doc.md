@@ -1,78 +1,57 @@
-# Implementation Document — {TASK_ID}: {TITLE}
+# Impl doc — {TASK_ID}: {TITLE}
 
-- Status: draft | user-approved ({date})
-- Inputs: tdd.md (approved), scope-contract.md v{n}
-- Branches: {repo → branch, one line per repo this task changes}
+- Status: draft | approved {date}
+- Inputs: tdd.md (approved {date}), scope-contract.md v{n}
+- Branches: {repo-a → feature/T-1}; {repo-b → feature/T-1}
+- Cross-repo order: {repo-a before repo-b; between deploys {what callers see} — {ok because …}} | single repo
 
-> /implement executes this document step by step. Each step must be small enough
-> to verify before moving on, and each has its own rollback note.
-
-<!-- handoff:start -->
-## Handoff summary
-<!-- Written last, at this stage's gate, and updated in the same edit as any
-     amendment. Later stages read ONLY this block unless they need a section's
-     detail. One line per ID; max 40 lines. Check: ses handoff check <file>. -->
-- Contract version: {n}
-- Branches: {repo-a} → {branch}; {repo-b} → {branch}
-- step 1: {repo-a} {files} — verify {how}
-- step 2: {repo-a} {files} — verify {how}
-- step 3: {repo-b} {files} — verify {how}
-- Tests: T1 → A1 ({tool})
-- Deploy order: {repo-a before repo-b — one line}
-- Whole-change rollback: {one line} (§5)
-<!-- handoff:end -->
+<!-- AGENT-ONLY: /implement executes this literally and reads it whole, so it
+     has no handoff summary. Terse: tables and fragments, no prose, no
+     restated design — cite the TDD § that holds it. Exact paths, objects,
+     commands and test names; nothing an executor would have to guess.
+     standards/writing.md does not apply. "—" = none. -->
 
 ## 1. Preconditions
 
-- [ ] TDD approved
-- [ ] Every repo this task changes is clean, with its branch created: `{repo → branch}`
-- [ ] Repos changed here match the scope contract's "May change" column
-- [ ] Dev environment reachable ({SES_DB_CONN / SES_KSH_HOST as applicable}) — or static-fallback mode acknowledged
-- [ ] Rules files of every changed repo read (ses repo-rules <repo>) — or none exist and standards/ applies
+<!-- Task-specific only: grants, reference data, another team's change, a
+     change window. Clean repos, branches, environment and rules files are
+     /implement's own checks — don't list them. -->
+- {—}
 
 ## 2. Implementation steps
 
-<!-- Ordered. One row per commit-sized unit of work; each step lives in -->
-<!-- exactly one repo. Producer repos before consumer repos. -->
-| # | Repo | Step | Files / objects | Verification (per step) | Rollback |
-|---|---|---|---|---|---|
-| 1 | {repo-a} | {DDL: add column} | {src/sql/…} | {compile + query in dev, evidence/step1-*} | {drop column script} |
-| 2 | {repo-a} | {modify package body} | {src/plsql/…} | {compile, utPLSQL test T1} | {git revert / redeploy previous version} |
-| 3 | {repo-b} | {update caller for new signature} | {src/py/…} | {pytest T2} | {git revert} |
-
-<!-- Multi-repo only: state the deploy order and the intermediate state. -->
-**Cross-repo order**: {repo-a before repo-b, because …; between the two
-deployments {what a caller sees} — {acceptable because … / mitigated by …}}
+<!-- In order; one commit-sized step per row, in exactly one repo; producer
+     before consumer. A step that leaves the system inconsistent says so in
+     Step, and the next step restores it. Repo: the repo's folder name, as
+     in STATUS.md branch.<repo>. Files: exact paths, relative to the repo
+     root, including the test files the step adds or changes (ses checkpoint
+     reads them). Verify: a T# from §3 or a one-line check. -->
+| # | Repo | Step | Files / objects | TDD § | Verify | Rollback |
+|---|---|---|---|---|---|---|
+| 1 | {repo-a} | {add ORDHEAD.EDI_SENT_DATE} | {src/sql/ordhead_add_col.sql} | {§5} | {compile; describe ORDHEAD} | {src/sql/ordhead_drop_col.sql} |
+| 2 | {repo-a} | {send proc in PKG_ORDER_EDI} | {src/plsql/pkg_order_edi.pkb, test/ut_pkg_order_edi.pkb} | {§4.1} | {T1} | {git revert} |
+| 3 | {repo-b} | {loader reads new column} | {src/py/loader.py} | {§6} | {T2} | {git revert} |
 
 ## 3. Test plan
 
-### Unit / component tests
-
-| Test | Covers (A# / G#) | How run | Expected result |
-|---|---|---|---|
-| T1 | A1 | {utPLSQL / pytest / ksh invocation} | {…} |
-
-### Integration / end-to-end
-
-| Test | Scenario | How run | Expected result |
-|---|---|---|---|
-
-### Regression
-
-{What existing behaviour must be re-checked, and how.}
-
-## 4. Deployment / delivery steps
-
-| # | Step | Environment | Command / action | Verification |
+<!-- Every TDD §7 row (A#, G#) → at least one T#. Regression rows re-check
+     the callers in TDD §6. The repo's own tooling. A long before/after
+     query goes in a fenced block under the table, named by its T#. -->
+| T# | Covers | Type | How run | Expected |
 |---|---|---|---|---|
+| T1 | {A1} | {unit} | {utPLSQL: ut.run('ut_pkg_order_edi')} | {pass} |
+| T2 | {A2, G1} | {integration} | {pytest tests/test_loader.py} | {pass} |
+| T3 | {§6 callers} | {regression} | {…} | {…} |
 
-## 5. Rollback plan (whole change)
+## 4. Deployment
 
-{Exact steps to restore the previous state if the change must be backed out
-after deployment — scripts, previous versions, data restoration.}
+| # | Env | Command / action | Verify |
+|---|---|---|---|
+| 1 | {test} | {…} | {…} |
 
-## 6. Evidence to capture
+## 5. Rollback (whole change)
 
-- Per-step verification outputs → `evidence/step<N>-<desc>.txt`
-- Test runs → `evidence/tests-<date>.txt` (template: test-evidence.md)
-- Before/after samples for data changes
+<!-- After deployment. Per repo, reverse dependency order. Name the previous
+     version or the script — never "revert the change". -->
+1. {repo-b: redeploy src/py/loader.py@{prev-sha}}
+2. {repo-a: run src/sql/ordhead_drop_col.sql; recompile PKG_ORDER_EDI@{prev-sha}}

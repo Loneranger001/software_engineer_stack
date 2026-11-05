@@ -31,7 +31,8 @@ confidently, with every finding traceable to a source.
    below is relative to `<work-repo>`, never to your session's cwd.
 3. Read the contract's handoff summary
    (`ses handoff show <ws>/scope-contract.md`), plus its full
-   "Interfaces & objects expected to change" table — the one you expand. It
+   "Interfaces & objects expected to change" table — the one you expand —
+   and its Business terms table (the research targets for §1 step 5). It
    bounds the investigation: research serves the in-scope items; interesting
    adjacent findings go to PARKED.md.
 4. Unknowns follow `<root>/core/decision-protocol.md` —
@@ -96,7 +97,7 @@ expand it:
 
 ### Accuracy rules
 
-- Every finding row gets a source: `file:line`, the query used, or the doc/URL.
+- Every finding row gets a source: `<repo>:<path>:<line>`, the query used, or the doc/URL.
 - If you infer something (e.g. "this job appears to run nightly"), label it
   `INFERRED` with the evidence, and add an open question to confirm.
 - Do not trust names/comments over code: verify what a proc actually does

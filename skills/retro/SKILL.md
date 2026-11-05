@@ -118,5 +118,8 @@ file. Curation always shows the user the diff.
 
 ## 5. Close
 
-`ses status set <ws> retro=done` (`<ws>` = `<workspace-root>/work/<id>`). Summarize for the user: lessons recorded,
-framework edits applied/declined.
+Full and change-request pipelines (`ses status get <ws> pipeline`) have a
+retro stage: `ses status set <ws> retro=done` (`<ws>` =
+`<workspace-root>/work/<id>`). Other pipelines have none — record the close
+with `ses status next <ws> "Retro done <date>."` instead. Summarize for the
+user: lessons recorded, framework edits applied/declined.

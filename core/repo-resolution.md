@@ -58,6 +58,8 @@ it only when a case here is ambiguous.
    Exit 3 = that task id already has a workspace for another work-repo or
    pipeline, or under another root: show the user its message and ask —
    same task → resume it (step 1), different task → a new id. Never pick.
+   A different pipeline is never a resume: a workspace's pipeline is fixed,
+   so the same work in another pipeline gets a new task id.
 
 **Paths**
 - Glossary: `<workspace-root>/work/domain-glossary.md`, never bare — one for

@@ -6,7 +6,11 @@
 #
 # Usage: capture.sh <evidence-dir> <name> [--tail N] [--grep REGEX] -- <command> [args...]
 #   evidence-dir  the task's evidence/ directory (created if missing)
-#   name          log name; output goes to <evidence-dir>/raw/<name>.log
+#   name          log name; output goes to <evidence-dir>/raw/<name>.log. Use a
+#                 new name for every run: a checkpoint commit may already hold
+#                 the hash of an existing log, and rewriting it makes
+#                 `ses checkpoint verify` report ALTERED. Replacing a log is
+#                 allowed (a failed attempt's log is not hashed yet) but noted.
 #   --tail N      lines of output to show (default 40)
 #   --grep REGEX  also show every line matching REGEX (extended regex), capped
 #                 at 40 — e.g. 'ORA-|PLS-|SP2-|ERROR|FAILED|Traceback'
@@ -37,6 +41,8 @@ case "$NAME" in *[!A-Za-z0-9._-]*) echo "error: name may only contain letters, d
 
 mkdir -p "$DIR/raw" || exit 2
 LOG="$DIR/raw/$NAME.log"
+REPLACED=""
+[ -e "$LOG" ] && REPLACED=1
 
 # recorded command line, with the DB connect string redacted
 CMDLINE=""
@@ -57,6 +63,7 @@ LINES=$(wc -l <"$LOG" | tr -d ' ')
 
 echo "command:$CMDLINE"
 echo "started: $START   exit: $RC   output: $LINES line(s)   raw log: $LOG"
+[ -n "$REPLACED" ] && echo "note: replaced an existing $NAME.log — if a commit recorded its hash, rerun under a new name"
 if [ -n "$GREP" ]; then
   HITS=$(grep -cE -- "$GREP" "$LOG" || true)
   echo "--- lines matching /$GREP/: $HITS (first 40) ---"

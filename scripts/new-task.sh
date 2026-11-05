@@ -154,8 +154,17 @@ if [ -e "$DIR/STATUS.md" ]; then
   keep_out_of_git
   OLD_REPO=$(recorded work-repo)
   OLD_PIPELINE=$(recorded pipeline)
-  if { [ -n "$OLD_REPO" ] && [ "$OLD_REPO" != "$ABS_REPO" ]; } \
-     || { [ -n "$OLD_PIPELINE" ] && [ "$OLD_PIPELINE" != "$PIPELINE" ]; }; then
+  if [ -n "$OLD_PIPELINE" ] && [ "$OLD_PIPELINE" != "$PIPELINE" ]; then
+    # a workspace's stages are its pipeline's: resuming it under another one breaks every gate
+    {
+      echo "ASK THE USER — task id $TASK_ID: $DIR already exists for work-repo $OLD_REPO, pipeline $OLD_PIPELINE;"
+      echo "  this run asked for pipeline $PIPELINE. A workspace's pipeline never changes, so this is"
+      echo "  never a resume: the same work in another pipeline (a change request escalated to /intake)"
+      echo "  needs a new task id. Nothing was created."
+    } >&2
+    exit 3
+  fi
+  if [ -n "$OLD_REPO" ] && [ "$OLD_REPO" != "$ABS_REPO" ]; then
     ask_user "$DIR already exists for work-repo $OLD_REPO, pipeline $OLD_PIPELINE;
   this run asked for work-repo $ABS_REPO, pipeline $PIPELINE."
   fi

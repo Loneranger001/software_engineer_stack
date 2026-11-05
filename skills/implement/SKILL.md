@@ -24,10 +24,10 @@ committed before the next begins.
 2. Locate the workspace and gate:
    `ses status require <ws> impl-plan=approved`
    (`<ws>` = `<workspace-root>/work/<id>`) — non-zero exit = stop.
-3. Read the contract and impl-doc handoff summaries
-   (`ses handoff show <ws>/<doc>`) — not the whole documents.
-   For each step, read only its row in impl-doc §2 and the TDD sections it
-   cites. Also read the rules files of
+3. Read the contract's handoff summary
+   (`ses handoff show <ws>/scope-contract.md`) and impl-doc.md whole — it is
+   terse and has no summary. For each step, open only the TDD sections its
+   row cites. Also read the rules files of
    every repo the impl doc changes (`ses repo-rules <repo>
    <files>`; paths from STATUS.md — see
    `<root>/core/repo-resolution.md`; git operations and test
@@ -66,6 +66,10 @@ committed before the next begins.
 1. Ensure each repo the impl-doc changes is clean. If one isn't, show the
    user what is uncommitted and ask — never stash, commit, or discard their
    work unasked.
+   Confirm each impl-doc §1 precondition (check it, or ask the user), and
+   probe the dev environment once (`$SES_DB_CONN`, `$SES_KSH_HOST`, `$SES_PY`
+   — whichever the steps need): tell the user which steps will run in
+   static-fallback mode before step 1, not after it.
 2. In each, create the branch named in the impl-doc from that repo's mainline.
 3. Record the branch per repo:
    `ses status field <ws> branch.<repo-name> <branch>`, then
@@ -93,8 +97,7 @@ For each impl-doc step N, in order:
    follows that file's own conventions, the rules filling only what it
    doesn't show. Existing identifiers you call keep their names. Touch only the files the step
    names — if the step turns out to need another file, update the impl-doc row
-   first (append a note, don't rewrite history) and its `step <N>:` summary
-   line.
+   first (append a note, don't rewrite history).
 2. **Rules check**, before verifying: read the step's diff
    (`git -C <repo> diff HEAD -- <files>`; a new file whole). A new file:
    against rules-checklist.md. An existing file: against its own
@@ -105,11 +108,11 @@ For each impl-doc step N, in order:
    change, or an existing identifier that breaks a rule, stays as it is:
    one PARKED.md line (file or name, rule). The result goes into the Rules check section of the step's
    evidence file (written in 3).
-3. **Verify** using the step's verification column — invoke the /verify-code
+3. **Verify** using the step's Verify column — invoke the /verify-code
    recipes for each changed file (live mode via `$SES_DB_CONN`/`$SES_KSH_HOST`/
    `$SES_PY` when reachable; static fallback otherwise, recorded as such).
-   Run each command through `ses capture` and
-   write `evidence/step<N>-<desc>.txt` from its summary using
+   Run each command through `ses capture`, with log names starting
+   `step<N>-`, and write `evidence/step<N>-<desc>.txt` from its summary using
    `<root>/templates/test-evidence.md`; the full output stays
    in `evidence/raw/`.
 4. **On failure**: fix, rules-check the lines the fix changed, and
@@ -134,11 +137,13 @@ For each impl-doc step N, in order:
 
 ### Scope guard (continuous)
 
-Before each commit, check the diff (`ses review-diff <repo> <mainline> HEAD`
-lists the changed files) against the scope contract's handoff summary (S#
-items, repos allowed to change): every changed file must map to
-an in-scope item via the impl-doc, and its repo must be one
-the contract lists as changing. A change that turns out to be needed in
+Before each commit, after staging the step's files by name, check what the
+commit will add (`git -C <repo> diff --cached --name-only`) and what the
+branch already holds (`ses review-diff <repo> <mainline> HEAD` — committed
+work only, so it cannot see the step being committed) against the scope
+contract's handoff summary (S# items, repos allowed to change): every file
+must map to an in-scope item via the impl-doc, and its repo must be one the
+contract lists as changing. A change that turns out to be needed in
 another repo stops the loop and goes to the user as a scope amendment — not a
 quick fix in a repo nobody approved touching. Bugs or improvements you
 notice along the way go to PARKED.md — even one-line "harmless" fixes.
@@ -146,7 +151,9 @@ notice along the way go to PARKED.md — even one-line "harmless" fixes.
 ## 3. Test plan execution
 
 After the last step, run the full impl-doc test plan (unit, integration,
-regression) through `ses capture`, summary to `evidence/tests-<date>.txt`.
+regression) through `ses capture` with log names starting `tests-<date>-`
+— never a step's log name, whose hash is already committed — summary to
+`evidence/tests-<date>.txt`.
 Every acceptance criterion must reach PASS; failures loop back to the step
 loop.
 

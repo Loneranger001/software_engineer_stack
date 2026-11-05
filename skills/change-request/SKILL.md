@@ -62,8 +62,17 @@ contract change affecting external callers, data migration, or **changes
 landing in more than one repo** (coordinated branches and a deploy order are
 not a fast-path change) — tell the user this is not a small change and
 recommend the full pipeline (/intake). Let them
-decide; record the decision and its reason at the top of `analysis.md`. For borderline
-cases the user keeps on the fast path, recommend running /grill against analysis.md before coding.
+decide; record the decision and its reason at the top of `analysis.md`.
+- **Escalated**: the full pipeline is a new task — a workspace's pipeline
+  never changes, so `/intake` runs under a NEW task id. Copy `brief.md` to
+  it, and give /research this workspace's `analysis.md` as prior analysis
+  (its search rows stay reusable while the repo shas are unchanged). Then
+  close this workspace:
+  `ses status set <ws> mini-contract="waived by <who> <date>: escalated to <new-id>"`
+  and `ses status next <ws> "Escalated to <new-id> — nothing further here."`
+- **Kept on the fast path** but borderline: recommend /grill against
+  analysis.md after drafting the mini contract (§2) and before its approval,
+  so one approval covers the grill's edits.
 
 ## 2. Mini scope contract (approval gate)
 
@@ -112,8 +121,9 @@ On approval: `ses status set <ws> mini-contract=approved --note "by <who>"`.
    isn't verified until its callers still work.
 3. Capture everything to `evidence/` with
    `<root>/templates/test-evidence.md`, running each command
-   through `ses capture` (raw logs land in `evidence/raw/`;
-   only its summary goes into the evidence file).
+   through `ses capture` with log names starting `cr-` (raw logs land in
+   `evidence/raw/`; only its summary goes into the evidence file; a rerun
+   after a commit gets a new name).
 4. All PASS → commit, one commit per logical unit referencing the task id:
    - first inspect the repo's `commit-msg` hook and follow its exact format
      (as /implement §1 step 4 — the hook, not recent history, decides);
@@ -126,13 +136,20 @@ On approval: `ses status set <ws> mini-contract=approved --note "by <who>"`.
 
 ## 5. Deliver
 
+A change request delivers itself — /deliver is the full pipeline's stage.
+
 1. Self-check `<root>/checklists/change-request.md`. For
    multi-file changes, also run the audit procedure in
    `<root>/com.github.copilot/agents/scope-auditor.agent.md` against the mini contract —
    delegated per `<root>/core/reviewers.md` — passing `analysis.md` as the contract.
-2. Short release note (template: release-notes.md, trimmed): change, deploy
-   step, rollback step, evidence table.
-3. Push the branch; report to the user; `ses status set <ws> deliver=done`; offer
+2. Always, the audit or not: `ses checkpoint verify <ws>` — non-zero exit =
+   stop. It proves the committed evidence hashes still match and that no
+   workspace file is on the branch about to be pushed.
+3. Short release note `<ws>/release-notes.md` (template: release-notes.md,
+   trimmed): change, deploy step, rollback step, evidence table — written
+   to `<root>/standards/writing.md`; `ses prose-lint <ws>/release-notes.md`
+   must pass.
+4. Push the branch; report to the user; `ses status set <ws> deliver=done`; offer
    /retro (a one-lesson retro is fine for CRs).
 
 ## Fault tolerance
@@ -142,4 +159,4 @@ any session resume mid-CR without redoing the analysis. On resume run
 `ses checkpoint resume <ws>`; exit 3
 means uncommitted work — show it and ask keep-or-discard, never fold it in
 silently. Each commit ends with the evidence hash lines from
-`ses checkpoint trailer <ws> <evidence files>`; /deliver's audit verifies them.
+`ses checkpoint trailer <ws> <evidence files>`; §5 step 2 verifies them before the push.
