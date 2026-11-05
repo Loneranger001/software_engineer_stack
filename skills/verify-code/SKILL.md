@@ -42,7 +42,9 @@ Resolve `<work-repo>` first, per
 when invoked inside a task, else the enclosing git repo of the current
 directory).
 Run every recipe with the working directory set to the repo the file under
-verification lives in — a test runner launched from a parent folder picks up
+verification lives in — inside a task, that repo's task worktree
+(`ses status get <ws> worktree.<repo-name>`), which holds the code being
+verified; the repo's own checkout may be on another branch. A test runner launched from a parent folder picks up
 the wrong config, or none, and in a multi-repo change each repo has its own
 tooling, its own venv, and its own rules files. Evidence files name the
 repo per result. `ses repo-rules <repo> <files>` lists that repo's
@@ -130,6 +132,8 @@ import-graph sanity and standards review.
 For each file verified, append to the evidence file: recipe used, mode
 (live/static-fallback), the `ses capture` summary per command (command, exit
 code, error-line matches, tail — plus the raw log path), PASS/FAIL/PARTIAL,
-and the assertion that justifies the verdict. Never paste a full raw log
+and the assertion that justifies the verdict. A run for a test (T#) or an
+acceptance criterion (A#) also gets its row in the Result table — PASS,
+FAIL, PARTIAL or NOT-RUN, with its mode — which `ses coverage` reads. Never paste a full raw log
 into the evidence file. /implement and /change-request treat
 anything but PASS as a blocker to resolve or escalate.

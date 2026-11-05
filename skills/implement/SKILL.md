@@ -50,9 +50,12 @@ committed before the next begins.
 6. `ses status show <ws>` — a recorded `branch.<repo>` means this is a
    RESUME. Run `ses checkpoint resume <ws>`: it finds the last
    `<task-id> step <N>` checkpoint commit per repo (the commits are the step
-   record — nothing else stores it), checks each repo is on its recorded
-   branch, and lists every uncommitted file — as the next step's own files
-   (a half-done step) or UNEXPECTED.
+   record — nothing else stores it), checks each task worktree is on its
+   recorded branch, and lists every uncommitted file — as the next step's
+   own files (a half-done step) or UNEXPECTED. A recorded `branch.<repo>`
+   with no `worktree.<repo>` (a workspace from before worktrees) gets one
+   first: `ses worktree add <ws> <repo-name> <branch>` checks the existing
+   branch out as it is.
    - Exit 0 (CLEAN) → run `ses checkpoint verify <ws>`, then continue from
      step N+1.
    - Exit 3 (NEEDS DECISION) → stop and show the user its report and the
@@ -63,23 +66,26 @@ committed before the next begins.
 
 ## 1. Branch setup (first run only)
 
-1. Ensure each repo the impl-doc changes is clean. If one isn't, show the
-   user what is uncommitted and ask — never stash, commit, or discard their
-   work unasked.
-   Confirm each impl-doc §1 precondition (check it, or ask the user), and
+1. Confirm each impl-doc §1 precondition (check it, or ask the user), and
    probe the dev environment once (`$SES_DB_CONN`, `$SES_KSH_HOST`, `$SES_PY`
    — whichever the steps need): tell the user which steps will run in
    static-fallback mode before step 1, not after it.
-2. In each, create the branch named in the impl-doc from that repo's
-   mainline (the branch it releases from; ask when it is not obvious).
-3. Record the branch and its base per repo:
-   `ses status field <ws> branch.<repo-name> <branch>` and
-   `ses status field <ws> base.<repo-name> <mainline>`, then
-   `ses status set <ws> implement=in-progress`. Every later
-   `<mainline>` — the scope guard, the review gate, /deliver, /retro — is
-   `ses status get <ws> base.<repo-name>`, never a guess.
+2. For each repo the impl doc changes, check the task branch out in its own
+   worktree: `ses worktree add <ws> <repo-name> <branch> --base <mainline>`
+   (`<mainline>`: the branch the repo releases from; ask when it is not
+   obvious). It fetches and cuts the branch from `origin/<mainline>` — never
+   from whatever the repo has checked out, which may be another task's
+   branch — and records `branch.<repo>`, `base.<repo>` and `worktree.<repo>`.
+   The repo's own checkout is never switched, so the user's uncommitted
+   work there stays theirs. Exit 3 (the branch is checked out elsewhere) →
+   show the user its message and let them free it.
+3. `ses status set <ws> implement=in-progress`. From here `<wt>` is
+   `ses status get <ws> worktree.<repo-name>`: every edit, diff, stage,
+   commit, verify recipe and test run for that repo happens in `<wt>`. Every
+   later `<mainline>` — the scope guard, the review gate, /deliver, /retro —
+   is `ses status get <ws> base.<repo-name>`, never a guess.
 4. **Commit-message preflight**, before the first checkpoint commit in each
-   repo: inspect its `commit-msg` hook (`git -C <repo> config core.hooksPath`,
+   repo: inspect its `commit-msg` hook (`git -C <wt> config core.hooksPath`,
    else `.git/hooks/commit-msg`; also a `commit-msg` stage in
    `.pre-commit-config.yaml`) and adopt its exact format. Recent history and
    framework examples are not enough — the hook is what rejects the commit.
@@ -87,13 +93,14 @@ committed before the next begins.
    `<task-id> step <N>` token intact (resume greps for it). On a resume, the
    branch's existing checkpoint commits show the format already in use.
 5. Repos in `<repo-set>` that the scope contract does NOT list as changing get
-   no branch and no commits — they were analysis scope, not write scope.
+   no branch, no worktree and no commits — they were analysis scope, not
+   write scope. `ses checkpoint verify` fails on a task commit in any of them.
 
 ## 2. The step loop
 
 For each impl-doc step N, in order:
 
-1. **Code** the step, in the repo the step names, following that repo's
+1. **Code** the step, in the worktree of the repo the step names, following that repo's
    rules (`ses repo-rules <repo> <files>`, its rules-checklist.md lines)
    as `<root>/core/repo-resolution.md` splits them: **a new file** follows
    the rules strictly, whatever existing files do; **any change to an
@@ -103,7 +110,7 @@ For each impl-doc step N, in order:
    names — if the step turns out to need another file, update the impl-doc row
    first (append a note, don't rewrite history).
 2. **Rules check**, before verifying: read the step's diff
-   (`git -C <repo> diff HEAD -- <files>`; a new file whole). A new file:
+   (`git -C <wt> diff HEAD -- <files>`; a new file whole). A new file:
    against rules-checklist.md. An existing file: against its own
    conventions, and rules-checklist.md for what it doesn't show. Check
    every new or renamed identifier against the naming standard that governs
@@ -124,9 +131,9 @@ For each impl-doc step N, in order:
    report to the user, propose a TDD/impl-doc amendment, get approval before
    continuing. Never quietly diverge from the approved documents.
 5. **Checkpoint commit**: stage the step's own files by name
-   (`git -C <repo> add <files>` — never `git add -A` or `git add .`, which
+   (`git -C <wt> add <files>` — never `git add -A` or `git add .`, which
    would sweep in `work/` when it sits inside the repo), then `git commit`
-   the step **in the step's repo** with message `<task-id> step <N>: <desc>`
+   the step **in the step's worktree** with message `<task-id> step <N>: <desc>`
    (inside the hook format from §1), ending with the evidence hashes as
    their own paragraph — `ses checkpoint trailer <ws>
    evidence/step<N>-<desc>.txt evidence/raw/<its logs>` prints them
@@ -142,8 +149,8 @@ For each impl-doc step N, in order:
 ### Scope guard (continuous)
 
 Before each commit, after staging the step's files by name, check what the
-commit will add (`git -C <repo> diff --cached --name-only`) and what the
-branch already holds (`ses review-diff <repo> <mainline> HEAD`, `<mainline>`
+commit will add (`git -C <wt> diff --cached --name-only`) and what the
+branch already holds (`ses review-diff <wt> <mainline> HEAD`, `<mainline>`
 from `base.<repo>` — committed
 work only, so it cannot see the step being committed) against the scope
 contract's handoff summary (S# items, repos allowed to change): every file
@@ -158,8 +165,11 @@ notice along the way go to PARKED.md — even one-line "harmless" fixes.
 After the last step, run the full impl-doc test plan (unit, integration,
 regression) through `ses capture` with log names starting `tests-<date>-`
 — never a step's log name, whose hash is already committed — summary to
-`evidence/tests-<date>.txt`.
-Every TDD §7 row (A#, TS#, G#) must reach PASS through its T#.
+`evidence/tests-<date>.txt`, with one row per T# in its Result table
+(`<root>/templates/test-evidence.md`): PASS, FAIL, PARTIAL or NOT-RUN, and
+the mode it ran in. Every TDD §7 row (A#, TS#, G#) must reach PASS through
+its T#: `ses coverage <ws>` walks row → T# → recorded result and is the
+judge — a T# that could not run is NOT-RUN, never left out.
 
 - A failure loops back: fix it in the step whose files it touches,
   re-verify (log names starting `step<N>-fix-`), and commit it as
@@ -169,7 +179,8 @@ Every TDD §7 row (A#, TS#, G#) must reach PASS through its T#.
   on `<work-repo>`'s task branch (else the first changed repo's),
   `git commit --allow-empty -m "<task-id> tests: test plan <date>" -m
   "<trailer>"`, with the trailer from `ses checkpoint trailer <ws>
-  evidence/tests-<date>.txt <its raw logs>`.
+  evidence/tests-<date>.txt <its raw logs>` — then run `ses coverage <ws>`
+  (a result counts only once its evidence hash is committed).
 
 ## 4. Review gate
 
@@ -186,13 +197,18 @@ Every TDD §7 row (A#, TS#, G#) must reach PASS through its T#.
    PRE-EXISTING list goes to PARKED.md.
 2. Self-check with `<root>/checklists/implement.md`.
 3. Record: `ses status set <ws> implement=done --next "Run /deliver."`. If
-   any evidence is `mode: static-fallback`, keep the pending live checks in
-   it: `--next "Run /deliver. Pending live checks: <step or T#, each>"`.
+   `ses coverage <ws>` exits 3 (a row NOT-RUN, PARTIAL — static fallback —
+   or without a result, typically for want of a live environment), tell the
+   user each row it lists and keep them in the next action:
+   `--next "Run /deliver. Not verified yet: <IDs from ses coverage>"`.
+   /deliver will not ship them until each is run or waived by the user.
 
 ## Fault tolerance
 
 - The branch + checkpoint commits + evidence/ ARE the recovery state, with
-  STATUS.md naming the branches; keep them current after every step.
+  STATUS.md naming the branches and their worktrees; keep them current after
+  every step. A lost worktree is recreated from its branch with
+  `ses worktree add <ws> <repo-name> <branch>`.
 - A crashed session resumes losslessly: `ses checkpoint resume` shows exactly
   what was committed and what was left half-done; worst case, one step's work
   is redone — by the user's choice, never silently.

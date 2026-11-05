@@ -2,13 +2,15 @@
 """checkpoint.py — crash safety for /implement and /change-request (run as `ses checkpoint`).
 
 Usage:
-    checkpoint.py resume  <ws>            is it safe to continue from the recorded state?
-    checkpoint.py trailer <ws> <file>...  Evidence-SHA256 lines for a checkpoint commit
-    checkpoint.py verify  <ws>            do the recorded evidence hashes still match?
+    checkpoint.py resume  <ws>               is it safe to continue from the recorded state?
+    checkpoint.py trailer <ws> <file>...     Evidence-SHA256 lines for a checkpoint commit
+    checkpoint.py verify  <ws> [--delivery]  do the recorded evidence hashes still match?
 
 <ws> is the task workspace (work/<task-id>). Changed repos and their branches
 come from STATUS.md `branch.<repo-name>` fields; a repo name resolves to the
-STATUS work-repo or repos-analyzed path with that basename.
+STATUS work-repo or repos-analyzed path with that basename. A repo with a
+`worktree.<repo-name>` field (made by `ses worktree add`) is checked out
+there: resume and trailer look at that worktree, not the repo's own checkout.
 
 resume — per changed repo: recorded vs checked-out branch, the last
   `<task-id> step <N>` checkpoint commit (the commits are the step record —
@@ -17,6 +19,8 @@ resume — per changed repo: recorded vs checked-out branch, the last
   impl-doc.md §2 ("expected" = that step's own files, i.e. a half-done step;
   "unexpected" = anything else). It decides nothing: it shows the facts the
   user needs to choose keep-and-continue or discard-and-redo.
+  A checkout on another task's recorded branch is named as such — two tasks
+  sharing one checkout is the case `ses worktree add` exists to prevent.
   Exit 0 = clean (resume at the next step); 3 = needs a decision.
 
 trailer — prints one `Evidence-SHA256: <sha256> <path>` line per file, path
@@ -28,9 +32,19 @@ trailer — prints one `Evidence-SHA256: <sha256> <path>` line per file, path
 verify — reads every Evidence-SHA256 line in this task's commits (subject
   carries the task id) on each recorded task branch and re-hashes the file.
   Commits of other tasks — already on mainline, and so in the branch's
-  history — are not this workspace's evidence and are ignored. Exit 1 if any recorded evidence is missing or altered,
-  or if any file under work/ is committed on a task branch (it would be
-  pushed). Evidence files with no recorded hash are a warning, not a failure.
+  history — are not this workspace's evidence and are ignored. Exit 1 if:
+  - any recorded evidence is missing or altered;
+  - any file under work/ is committed on a task branch (it would be pushed);
+  - any analyzed repo WITHOUT a recorded branch holds a commit of this task
+    (on any ref) — a write outside the changed repos, or a branch never
+    recorded;
+  - a change-request workspace records branches in more than one repo (a
+    change request changes one repo; more is the escalation rule).
+  --delivery (before anything is pushed: /deliver's scope audit,
+  /change-request §5) also fails when a recorded branch holds no commit of
+  this task, or a task commit carries no Evidence-SHA256 line — nothing is
+  delivered without the evidence that proves it. Evidence files with no
+  recorded hash are a warning, not a failure.
 """
 from __future__ import annotations
 
@@ -68,12 +82,23 @@ def load(ws: str) -> tuple[Path, Status]:
     return Path(st.path).parent, st
 
 
-def changed_repos(st: Status) -> dict[str, tuple[Path, str]]:
-    """{repo-name: (path, recorded branch)} from branch.<repo-name> fields."""
+def all_repos(st: Status) -> dict[str, Path]:
+    """{repo-name: path} for the work-repo and every repo in repos-analyzed."""
     candidates = [Path(p) for p in st.repos_analyzed()]
     if "work-repo" in st.fields:
         candidates.append(Path(st.field("work-repo")))
-    by_name = {p.name: p for p in candidates}
+    return {p.name: p for p in candidates}
+
+
+def checkout(st: Status, name: str, repo: Path) -> Path:
+    """Where the task branch of <name> is checked out: its recorded worktree, else the repo."""
+    f = f"worktree.{name}"
+    return Path(st.field(f)) if f in st.fields else repo
+
+
+def changed_repos(st: Status) -> dict[str, tuple[Path, str]]:
+    """{repo-name: (path, recorded branch)} from branch.<repo-name> fields."""
+    by_name = all_repos(st)
     out = {}
     for f in st.fields:
         if not f.startswith("branch."):
@@ -132,17 +157,31 @@ def cmd_resume(ws_arg: str) -> int:
     task = st.field("task-id")
     step_re = re.compile(rf"\b{re.escape(task)} step (\d+)\b")
     steps = impl_steps(ws)
+    others = other_tasks_branches(ws, st)
     last = 0
     problems, report = [], []
     for name, (repo, branch) in sorted(repos.items()):
-        head = git(repo, "rev-parse", "--abbrev-ref", "HEAD").strip()
+        co = checkout(st, name, repo)
+        if not co.is_dir():
+            problems.append(f"{name}: recorded worktree {co} is missing — recreate it "
+                            f"(ses worktree add <ws> {name} {branch})")
+            continue
+        head = git(co, "rev-parse", "--abbrev-ref", "HEAD").strip()
         subjects = git(repo, "log", "--format=%s", branch).splitlines()
         done = [int(m.group(1)) for s in subjects for m in [step_re.search(s)] if m]
         repo_last = max(done) if done else 0
         last = max(last, repo_last)
-        report.append((name, repo, branch, head, repo_last))
+        report.append((name, co, branch, head, repo_last))
         if head != branch:
-            problems.append(f"{name}: checked out '{head}', STATUS records '{branch}' — switch or re-record")
+            owner = others.get((str(repo.resolve()), head))
+            if owner:
+                problems.append(f"{name}: {co} has '{head}' checked out — that is task {owner}'s branch, "
+                                f"so the files there are {owner}'s, not this task's. Two tasks share this "
+                                f"checkout: give each its own (ses worktree add); never re-record or "
+                                f"discard on this report")
+            else:
+                problems.append(f"{name}: checked out '{head}', STATUS records '{branch}' — switch "
+                                f"{co} back to '{branch}'; re-record only if this task really moved branch")
     nxt = last + 1
     print(f"task {task}: last checkpoint commit is step {last or '(none)'}")
     nxt_repo, nxt_tokens = steps.get(nxt, ("", []))
@@ -151,12 +190,13 @@ def cmd_resume(ws_arg: str) -> int:
     else:
         print(f"next step: {nxt}" + (f" ({nxt_repo}: {', '.join(nxt_tokens) or 'files not parsed'})"
                                       if nxt in steps else " (not in impl-doc §2 — all steps done?)"))
-    for name, repo, branch, head, repo_last in report:
-        rel_ws = os.path.relpath(ws, repo)
-        dirty = dirty_files(repo, None if rel_ws.startswith("..") else Path(rel_ws).parts[0])
+    all_done = bool(steps) and nxt not in steps
+    for name, co, branch, head, repo_last in report:
+        rel_ws = os.path.relpath(ws, co)
+        dirty = dirty_files(co, None if rel_ws.startswith("..") else Path(rel_ws).parts[0])
         expected = [d for d in dirty if name == nxt_repo and belongs(d, nxt_tokens)]
         unexpected = [d for d in dirty if d not in expected]
-        print(f"- {name} ({repo}) branch {head}, last step here {repo_last or '-'}: "
+        print(f"- {name} ({co}) branch {head}, last step here {repo_last or '-'}: "
               f"{len(dirty)} uncommitted file(s)")
         for d in expected:
             print(f"    expected   {d}   (step {nxt}'s file — likely its half-done work)")
@@ -165,18 +205,49 @@ def cmd_resume(ws_arg: str) -> int:
                 print(f"    UNEXPECTED {d}   (not in step {nxt}'s file list)")
             else:
                 print(f"    uncommitted {d}")
-        if dirty:
-            what = f"finish step {nxt}" if steps else "finish the change"
-            problems.append(f"{name}: {len(dirty)} uncommitted file(s) — show them "
-                            f"(git -C {repo} status; git -C {repo} diff; untracked files' "
-                            f"contents) and ask: keep and {what}, or discard and redo it")
+        show = f"show them (git -C {co} status; git -C {co} diff; untracked files' contents)"
+        if expected:
+            problems.append(f"{name}: {len(expected)} file(s) of step {nxt} uncommitted — {show} "
+                            f"and ask: keep and finish step {nxt}, or discard and redo it")
+        if unexpected and steps:
+            where = ("every impl-doc step is committed" if all_done
+                     else f"step {nxt} is in {nxt_repo or '?'}")
+            problems.append(f"{name}: {len(unexpected)} file(s) no step accounts for ({where}) — {show} "
+                            f"and ask whose they are; never fold them into a step's commit or discard them unasked")
+        elif unexpected:
+            problems.append(f"{name}: {len(unexpected)} uncommitted file(s) — {show} "
+                            f"and ask: keep and finish the change, or discard and redo it")
     if problems:
         print("NEEDS DECISION:")
         for p in problems:
             print(f"  - {p}")
         return NEEDS_DECISION
-    print(f"CLEAN — resume at step {nxt}")
+    if all_done:
+        print("CLEAN — every impl-doc step is committed; continue at the test plan (/implement §3)")
+    else:
+        print(f"CLEAN — resume at step {nxt}")
     return 0
+
+
+def other_tasks_branches(ws: Path, st: Status) -> dict[tuple[str, str], str]:
+    """{(repo path, branch): task-id} recorded by the OTHER workspaces beside this one."""
+    out: dict[tuple[str, str], str] = {}
+    me = st.field("task-id")
+    for status in ws.parent.glob("*/STATUS.md"):
+        if status.parent.resolve() == ws.resolve():
+            continue
+        try:
+            other = Status(str(status))
+            task = other.field("task-id")
+        except StatusError:
+            continue
+        if task == me:
+            continue
+        repos = all_repos(other)
+        for f in other.fields:
+            if f.startswith("branch.") and f[len("branch."):] in repos:
+                out[(str(repos[f[len("branch."):]].resolve()), other.field(f))] = task
+    return out
 
 
 def work_prefix(ws: Path, repo: Path) -> str | None:
@@ -197,10 +268,13 @@ def cmd_trailer(ws_arg: str, files: list[str]) -> int:
         prefix = work_prefix(ws, repo)
         if prefix is None:
             continue
-        staged = [p for p in git(repo, "diff", "--cached", "--name-only").splitlines() if under(p, prefix)]
+        co = checkout(st, name, repo)   # the commit happens where the branch is checked out
+        if not co.is_dir():
+            continue
+        staged = [p for p in git(co, "diff", "--cached", "--name-only").splitlines() if under(p, prefix)]
         if staged:
             raise StatusError(f"{name}: workspace files are staged — unstage them "
-                              f"(git -C {repo} restore --staged {prefix}) and stage only the step's own "
+                              f"(git -C {co} restore --staged {prefix}) and stage only the step's own "
                               f"files; work/ never goes into git: {', '.join(staged[:5])}")
     for f in files:
         p = Path(f) if os.path.isabs(f) else (Path.cwd() / f)
@@ -220,22 +294,69 @@ def task_token(task: str) -> re.Pattern[str]:
     return re.compile(rf"(?<![\w-]){re.escape(task)}(?![\w-])")
 
 
-def cmd_verify(ws_arg: str) -> int:
-    ws, st = load(ws_arg)
-    repos = changed_repos(st)
-    if not repos:
-        print("no task branches recorded (e.g. a document task) — no checkpoint evidence to verify")
-        return 0
+def task_commits(repo: Path, ref_args: list[str], own: re.Pattern[str]) -> list[tuple[str, str, str]]:
+    """[(sha, subject, message)] of this task's commits (subject carries the task id), newest first."""
+    out = []
+    for entry in git(repo, "log", "--format=%x1e%H%n%s%n%B", *ref_args).split("\x1e")[1:]:
+        sha, _, rest = entry.partition("\n")
+        subject, _, message = rest.partition("\n")
+        if own.search(subject):
+            out.append((sha, subject, message))
+    return out
+
+
+def recorded_evidence(ws: Path, st: Status) -> dict[str, str]:
+    """{evidence path relative to ws: sha256} from this task's commits on its recorded branches."""
     own = task_token(st.field("task-id"))
     recorded: dict[str, str] = {}
-    bad = []
-    for name, (repo, branch) in sorted(repos.items()):
-        for entry in git(repo, "log", "--format=%x1e%s%n%B", branch).split("\x1e")[1:]:
-            subject, _, message = entry.partition("\n")
-            if not own.search(subject):
-                continue  # another task's commit, inherited from mainline
+    for _name, (repo, branch) in sorted(changed_repos(st).items()):
+        for _sha, _subject, message in task_commits(repo, [branch], own):
             for digest, rel in TRAILER_RE.findall(message):
                 recorded.setdefault(rel, digest)  # newest commit first: its hash wins
+    return recorded
+
+
+def cmd_verify(ws_arg: str, delivery: bool = False) -> int:
+    ws, st = load(ws_arg)
+    repos = changed_repos(st)
+    task = st.field("task-id")
+    own = task_token(task)
+    bad = []
+    # writes outside the changed repos: any repo with no recorded branch must hold no task commit
+    for name, repo in sorted(all_repos(st).items()):
+        if name in repos or not repo.is_dir():
+            continue
+        stray = task_commits(repo, ["--all"], own)
+        if stray:
+            sha, subject, _ = stray[0]
+            bad.append(f"OUT OF SCOPE {name}: {len(stray)} {task} commit(s) in a repo with no recorded "
+                       f"task branch (e.g. {sha[:7]} {subject!r}) — a write outside the changed repos, "
+                       f"or a branch never recorded (ses status field <ws> branch.{name} <branch>)")
+    if "pipeline" in st.fields and st.field("pipeline") == "change-request" and len(repos) > 1:
+        bad.append(f"SCOPE    a change request records branches in {len(repos)} repos ({', '.join(sorted(repos))})"
+                   f" — it changes one repo; more is /change-request §1's escalation rule")
+    if not repos:
+        if bad:
+            print(f"0 recorded evidence file(s), {len(bad)} problem(s)")
+            for b in bad:
+                print(f"  {b}")
+            return 1
+        print("no task branches recorded (e.g. a document task) — no checkpoint evidence to verify")
+        return 0
+    recorded: dict[str, str] = {}
+    for name, (repo, branch) in sorted(repos.items()):
+        commits = task_commits(repo, [branch], own)
+        for _sha, _subject, message in commits:
+            for digest, rel in TRAILER_RE.findall(message):
+                recorded.setdefault(rel, digest)  # newest commit first: its hash wins
+        if delivery:
+            if not commits:
+                bad.append(f"EMPTY    {name}: {branch} holds no {task} commit — nothing to deliver from "
+                           f"this repo (finish its work, or drop its branch.{name} with the user)")
+            for sha, subject, message in commits:
+                if not TRAILER_RE.search(message):
+                    bad.append(f"NO EVIDENCE {name}:{sha[:7]} {subject!r} — a task commit without "
+                               f"Evidence-SHA256 lines (ses checkpoint trailer)")
         prefix = work_prefix(ws, repo)
         if prefix is not None:
             for p in git(repo, "ls-tree", "-r", "--name-only", branch, "--", prefix).splitlines():
@@ -269,7 +390,9 @@ def main(argv: list[str]) -> int:
         return cmd_resume(ws)
     if cmd == "trailer":
         return cmd_trailer(ws, rest)
-    return cmd_verify(ws)
+    if rest not in ([], ["--delivery"]):
+        raise StatusError("usage: verify <ws> [--delivery]")
+    return cmd_verify(ws, delivery=bool(rest))
 
 
 if __name__ == "__main__":

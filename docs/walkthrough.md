@@ -146,12 +146,14 @@ change your mind.
 you>  /implement
 ```
 
-Branch created, then per step: code → `/verify-code` (live against dev if
+The task branch is created in its own worktree (`work/DEMO-1/wt/sample-repo/`,
+cut from `origin/main`; your own checkout stays as it is), then per step: code → `/verify-code` (live against dev if
 `SES_DB_CONN`/`SES_KSH_HOST`/`SES_PY` are set, static fallback otherwise) →
 evidence file → checkpoint commit. If a step invalidates the design, it stops
 and asks rather than quietly diverging. After the last step: full test plan,
 then the code-reviewer pass; SEV-1/2 findings get fixed before the stage
-closes. If your session dies at step 3 of 6, rerun `/implement` — it resumes
+closes. `ses coverage` shows every acceptance row and its recorded result —
+without a dev DB most rows are NOT-RUN, and the next action lists them. If your session dies at step 3 of 6, rerun `/implement` — it resumes
 at step 4.
 
 ## 7. /deliver — audited handover
@@ -160,8 +162,8 @@ at step 4.
 you>  /deliver
 ```
 
-Open assumptions ratified, scope-auditor pass (diff ↔ contract, both
-directions), release notes with stand-alone deploy/rollback, your chosen
+Open assumptions ratified, every acceptance row run or waived by you
+(`ses coverage`), scope-auditor pass (diff ↔ contract, both directions), release notes with stand-alone deploy/rollback, your chosen
 formats generated (`deliverables/tdd.docx`, …), branch pushed. **Gate 5
 passed** — the task is delivered.
 

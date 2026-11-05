@@ -29,8 +29,17 @@ Raw logs: `evidence/raw/{name}.log` (full output, opened only to diagnose)
 
 ## Result
 
-- Outcome: PASS | FAIL | PARTIAL
-- Assertion checked: {e.g. row count = 1042; USER_ERRORS empty; pytest 14 passed}
+<!-- One row per test (T#) or, in a change request, per criterion (A#) this
+     file proves — `ses coverage` reads this table. Outcome is PASS | FAIL |
+     PARTIAL | NOT-RUN: a test that could not run is a NOT-RUN row, never
+     left out. Mode is live | static-fallback; a static-fallback PASS counts
+     as PARTIAL, since the code parsed but did not run. A step's own check
+     with no T# keeps the bullet below only. -->
+| Test or criterion | Outcome | Mode | Assertion checked |
+|---|---|---|---|
+| {T1 \| A1} | {PASS \| FAIL \| PARTIAL \| NOT-RUN} | {live \| static-fallback} | {e.g. row count = 1042; USER_ERRORS empty; pytest 14 passed} |
+
+- Outcome: PASS | FAIL | PARTIAL | NOT-RUN
 - Follow-up (if not PASS): {…}
 
 ## Before / after (data changes only)

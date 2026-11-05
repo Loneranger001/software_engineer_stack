@@ -72,7 +72,19 @@ it only when a case here is ambiguous.
 - Task files: `<ws>/…`, where `<ws>` = `<workspace-root>/work/<task-id>`; a
   workspace-relative name like `evidence/` or `scope-contract.md` always
   means `<ws>/evidence/`, `<ws>/scope-contract.md` — never relative to cwd.
-- git, test runners, and code greps run with the target repo as cwd.
+- git, test runners, and code greps run with the target repo as cwd —
+  inside a task, its task worktree once one is recorded (below).
+- Analysis reads the mainline, never a checkout: fetch it and pass
+  `--ref origin/<mainline>` to `ses search`, `git show origin/<mainline>:<path>`
+  to read a file. A repo's checkout may be on another task's unmerged
+  branch; what it shows is not the system.
+- Task branches: each changed repo's task branch is checked out in its own
+  worktree, `<ws>/wt/<repo-name>`, made by
+  `ses worktree add <ws> <repo-name> <branch> --base <mainline>` and
+  recorded as `worktree.<repo>` (with `branch.<repo>` and `base.<repo>`).
+  The repo's own checkout is never switched, so two tasks in one repo never
+  share files and the user's own work there is never touched. Every edit,
+  diff, stage, commit, verify recipe and test run of a step uses `<wt>`.
 
 **Analysis covers every repo in `<repo-set>`**
 - Enumerate first and record the list (STATUS `repos-analyzed` + notes).
@@ -96,4 +108,7 @@ it only when a case here is ambiguous.
   branches recorded per repo; the impl doc states deploy ORDER and whether
   the intermediate state is acceptable.
 - Repos outside `<changed-repos>` are read-only: no code, no `work/`, no
-  branch.
+  branch, no worktree. `ses checkpoint verify` fails on a commit of the task
+  in any of them.
+- A change request changes exactly one repo: `ses worktree add` refuses a
+  second, and `ses status validate` and `ses checkpoint verify` fail on one.

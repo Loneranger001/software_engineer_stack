@@ -37,9 +37,12 @@ only (git diff/log/show, ls) — never commands that modify anything.
    step table (full pipeline) as the claimed mapping, then verify the claim
    against the actual hunks — don't take the doc's word.
 3. **Scope → diff mapping**: for every in-scope item, confirm work exists that
-   plausibly satisfies it, and every criterion has an evidence file with
-   PASS — the contract's A#, plus, in the full pipeline, every TDD §7 row
-   (TS# from an approved FDD, G# from /grill).
+   plausibly satisfies it, and every criterion has recorded PASS evidence —
+   the contract's A#, plus, in the full pipeline, every TDD §7 row (TS# from
+   an approved FDD, G# from /grill). Run `ses coverage <workspace>`: each row
+   it reports not met (NOT-RUN, FAIL, PARTIAL, no result, no test,
+   unrecorded) is Unmet scope; each WAIVED row is listed under Notes with
+   its waiver text, and must appear in the release notes as not verified.
 4. Check exclusions: nothing in the diff implements an N# item.
    **Repo scope**: every repo carrying commits must be listed in the contract
    as a repo this task changes. Commits in a repo that was analysis-only are a
@@ -52,11 +55,15 @@ only (git diff/log/show, ls) — never commands that modify anything.
    that `<task-id> step <N>` commits match the impl-doc's steps (a
    `<task-id> step <N>: fix …` commit belongs to step N; one
    `<task-id> tests:` commit records the test-plan evidence).
-8. Run `ses checkpoint verify <workspace>`.
+8. Run `ses checkpoint verify <workspace> --delivery`.
    Recorded evidence that is MISSING or ALTERED is a finding: the evidence a
    PASS rests on is no longer the evidence that was captured. A workspace
    file IN GIT on a task branch is a finding too — /deliver pushes those
-   branches, and task workspaces never leave the machine.
+   branches, and task workspaces never leave the machine. So are an EMPTY
+   branch, a task commit with NO EVIDENCE lines, an OUT OF SCOPE commit of
+   this task in a repo with no recorded branch (Exclusion breaches / repo
+   scope, step 4), and a change request with branches in more than one
+   repo.
 9. Run `ses handoff check <workspace>`. A failing
    summary is a finding: later stages worked from it, so a stale or
    incomplete one may have hidden scope from them.
@@ -72,7 +79,7 @@ Exclusion breaches:                                [N# — offending change]
 Parked-but-implemented:                            [PARKED entry — offending change]
 Open assumptions:                                  [ASSUMPTIONS entry — still unratified]
 Stale handoff summaries:                           [ses handoff check problem]
-Evidence integrity:                                [ses checkpoint verify — MISSING/ALTERED/IN GIT file]
+Evidence integrity:                                [ses checkpoint verify --delivery — MISSING/ALTERED/IN GIT/EMPTY/NO EVIDENCE/OUT OF SCOPE]
 Notes (non-blocking observations):                 […]
 ```
 

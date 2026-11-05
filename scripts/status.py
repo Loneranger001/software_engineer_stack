@@ -148,6 +148,11 @@ class Status:
             self.lines.insert(at, line)
         self._index()
 
+    def unset_field(self, name: str) -> None:
+        if name in self.fields:
+            del self.lines[self.fields[name]]
+            self._index()
+
     def set_next(self, text: str) -> None:
         if "next action" not in self.sections:
             raise StatusError("STATUS.md has no '## Next action' section")
@@ -182,6 +187,13 @@ class Status:
                     out.append(f"{f} is not an absolute path: {v}")
                 elif not os.path.isdir(v):
                     out.append(f"{f} does not exist: {v}")
+        branches = sorted(f for f in self.fields if f.startswith("branch."))
+        if "pipeline" in self.fields and self.field("pipeline") == "change-request" and len(branches) > 1:
+            out.append(f"a change request records {len(branches)} task branches ({', '.join(branches)}); "
+                       f"it changes one repo — more is the escalation rule (/change-request §1)")
+        for f in self.fields if check_paths else ():
+            if f.startswith("worktree.") and not os.path.isdir(self.field(f)):
+                out.append(f"{f} does not exist: {self.field(f)} (recreate it: ses worktree add)")
         for s in ("stage gates", "next action"):
             if s not in self.sections:
                 out.append(f"missing section '## {s.capitalize()}'")

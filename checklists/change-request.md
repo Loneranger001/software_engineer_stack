@@ -9,12 +9,13 @@ Run before delivering a fast-path change.
 - [ ] Change is as small as the request allows — no opportunistic refactoring (that goes to PARKED.md)
 - [ ] /verify-code ran on every changed file; live verification where reachable
 - [ ] Regression check covers the impacted callers found in the analysis, not just the changed object
-- [ ] Every acceptance criterion has PASS evidence in evidence/
+- [ ] Analysis read the mainline (`--ref origin/<mainline>`), never a repo's checkout; the change was made in its own worktree (`ses worktree add`)
+- [ ] `ses coverage` exits 0: every acceptance criterion A# has a recorded PASS in an evidence Result table, or a user waiver named in the release note
 - [ ] Diff maps 1:1 to the mini contract; scope-auditor pass on anything larger than a single-file change
 - [ ] A new file follows its repo's rules strictly (rules files per `ses repo-rules` / standards defaults); changes to an existing file, new procedures or functions included, follow that file's conventions; the Rules check is in the evidence and rule breaches carried over are in PARKED.md
 - [ ] Rollback note written (even for small changes: exact revert/redeploy step)
 - [ ] ASSUMPTIONS.md has no open entries — ratified at the mini-contract gate or resolved since (decision-protocol §4)
 - [ ] `ses status` recorded analyze → mini-contract → change → verify, in order (deliver is set after the push)
-- [ ] `ses checkpoint verify` passes — evidence hashes match and no workspace file is on the branch
+- [ ] `ses checkpoint verify --delivery` passes — evidence hashes match, the branch holds evidenced task commits, no other repo holds a task commit, and no workspace file is on the branch
 - [ ] Release note at `release-notes.md`, written to `<root>/standards/writing.md`; `ses prose-lint` passes
 - [ ] Commits came after verification, follow the repo's commit-msg hook, and end with their Evidence-SHA256 lines

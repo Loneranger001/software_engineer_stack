@@ -26,6 +26,8 @@ COMMANDS = {
     "new-task": ("new-task.sh", "scaffold a task workspace (kept out of git)"),
     "handoff": ("handoff.py", "show / check the handoff summary atop a stage document"),
     "checkpoint": ("checkpoint.py", "resume report, evidence trailers, evidence verification"),
+    "worktree": ("worktree.py", "check a task branch out in its own worktree (never the repo's checkout)"),
+    "coverage": ("coverage.py", "every acceptance row -> its test -> recorded PASS, or waived"),
     "search": ("xsearch.py", "count-first search across every analyzed repo"),
     "review-diff": ("review-diff.sh", "stat-first, file-by-file review of a branch"),
     "capture": ("capture.sh", "run a command, keep the full log, print a bounded summary"),

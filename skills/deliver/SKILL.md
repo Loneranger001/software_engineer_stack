@@ -67,12 +67,14 @@ The documents must match what was actually built:
   summaries in the same edit (`ses handoff check <ws>` and `ses prose-lint`
   on both must pass). Substantive divergence needs the user's ack, since
   those documents were approved.
-- Every TDD §7 row (A#, TS#, G#) → its T# → evidence file → PASS. Missing evidence means
-  going back to /implement's verification, not papering over.
-- Every evidence file marked `mode: static-fallback` (and any pending live
-  check in STATUS.md's next action): list them for the user, who runs the
-  live checks now or accepts them; accepted ones go under the release
-  notes' Known limitations.
+- `ses coverage <ws>` must exit 0: every TDD §7 row (A#, TS#, G#) → its T#
+  → a recorded PASS. For each row it reports not met — NOT-RUN, FAIL,
+  PARTIAL (static fallback), no result, no test, or unrecorded evidence —
+  either go back to /implement's verification and run it now, or the user
+  accepts that row unverified, one row at a time:
+  `ses status field <ws> waiver.<ID> "by <who> <date>: <reason>"`. Waived
+  rows go under the release notes' Known limitations as not verified.
+  Never edit evidence to make a row pass.
 
 ## 3. Package
 
@@ -90,8 +92,10 @@ The documents must match what was actually built:
    `ses status get <ws> fdd-audience`),
    never directly.
 3. Push every changed repo's task branch (the `branch.<repo>` fields:
-   `git -C <repo> push -u origin <branch>`; retry with backoff on network
-   failure). Only those branches leave the machine — the task workspace
+   `git -C <wt> push -u origin <branch>`, `<wt>` from `worktree.<repo>`, else
+   the repo; retry with backoff on network failure). Then remove each task
+   worktree: `ses worktree remove <ws> <repo-name>` (the branch stays; a
+   review fix later re-adds it with `ses worktree add`). Only those branches leave the machine — the task workspace
    (`work/`, deliverables included) is never committed or pushed, and the
    audit's `ses checkpoint verify` has already proven no workspace file is on
    them. Do NOT open a PR / merge unless the user asks.

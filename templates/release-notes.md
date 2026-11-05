@@ -36,6 +36,7 @@ to run after each step.}
 ## Known limitations / follow-ups
 
 <!-- Include the PARKED.md items handed over for future triage, each written
-     as a fact about the system. -->
+     as a fact about the system. Name every acceptance row the user waived
+     unverified (`ses coverage` lists them) and the check still to run. -->
 {Limitations and follow-up work that the team that runs the system must know
 about.}
