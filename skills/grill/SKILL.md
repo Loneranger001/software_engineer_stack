@@ -34,7 +34,8 @@ proving which scenarios were confronted.
      unapproved TDD at user request").
    - **change-request** (see "Use on change requests"):
      `ses status require <ws> analyze=done`; the target is `analysis.md`.
-4. Read tdd.md and ASSUMPTIONS.md fully — they are what you attack. Read the
+4. Read tdd.md (change request: analysis.md — see "Use on change
+   requests") and ASSUMPTIONS.md fully — they are what you attack. Read the
    contract and research handoff summaries
    (`ses handoff show <ws>/<doc>`), opening a full section
    when a scenario needs its detail. With an approved functional design
@@ -158,17 +159,40 @@ Take the `ask-user` list and interview the user until it is EMPTY:
    An edit the user rejects is reverted and its row goes back to `ask-user`.
    No TDD edits, or an unapproved TDD, needs no re-approval.
 5. Record (full pipeline):
-   `ses status set <ws> grill=done --next "Run /impl-plan."`
-   — or, if the user explicitly skipped it,
-   `grill="waived by <who> <date>: <reason>"`. A change-request pipeline has
-   no grill stage: the grill log's closing line records it instead ("grill
-   done on analysis.md: <n> scenarios, <m> answered by user").
+   `ses status set <ws> grill=done --next "Run /impl-plan."` — or, when the
+   TDD was grilled unapproved, `--next "Get the TDD approved (/tech-design
+   §2 step 5), then run /impl-plan."`, since /impl-plan gates on that
+   approval. If the user explicitly skipped the grill:
+   `grill="waived by <who> <date>: <reason>"`. A change request closes as
+   "Use on change requests" says.
 
 ## Use on change requests
 
 For a borderline CR (escalation factors near the threshold in
-/change-request §1), run this skill against `analysis.md` instead of a TDD:
-same categories, same verdicts, answers land in the mini scope contract.
+/change-request §1), run this skill against `analysis.md` instead of a TDD.
+Run it after the mini scope contract (/change-request §2) is drafted and
+before the user approves it, so one approval covers the grill's edits. The
+categories, verdicts and both phases are unchanged; these parts differ:
+
+- **Inputs** (§0.4): analysis.md and ASSUMPTIONS.md; there is no contract,
+  research or FDD summary to read.
+- **Traceability**: the mini contract has no IDs. A `gap-fixed` fix traces
+  to one of its **Change** bullets instead of an S#/A#, and is edited into
+  analysis.md. A testable fix or answer adds an **Acceptance criteria**
+  bullet tagged `(grill #<n>)` instead of a TDD §7 `G<n>` row. An
+  `out-of-scope` verdict cites a **Not changing** bullet. An answer that
+  pushes the change past the escalation rule stops the grill: tell the user.
+- **Deferrals**: the user's words go verbatim into the grill log and
+  PARKED.md, plus a line under a **Risks** heading in the mini contract.
+- **Closing** (§3): skip the tdd.md steps (handoff check, prose-lint,
+  `tech-design` re-approval). If an edit added a claim about existing
+  behaviour, fact-check the edited analysis.md sections (doc-fact-checker,
+  scoped). If `mini-contract` was already approved and the grill changed
+  it, present the change list and re-approve once:
+  `ses status set <ws> mini-contract=approved --note "re-approved after grill, <n> edits"`.
+  A change-request pipeline has no grill stage: write the grill log's Close
+  line ("grill done on analysis.md: <n> scenarios, <m> answered by user")
+  and continue at /change-request §2 (approval) or §3.
 
 ## Fault tolerance
 

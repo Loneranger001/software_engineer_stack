@@ -14,5 +14,7 @@ Run before delivering a fast-path change.
 - [ ] A new file follows its repo's rules strictly (rules files per `ses repo-rules` / standards defaults); changes to an existing file, new procedures or functions included, follow that file's conventions; the Rules check is in the evidence and rule breaches carried over are in PARKED.md
 - [ ] Rollback note written (even for small changes: exact revert/redeploy step)
 - [ ] ASSUMPTIONS.md has no open entries — ratified at the mini-contract gate or resolved since (decision-protocol §4)
-- [ ] `ses status` recorded analyze → mini-contract → change → verify → deliver, in order
+- [ ] `ses status` recorded analyze → mini-contract → change → verify, in order (deliver is set after the push)
+- [ ] `ses checkpoint verify` passes — evidence hashes match and no workspace file is on the branch
+- [ ] Release note at `release-notes.md`, written to `<root>/standards/writing.md`; `ses prose-lint` passes
 - [ ] Commits came after verification, follow the repo's commit-msg hook, and end with their Evidence-SHA256 lines

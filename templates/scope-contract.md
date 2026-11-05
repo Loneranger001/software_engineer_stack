@@ -19,6 +19,7 @@
 - Acceptance: A1 → S1 {how verified, one line}
 - Repos: change {repo-a}; analysis-only {repo-b}; excluded {repo-c — reason}
 - Expected to change: {repo-a}:{SCHEMA.PKG_NAME} ({change})
+- Terms: {Order → glossary; Upload → research target} | none
 - Open questions: Q1 {open|answered — one line}
 - Constraints: {one line each, only the binding ones}
 <!-- handoff:end -->
@@ -65,6 +66,18 @@
 | Repo | Object | Type | Change |
 |---|---|---|---|
 | {repo-a} | {SCHEMA.PKG_NAME} | PL/SQL package | {modify proc P} |
+
+## Business terms
+
+<!-- The term inventory from intake: every business term the brief leans on.
+     A term in <workspace-root>/work/domain-glossary.md links its entry, never
+     re-defined here; an unknown term is a research target, which /research
+     grounds in the code. A term the brief uses differently from its glossary
+     entry is an open question (Q#), not a row here. -->
+| Term | Glossary entry, or research target | Note |
+|---|---|---|
+| {Order} | {glossary: Order} | {—} |
+| {Upload} | {research target} | {brief §3 uses it for the nightly file load} |
 
 ## Assumptions & open questions
 

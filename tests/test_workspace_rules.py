@@ -110,6 +110,8 @@ class ExistingWorkspaceTest(unittest.TestCase):
         r = sh("new-task.sh", "CHG-1", "auto", "change-request", self.ws / "repo-a")
         self.assertEqual(r.returncode, 3)
         self.assertIn("pipeline full", r.stderr)
+        self.assertIn("needs a new task id", r.stderr)
+        self.assertNotIn("Same task → resume", r.stderr)
         self.assertEqual(self.status.read_text(), self.before)
 
     def test_same_id_under_old_root_asks_instead_of_duplicating(self):

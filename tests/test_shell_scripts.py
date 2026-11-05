@@ -131,6 +131,10 @@ class CaptureTest(unittest.TestCase):
         self.assertEqual(r.returncode, 0)
         self.assertIn("output: 0 line(s)", r.stdout)
 
+    def test_replacing_a_log_is_noted(self):
+        self.assertNotIn("note: replaced", self.capture("once", "--", "true").stdout)
+        self.assertIn("note: replaced an existing once.log", self.capture("once", "--", "true").stdout)
+
     def test_bad_name_rejected(self):
         self.assertEqual(self.capture("../x", "--", "true").returncode, 2)
 

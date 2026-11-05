@@ -111,8 +111,8 @@ For each impl-doc step N, in order:
 3. **Verify** using the step's Verify column — invoke the /verify-code
    recipes for each changed file (live mode via `$SES_DB_CONN`/`$SES_KSH_HOST`/
    `$SES_PY` when reachable; static fallback otherwise, recorded as such).
-   Run each command through `ses capture` and
-   write `evidence/step<N>-<desc>.txt` from its summary using
+   Run each command through `ses capture`, with log names starting
+   `step<N>-`, and write `evidence/step<N>-<desc>.txt` from its summary using
    `<root>/templates/test-evidence.md`; the full output stays
    in `evidence/raw/`.
 4. **On failure**: fix, rules-check the lines the fix changed, and
@@ -137,11 +137,13 @@ For each impl-doc step N, in order:
 
 ### Scope guard (continuous)
 
-Before each commit, check the diff (`ses review-diff <repo> <mainline> HEAD`
-lists the changed files) against the scope contract's handoff summary (S#
-items, repos allowed to change): every changed file must map to
-an in-scope item via the impl-doc, and its repo must be one
-the contract lists as changing. A change that turns out to be needed in
+Before each commit, after staging the step's files by name, check what the
+commit will add (`git -C <repo> diff --cached --name-only`) and what the
+branch already holds (`ses review-diff <repo> <mainline> HEAD` — committed
+work only, so it cannot see the step being committed) against the scope
+contract's handoff summary (S# items, repos allowed to change): every file
+must map to an in-scope item via the impl-doc, and its repo must be one the
+contract lists as changing. A change that turns out to be needed in
 another repo stops the loop and goes to the user as a scope amendment — not a
 quick fix in a repo nobody approved touching. Bugs or improvements you
 notice along the way go to PARKED.md — even one-line "harmless" fixes.
@@ -149,7 +151,9 @@ notice along the way go to PARKED.md — even one-line "harmless" fixes.
 ## 3. Test plan execution
 
 After the last step, run the full impl-doc test plan (unit, integration,
-regression) through `ses capture`, summary to `evidence/tests-<date>.txt`.
+regression) through `ses capture` with log names starting `tests-<date>-`
+— never a step's log name, whose hash is already committed — summary to
+`evidence/tests-<date>.txt`.
 Every acceptance criterion must reach PASS; failures loop back to the step
 loop.
 

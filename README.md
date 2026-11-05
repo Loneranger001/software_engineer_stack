@@ -14,10 +14,10 @@ flowchart LR
     G -->|design survived interrogation| D[/impl-plan/]
     D -->|impl doc approved| E[/implement/]
     E --> F[/deliver/]
-    F --> G[/retro/]
+    F --> R[/retro/]
 
-    CR[/change-request/] -.fast path.-> F
-    DOC[/document/] -.standalone.-> F
+    CR[/change-request/] -.fast path, delivers itself.-> R
+    DOC[/document/] -.standalone, delivers itself.-> OUT([deliverables])
     UND[/understand/] -.standalone; feeds.-> DOC
 ```
 
@@ -91,7 +91,7 @@ work/PROJ-123/                 (never committed — see "Keeping work/ out of gi
 ├── grill-log.md               # /grill — every scenario confronted and its verdict
 ├── impl-doc.md                # /impl-plan
 ├── evidence/                  # captured run outputs (summaries; raw logs in evidence/raw/)
-├── release-notes.md           # /deliver
+├── release-notes.md           # /deliver (a change request: /change-request §5)
 ├── deliverables/              # converted docx / pdf / Confluence outputs
 ├── ASSUMPTIONS.md             # proceed-and-log decisions awaiting gate ratification
 └── PARKED.md                  # out-of-scope findings logged, never acted on
@@ -146,7 +146,7 @@ Task workspaces never reach a repository or its remote — no setup needed:
 - **Multi-repo workspace:** `work/` sits in the folder holding the repos, outside all of them.
 - **Standalone repo:** `work/` sits inside the repo, and `ses new-task` adds `/work/` to that clone's `.git/info/exclude` — a local ignore list that is never committed or pushed, so your team's `.gitignore` stays untouched. An existing `.gitignore` entry of your own works just as well; if `work/` is already tracked, `ses new-task` warns you.
 - **Commits** stage the step's own files by name, never `git add -A`; `ses checkpoint trailer` refuses to produce a commit's evidence lines while any workspace file is staged.
-- **Before anything is pushed,** the `/deliver` scope audit runs `ses checkpoint verify`, which fails if any workspace file is on a task branch — and `/deliver` pushes only the task branches.
+- **Before anything is pushed,** `ses checkpoint verify` runs (in the `/deliver` scope audit, and in `/change-request` §5). It fails if any workspace file is on a task branch, and only the task branches are pushed.
 
 What does go into git is a hash: each checkpoint commit message ends with `Evidence-SHA256: <hash> evidence/<file>` lines, which prove later that the evidence wasn't altered — file names and hashes, never the content.
 

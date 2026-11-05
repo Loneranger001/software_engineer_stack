@@ -106,6 +106,21 @@ class CheckpointTest(unittest.TestCase):
         ev.unlink()
         self.assertIn("MISSING  evidence/step1-ddl.txt", self.cp("verify", self.ws).stdout)
 
+    def test_verify_ignores_other_tasks_trailers_inherited_from_mainline(self):
+        # an earlier task's checkpoint commit, merged to mainline before this branch was cut
+        git(self.repo, "checkout", "-q", "-")
+        (self.repo / "old.sql").write_text("x\n")
+        git(self.repo, "add", "-A")
+        git(self.repo, "commit", "-qm", "T-1 step 1: old work",
+            "-m", "Evidence-SHA256: " + "0" * 64 + " evidence/step1-old.txt")
+        git(self.repo, "checkout", "-q", "feature/T-7")
+        git(self.repo, "merge", "-q", "--ff-only", "-")
+        self.commit_step1()
+        r = self.cp("verify", self.ws)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("1 recorded evidence file(s), 0 problem(s)", r.stdout)
+        self.assertNotIn("step1-old", r.stdout)
+
     def test_unrecorded_evidence_is_a_warning(self):
         self.commit_step1()
         (self.ws / "evidence" / "research-volumes.txt").write_text("n=10\n")

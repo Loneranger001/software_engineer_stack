@@ -1,6 +1,6 @@
 ---
 name: deliver
-description: Package a finished task - scope audit, evidence bundle, release notes, document conversion to Word/PDF/Confluence, branch push. The final gate before handover. Use when implementation (or a document task) is complete.
+description: Package a finished full-pipeline task - scope audit, evidence bundle, release notes, document conversion to Word/PDF/Confluence, branch push. The final gate before handover. Use when implementation is complete. (A change request and a document task deliver themselves, in /change-request §5 and /document §4.)
 argument-hint: "[task-id]"
 ---
 
@@ -13,7 +13,7 @@ argument-hint: "[task-id]"
 > every `ses` below. If neither runs, stop and ask the user (README →
 > Install); never guess another path.
 
-Turn a finished implementation (or document task) into a delivered package:
+Turn a finished implementation into a delivered package:
 audited against scope, evidenced, and converted to the formats the user needs.
 
 ## 0. Preamble
@@ -22,9 +22,9 @@ audited against scope, evidenced, and converted to the formats the user needs.
    the matching entries; don't read the lesson files whole.
 2. Locate the workspace and gate on the prior stage:
    `ses status require <ws> implement=done`
-   (`<ws>` = `<workspace-root>/work/<id>`); for the document pipeline
-   (`ses status get <ws> pipeline`) gate on `fact-check=done` instead.
-   Non-zero exit = stop. Take `<work-repo>`,
+   (`<ws>` = `<workspace-root>/work/<id>`) — non-zero exit = stop. This is
+   the full pipeline's stage: a change request delivers itself
+   (/change-request §5), and so does a document task (/document §4). Take `<work-repo>`,
    `<workspace-root>`, and the changed repos with their branches from STATUS.md
    (`<root>/core/repo-resolution.md`) — handover paths and git
    operations use them, not the session cwd. A change spanning repos is
@@ -41,8 +41,7 @@ audited against scope, evidenced, and converted to the formats the user needs.
    an unratified guess.
 2. Run the audit procedure in `<root>/com.github.copilot/agents/scope-auditor.agent.md`
    with: the scope contract, each changed repo's path, mainline and branch
-   (the auditor reads the diff itself via `ses review-diff`) or the produced
-   documents,
+   (the auditor reads the diff itself via `ses review-diff`),
    PARKED.md, ASSUMPTIONS.md, and the evidence directory (it runs
    `ses checkpoint verify` against the hashes in the checkpoint commits) —
    delegated per `<root>/core/reviewers.md`.

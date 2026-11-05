@@ -27,7 +27,7 @@ PIPELINE_SKILLS = {
     "full": ["intake", "research", "func-design", "tech-design", "grill", "impl-plan", "implement",
              "deliver", "retro"],
     "change-request": ["change-request", "grill", "func-design", "retro"],
-    "document": ["document", "deliver"],
+    "document": ["document"],
     "understand": ["understand"],
     "func-design": ["func-design"],
 }

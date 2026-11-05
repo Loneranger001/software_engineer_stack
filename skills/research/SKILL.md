@@ -31,7 +31,8 @@ confidently, with every finding traceable to a source.
    below is relative to `<work-repo>`, never to your session's cwd.
 3. Read the contract's handoff summary
    (`ses handoff show <ws>/scope-contract.md`), plus its full
-   "Interfaces & objects expected to change" table — the one you expand. It
+   "Interfaces & objects expected to change" table — the one you expand —
+   and its Business terms table (the research targets for §1 step 5). It
    bounds the investigation: research serves the in-scope items; interesting
    adjacent findings go to PARKED.md.
 4. Unknowns follow `<root>/core/decision-protocol.md` —

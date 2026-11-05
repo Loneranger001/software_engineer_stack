@@ -23,7 +23,11 @@ fallback proves it parses and conforms. Every run produces an evidence file
 - Load applicable lessons:
   `ses lessons verify --lang <languages of the files>`.
 - Run every command below through `ses capture`:
-  `ses capture <evidence-dir> <file>-<check> --grep '<errors>' -- <command>`.
+  `ses capture <evidence-dir> <run>-<file>-<check> --grep '<errors>' -- <command>`,
+  where `<run>` is the caller's prefix: `step<N>` in /implement's step loop,
+  `tests-<date>` for its test plan, `cr` in /change-request. A name is never
+  reused once a commit holds its log's hash — the rerun would rewrite the
+  log and `ses checkpoint verify` would report it ALTERED.
   It keeps the full output in `<evidence-dir>/raw/` and prints exit code,
   line count, matching error lines, and the last 40 lines. That summary is
   what goes into the evidence file and your context. Open a raw log only to

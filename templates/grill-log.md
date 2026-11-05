@@ -4,16 +4,18 @@
 > and what happened to it. Produced by /grill between tech-design and
 > impl-plan. Verdicts: covered | gap-fixed | out-of-scope | ask-user →
 > answered | deferred. A testable gap-fixed or answered row #n becomes TDD
-> §7 row `G<n>`.
+> §7 row `G<n>` (change request: an acceptance criterion tagged `(grill #n)`).
 
-- TDD version grilled: tdd.md as of {date/commit}
+- Target: {tdd.md | analysis.md (change request)} as of {date}
 - Grilled: {date} — phase 2 rounds: {n}
-- TDD edits: {n} — fact-check {PASS | findings resolved}; re-approved {date, by whom | not needed}
+- Notes: {grilled an unapproved TDD at user request | authored in this session, fresh session declined | —}
+- Target edits: {n} — fact-check {PASS | findings resolved}; re-approved {date, by whom | not needed}
 
 ## Scenarios
 
-<!-- Upstream miss: the stage that should have caught this (research,
-     tech-design, intake) or `-` — /retro turns these into lessons. -->
+<!-- Upstream miss: the stage that should have caught this (intake,
+     research, func-design, tech-design, change-request) or `-` — /retro
+     turns these into lessons. -->
 | # | Category | Scenario (concrete, real objects) | Verdict | Answer / TDD ref | Upstream miss |
 |---|---|---|---|---|---|
 | 1 | data | {e.g. customers row with NULL currency_code on extract night} | {covered} | {tdd §4.2: fails the account loudly, per Q3} | {-} |
@@ -44,4 +46,8 @@
 
 | Scenario # | User's deferral (verbatim) | Landed in |
 |---|---|---|
-| {…} | {"accept the risk for v1, revisit with CR"} | tdd §11 risk R{n}; PARKED.md |
+| {…} | {"accept the risk for v1, revisit with CR"} | {tdd §11 row "<risk>" \| analysis.md Risks}; PARKED.md |
+
+## Close
+
+{grill done on {tdd.md | analysis.md}: {n} scenarios, {m} answered by user, {k} deferred}
