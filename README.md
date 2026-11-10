@@ -100,7 +100,7 @@ work/PROJ-123/                 (never committed — see "Keeping work/ out of gi
 └── PARKED.md                  # out-of-scope findings logged, never acted on
 ```
 
-A change request keeps `analysis.md` (impact analysis + mini contract) instead of the contract/TDD/impl doc; `/understand` keeps `interface-map.md`; `/document` keeps the document it writes.
+A change request keeps `analysis.md` (impact analysis + mini contract) instead of the contract/TDD/impl doc; `/understand` keeps `<interface>.interface-map.md`, named after the interface it maps; `/document` keeps the document it writes.
 
 **Who keeps which state.** The harness owns the *session*: conversation history, its own resume (`copilot --resume`, or reopening the chat session in VS Code), compaction, and in-session progress (todo/plan tools). The workspace owns the *task*: what was approved and when, what is in scope, what was assumed, what was built and proven. Nothing about the task lives only in chat, and nothing git or a stage document already records is duplicated into `STATUS.md` — it has no log and no step counter. A task started in the CLI resumes in VS Code, and vice versa.
 

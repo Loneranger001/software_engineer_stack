@@ -8,7 +8,10 @@
 <!-- Working map built by /understand. Lighter than an understanding-doc: it
      records what was verified and where, so explanations, Q&A, and later
      stages (/document, /change-request, /research, /func-design) build on it instead of
-     re-investigating. Same emphasis-by-type rules as understanding-doc.md. -->
+     re-investigating. Same emphasis-by-type rules as understanding-doc.md.
+     File name: <interface>.interface-map.md in the workspace, named after
+     the interface's outermost entry point (skills/understand/SKILL.md §1.3),
+     never the generic interface-map.md. -->
 
 ## 1. Identity
 

@@ -174,7 +174,7 @@ common forms:
      section; anything ambiguous becomes a Q#.
    - as-built — read the target code completely and trace one real flow
      end-to-end, error paths included. If /understand left an interface map
-     for it (`<workspace-root>/work/*/interface-map.md`), start from it — check its recorded
+     for it (`<workspace-root>/work/*/*interface-map.md`), start from it — check its recorded
      commit for staleness, then deepen rather than re-derive.
    - change — read the diff stat-first and file by file:
      `ses review-diff <repo> <change-base> <change-head>`, then

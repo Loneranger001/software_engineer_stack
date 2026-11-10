@@ -15,8 +15,8 @@ argument-hint: "<interface/integration name, entry point, or question about it>"
 
 The deliverable is understanding, not a document: a layered, source-referenced
 explanation the user can interrogate until their mental model matches the code.
-Everything learned lands in an **interface map** (`<ws>/interface-map.md`)
-that later stages — /document, /change-request, /research, /func-design — reuse instead of
+Everything learned lands in an **interface map** named after the interface
+(`<ws>/<interface>.interface-map.md`, §1.3) that later stages — /document, /change-request, /research, /func-design — reuse instead of
 re-investigating.
 
 The defining rule is shared with /document: explain what the code DOES, not
@@ -30,15 +30,16 @@ what anyone (comments, wikis, the user, folklore) believes it does.
    `<root>/core/repo-resolution.md` — with a parent folder as
    cwd, ask which repo the interface lives in; enumerate the rest with
    `ses list-repos <repos-folder>` and confirm
-   the list (§3 maps dependencies across all of them) — then create the
-   workspace:
+   the list (§3 maps dependencies across all of them). Before creating a
+   workspace, check whether a previous run already mapped this interface: an
+   existing `<workspace-root>/work/*/*interface-map.md` whose file name or
+   identity section names it. If one does, offer to resume/refresh it under
+   that task's id instead of starting over — check its recorded commit for
+   staleness first. Otherwise create the workspace:
    `ses new-task <task-id> auto understand <work-repo> <repo-set>`.
    Stage state is read and recorded with
    `ses status` (`<ws>` =
    `<workspace-root>/work/<id>`).
-   If a previous run already mapped this interface (an existing
-   `<workspace-root>/work/*/interface-map.md` naming it), offer to resume/refresh that map
-   instead of starting over — check its recorded commit for staleness first.
 3. Agree the target and intent in one or two sentences: which interface, and
    what the user is trying to learn — general orientation, a specific
    question, or reconnaissance before a change. Record it:
@@ -70,8 +71,18 @@ what anyone (comments, wikis, the user, folklore) believes it does.
    points and error contract, a pipeline's lineage and restartability). The
    SAME type always gets the SAME emphasis, so explanations of different
    interfaces stay comparable.
-3. Start `<ws>/interface-map.md` from
-   `<root>/templates/interface-map.md` and fill the identity
+3. Name the map after the interface §1.1 pinned down:
+   `<ws>/<interface>.interface-map.md`. `<interface>` is the name of its
+   outermost entry point as the code spells it — the scheduler job if there
+   is one, else the script (without extension), package, or endpoint the
+   trigger calls — lowercased, every character outside `a-z0-9_-` replaced
+   by `-`, leading and trailing `-` trimmed (`PKG_BALANCE` →
+   `pkg_balance.interface-map.md`, `run_balance_extract.ksh` →
+   `run_balance_extract.interface-map.md`). Never a generic name such as
+   `interface-map.md`: the file name is how the user and later tasks tell
+   one map from another. Record it —
+   `ses status field <ws> map-file <interface>.interface-map.md` — start the
+   file from `<root>/templates/interface-map.md`, and fill the identity
    section now. `ses status set <ws> classify=done`.
 
 ## 2. Trace one real flow end-to-end
@@ -86,7 +97,7 @@ describes behaviour.
    `$SES_PY`), RUN things to confirm behaviour — queries, `--help`, dry-run
    modes, log inspection — and capture outputs to `evidence/`. Never execute
    anything with side effects on shared data.
-3. Build the fact table in interface-map.md as you go: claim → source
+3. Build the fact table in the interface map as you go: claim → source
    (`<repo>:<path>:<line>` / query / run output). It is both the backbone of every later
    explanation and the resume point if the session dies.
 4. Error paths are part of the flow, not an appendix: how failure surfaces
@@ -118,7 +129,7 @@ why they belong on the map.
    in each repo it was run against. Qualify nodes and references with their
    repo (`<repo>:<path>:<line>`), and group the diagram's nodes by repo so a
    cross-repo dependency is visible as one.
-5. Draw the mermaid dependency map in interface-map.md (upstream / interface /
+5. Draw the mermaid dependency map in the interface map (upstream / interface /
    downstream subgraphs, labelled edges). Diagram and tables must agree in
    both directions — a node without a table row, or vice versa, is a gap.
 
@@ -135,6 +146,9 @@ stops at the map never needs it. If the user opened with a specific question,
 
 ## Fault tolerance
 
-interface-map.md is written incrementally, fact table first. On interruption,
-the next run reads STATUS.md and the map, and continues from the first stage
-gate still pending — re-verifying nothing that already carries a source.
+The interface map is written incrementally, fact table first. On
+interruption, the next run reads STATUS.md and the map
+(`ses status get <ws> map-file`), and continues from the first stage gate
+still pending — re-verifying nothing that already carries a source. A
+workspace with no `map-file` field predates named maps: rename its
+`interface-map.md` per §1.3 and record the field before continuing.

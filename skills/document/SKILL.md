@@ -49,7 +49,7 @@ skill documents what the code DOES, not what anyone believes it does.
 1. Read the target code completely: entry points, config, callers, data
    objects, error paths, logs. For an interface: trace one real flow
    end-to-end before writing anything. If a previous /understand run left an
-   interface map for this target (`<workspace-root>/work/*/interface-map.md`), start from it —
+   interface map for this target (`<workspace-root>/work/*/*interface-map.md`), start from it —
    check its recorded commit for staleness, then deepen rather than re-derive
    (its fact table seeds yours).
    - For an **understanding-doc**, classify the interface type first (batch

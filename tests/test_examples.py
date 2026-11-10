@@ -1,4 +1,5 @@
 """Keep shipped examples and split skills in the current format."""
+import re
 import subprocess
 import sys
 import unittest
@@ -37,6 +38,23 @@ class UnderstandSplitTest(unittest.TestCase):
             self.assertIn(heading, explain)
             self.assertNotIn(heading, skill)
         self.assertIn("explain=done", explain)
+
+
+class InterfaceMapNameTest(unittest.TestCase):
+    """The interface map is named after the interface, never a generic interface-map.md."""
+
+    def test_no_skill_uses_the_generic_map_name(self):
+        generic = re.compile(r"(<ws>|work/\*)/interface-map\.md")
+        hits = [str(f.relative_to(ROOT)) for f in sorted((ROOT / "skills").rglob("*.md"))
+                if generic.search(f.read_text())]
+        self.assertEqual(hits, [])
+
+    def test_understand_names_and_records_the_map(self):
+        skill = (ROOT / "skills" / "understand" / "SKILL.md").read_text()
+        self.assertIn("<ws>/<interface>.interface-map.md", skill)
+        self.assertIn("ses status field <ws> map-file", skill)
+        explain = (ROOT / "skills" / "understand" / "explain.md").read_text()
+        self.assertIn("ses status get <ws> map-file", explain)
 
 
 if __name__ == "__main__":

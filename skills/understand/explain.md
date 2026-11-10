@@ -41,14 +41,16 @@ of the exercise, not an interruption.
 - Business meanings confirmed along the way that hold in every repo go into
   `<workspace-root>/work/domain-glossary.md` (marked `from-code`, template:
   `<root>/templates/domain-glossary.md`) so the next task
-  doesn't re-derive them; a repo-specific meaning stays in interface-map.md.
+  doesn't re-derive them; a repo-specific meaning stays in the interface map.
 - Findings that suggest work — bugs, dead code, risky patterns — go to
   PARKED.md and are mentioned to the user; never act on them here.
 
 ## 6. Close and hand off
 
-1. Make sure interface-map.md reflects everything learned, including Q&A
-   discoveries, and log remaining open questions in it.
+1. Make sure the interface map (`ses status get <ws> map-file`) reflects
+   everything learned, including Q&A discoveries, and log remaining open
+   questions in it. Give the user its full path — the file is named after
+   the interface, so that path is how they find it again.
 2. Offer the natural next steps where they fit — a formal
    `/document understanding-doc` (its analyze stage reuses this map), a
    `/change-request`, or a full `/intake` — but don't push: understanding

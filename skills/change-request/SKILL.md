@@ -46,7 +46,7 @@ local ref", never skipped silently).
 1. Read the target interface fully at `origin/<mainline>` (spec and body /
    whole script, not just the lines to change —
    `git -C <repo> show origin/<mainline>:<path>`). If /understand left an interface map that names it
-   (`<workspace-root>/work/*/interface-map.md`), start from it — check its
+   (`<workspace-root>/work/*/*interface-map.md`), start from it — check its
    recorded commit for staleness, then deepen rather than re-derive.
 2. Find ALL callers and dependents **in every repo of `<repo-set>`** (from
    STATUS.md, else enumerate with
