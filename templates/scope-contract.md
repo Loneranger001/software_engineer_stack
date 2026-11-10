@@ -53,11 +53,11 @@
 
 <!-- Analysis scope vs write scope. See core/repo-resolution.md. -->
 <!-- Analyzed = searched for callers/dependents. Changed = may be modified. -->
-| Repo | In analysis scope | May change | Note |
-|---|---|---|---|
-| {repo-a} | yes | yes (primary) | {holds the task workspace} |
-| {repo-b} | yes | no | {consumer — read-only context} |
-| {repo-c} | no | no | {excluded by {user} on {date}: {reason}} |
+| Repo | Mainline | In analysis scope | May change | Note |
+|---|---|---|---|---|
+| {repo-a} | {main} | yes | yes (primary) | {holds the task workspace} |
+| {repo-b} | {master} | yes | no | {consumer — read-only context} |
+| {repo-c} | {—} | no | no | {excluded by {user} on {date}: {reason}} |
 
 ## Interfaces & objects expected to change
 

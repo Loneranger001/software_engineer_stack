@@ -191,7 +191,7 @@ common forms:
    folklore: entry points, callers and schedules (§3 actors), data read and
    changed (§7), outputs and their consumers (§8), error paths (§9). Search
    every repo in `<repo-set>` with
-   `ses search --ws <ws> -- <patterns>` (counts first) and
+   `ses search --ws <ws> --ref mainline -- <patterns>` (counts first) and
    keep its per-repo rows in evidence — "no other consumer" needs the search
    that found none. Attached mode reuses research's rows while a repo's sha
    is unchanged.

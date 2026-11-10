@@ -64,7 +64,7 @@ skill documents what the code DOES, not what anyone believes it does.
      doc-format "..."`), not into the team's rules files.
    - Build the **complete dependency map** both directions (upstream feeds,
      downstream consumers, associated packages/scripts, schedules, config) —
-     searched with `ses search --ws <ws> -- <patterns>` (every
+     searched with `ses search --ws <ws> --ref mainline -- <patterns>` (every
      repo, counts first) and its per-repo rows recorded so the map is
      reproducible. "Nothing depends on this" requires showing the search
      that found nothing. Then

@@ -75,6 +75,31 @@ if [ -n "$REPO_SET" ]; then
 fi
 REPOS_FIELD=$(printf '%s\n' "$ANALYZED" | sed '/^$/d' | paste -sd, - | sed 's/,/, /g')
 
+# each repo's mainline — the branch it releases from — when git can tell:
+# origin/HEAD, else origin's only one of main/master. Recorded per repo, so
+# analysis (ses search --ref mainline) and branch setup (ses worktree add)
+# never assume one name for all repos. Unknown ones are listed for the user.
+detect_mainline() {
+  m=$(git -C "$1" symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null) && { echo "${m#origin/}"; return 0; }
+  found=""; n=0
+  for b in main master; do
+    if git -C "$1" show-ref --verify --quiet "refs/remotes/origin/$b" 2>/dev/null; then found=$b; n=$((n+1)); fi
+  done
+  if [ "$n" -eq 1 ]; then echo "$found"; fi
+  return 0
+}
+ALL_REPOS=$(printf '%s\n%s\n' "$ABS_REPO" "$ANALYZED" | sed '/^$/d' | LC_ALL=C sort -u)
+MAINLINES=$(printf '%s\n' "$ALL_REPOS" | while IFS= read -r r; do
+  b=$(detect_mainline "$r")
+  if [ -n "$b" ]; then printf -- '- mainline.%s: %s\n' "$(basename "$r")" "$b"; fi
+done)
+UNKNOWN_MAINLINE=$(printf '%s\n' "$ALL_REPOS" | while IFS= read -r r; do
+  if [ -z "$(detect_mainline "$r")" ]; then printf ' %s' "$(basename "$r")"; fi
+done)
+MAINLINES_BLOCK=""
+if [ -n "$MAINLINES" ]; then MAINLINES_BLOCK="$MAINLINES
+"; fi
+
 DIR="$ABS_ROOT/work/$TASK_ID"
 
 # Task workspaces never go into git. When work/ lands inside a repository (a
@@ -194,7 +219,7 @@ cat > "$DIR/STATUS.md" <<EOF
 - work-repo: $ABS_REPO
 - workspace-root: $ABS_ROOT
 - repos-analyzed: $REPOS_FIELD
-
+${MAINLINES_BLOCK}
 ## Stage gates
 
 $STAGES
@@ -226,4 +251,11 @@ with an open entry is a scope-audit finding.
 EOF
 
 echo "workspace root: $ABS_ROOT ($ROOT_FROM)"
+if [ -n "$MAINLINES" ]; then
+  printf 'mainlines (from origin; confirm with the user, correct with ses status field <ws> mainline.<repo> <branch>):\n%s\n' "$MAINLINES"
+fi
+if [ -n "$UNKNOWN_MAINLINE" ]; then
+  echo "mainline unknown for:$UNKNOWN_MAINLINE — ask the user and record each: ses status field <ws> mainline.<repo> <branch>"
+fi
+# last line, always: callers read the workspace path from it
 echo "created $DIR"

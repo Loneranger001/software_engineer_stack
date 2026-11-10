@@ -3,7 +3,7 @@
 Run before marking the implement stage done.
 
 - [ ] All impl-doc steps executed in order, each with its verification captured to evidence/
-- [ ] Work happened on the task branch in its own worktree (`ses worktree add`, cut from `origin/<mainline>`; the repo's own checkout untouched), with one checkpoint commit per step (never batched), plus any `step <N>: fix` commits and one `tests:` commit for the test-plan evidence
+- [ ] Work happened on the task branch in its own worktree (`ses worktree add`, cut from `origin/<mainline>`; the repo's own checkout untouched), with one checkpoint commit per step (never batched), plus any `step <N>: fix` commits, a `tests:` commit for the test-plan evidence and one more for each re-run after a fix — every subject from `ses checkpoint subject`, so the repo's commit-msg hook accepts it
 - [ ] /verify-code ran for every changed file, in live mode where the environment was reachable; fallback mode is recorded in the evidence when not
 - [ ] All tests in the impl-doc test plan pass; failures are fixed or explicitly accepted by the user
 - [ ] Every PASS names its `Expected from` — hand-derived, spec or fixture, never the code under test (`ses coverage` counts a PASS without one as NO-ORACLE)

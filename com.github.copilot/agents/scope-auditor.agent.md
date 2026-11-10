@@ -52,9 +52,13 @@ only (git diff/log/show, ls) — never commands that modify anything.
    `resolved-by-user` — an `open` entry at delivery is a finding; also spot-check that ratified
    assumptions promoted into the contract/TDD actually appear there.
 7. Check commit messages reference the task id and, in the full pipeline,
-   that `<task-id> step <N>` commits match the impl-doc's steps (a
-   `<task-id> step <N>: fix …` commit belongs to step N; one
-   `<task-id> tests:` commit records the test-plan evidence).
+   that the step commits match the impl-doc's steps. A subject may carry the
+   id once or twice, with or without a colon, to fit the repo's commit-msg
+   hook (`ses checkpoint subject`): `<task-id> step <N>: …`,
+   `<task-id>: step <N>: …` and `<task-id>: <task-id> step <N>: …` are the
+   same step. A `… step <N>: fix …` commit belongs to step N. One or more
+   `<task-id> tests:` commits record the test-plan evidence — the first run,
+   then each re-run after a fix; for each T# the latest result wins.
 8. Run `ses checkpoint verify <workspace> --delivery`.
    Recorded evidence that is MISSING or ALTERED is a finding: the evidence a
    PASS rests on is no longer the evidence that was captured. A workspace

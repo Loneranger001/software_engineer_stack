@@ -101,9 +101,35 @@ class WorktreeTest(Layout):
         self.assertEqual((self.g1 / "README").read_text(), "edited, not committed\n")
 
     def test_add_needs_a_base_the_user_named(self):
+        status = self.ws / "STATUS.md"
+        status.write_text(status.read_text().replace("- mainline.g1: main\n", ""))
         r = self.wt("add", self.ws, "g1", "feature/T-7")
         self.assertEqual(r.returncode, 1)
         self.assertIn("ask the user", r.stderr)
+
+    def test_new_task_records_each_mainline_and_add_uses_it(self):
+        self.assertEqual(self.field("mainline.g1"), "main")      # from origin, at scaffold time
+        self.assertEqual(self.field("mainline.g2"), "main")
+        r = self.wt("add", self.ws, "g1", "feature/T-7")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertEqual(self.field("base.g1"), "origin/main")
+
+    def test_search_mainline_resolves_each_repo(self):
+        # g2 releases from master: one --ref for all repos used to report it NOT SEARCHED
+        git(self.g2, "push", "-q", "origin", "main:master")
+        py(SCRIPTS / "status.py", "field", self.ws, "mainline.g2", "master")
+        r = py(SCRIPTS / "xsearch.py", "--ws", self.ws, "--ref", "mainline", "--", "g1|g2")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("## g1 (origin/main@", r.stdout)
+        self.assertIn("## g2 (origin/master@", r.stdout)
+        self.assertIn("| g2 | origin/master@", r.stdout)
+        self.assertIn("`git -C g2 grep", r.stdout)               # rows name the repo, not its path
+        status = self.ws / "STATUS.md"
+        status.write_text(status.read_text().replace("- mainline.g2: master\n", ""))
+        git(self.g2, "remote", "remove", "origin")
+        r = py(SCRIPTS / "xsearch.py", "--ws", self.ws, "--ref", "mainline", "--", "g1")
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("g2: NOT SEARCHED — no mainline known for g2", r.stdout)
 
     def test_add_is_idempotent_and_remove_keeps_the_branch(self):
         self.assertEqual(self.wt("add", self.ws, "g1", "feature/T-7", "--base", "main").returncode, 0)

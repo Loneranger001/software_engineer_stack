@@ -72,9 +72,10 @@ committed before the next begins.
    — whichever the steps need): tell the user which steps will run in
    static-fallback mode before step 1, not after it.
 2. For each repo the impl doc changes, check the task branch out in its own
-   worktree: `ses worktree add <ws> <repo-name> <branch> --base <mainline>`
-   (`<mainline>`: the branch the repo releases from; ask when it is not
-   obvious). It fetches and cuts the branch from `origin/<mainline>` — never
+   worktree: `ses worktree add <ws> <repo-name> <branch>` — `--base`
+   defaults to the recorded `mainline.<repo>`; pass `--base <mainline>` only
+   when none is recorded (ask the user which branch the repo releases
+   from, and record it as `mainline.<repo>`). It fetches and cuts the branch from `origin/<mainline>` — never
    from whatever the repo has checked out, which may be another task's
    branch — and records `branch.<repo>`, `base.<repo>` and `worktree.<repo>`.
    The repo's own checkout is never switched, so the user's uncommitted
@@ -85,14 +86,16 @@ committed before the next begins.
    commit, verify recipe and test run for that repo happens in `<wt>`. Every
    later `<mainline>` — the scope guard, the review gate, /deliver, /retro —
    is `ses status get <ws> base.<repo-name>`, never a guess.
-4. **Commit-message preflight**, before the first checkpoint commit in each
-   repo: inspect its `commit-msg` hook (`git -C <wt> config core.hooksPath`,
-   else `.git/hooks/commit-msg`; also a `commit-msg` stage in
-   `.pre-commit-config.yaml`) and adopt its exact format. Recent history and
-   framework examples are not enough — the hook is what rejects the commit.
-   Fit the checkpoint message into that format keeping the
-   `<task-id> step <N>` token intact (resume greps for it). On a resume, the
-   branch's existing checkpoint commits show the format already in use.
+4. **Commit subjects come from the hook.** Every checkpoint subject is
+   printed by `ses checkpoint subject <ws> <repo-name> <N> "<desc>"` (`tests`
+   instead of `<N>` for the test-plan commit). It runs the repo's own
+   `commit-msg` hook (core.hooksPath honoured) against the forms
+   `ses checkpoint resume` can read — `<task-id> step <N>: …`,
+   `<task-id>: step <N>: …`, `<task-id>: <task-id> step <N>: …` — and prints
+   the first one the hook accepts. Exit 3 = the hook rejects all three: show
+   the user its message and ask how checkpoint commits may be written. A
+   `commit-msg` stage in `.pre-commit-config.yaml` that is not installed as a
+   hook is only warned about: check the subject against it by hand.
 5. Repos in `<repo-set>` that the scope contract does NOT list as changing get
    no branch, no worktree and no commits — they were analysis scope, not
    write scope. `ses checkpoint verify` fails on a task commit in any of them.
@@ -134,8 +137,8 @@ For each impl-doc step N, in order:
 5. **Checkpoint commit**: stage the step's own files by name
    (`git -C <wt> add <files>` — never `git add -A` or `git add .`, which
    would sweep in `work/` when it sits inside the repo), then `git commit`
-   the step **in the step's worktree** with message `<task-id> step <N>: <desc>`
-   (inside the hook format from §1), ending with the evidence hashes as
+   the step **in the step's worktree** with the subject
+   `ses checkpoint subject <ws> <repo-name> <N> "<desc>"` prints (§1 step 4), ending with the evidence hashes as
    their own paragraph — `ses checkpoint trailer <ws>
    evidence/step<N>-<desc>.txt evidence/raw/<its logs>` prints them
    (`git commit -m "<subject>" -m "<trailer lines>"`) and refuses while any
@@ -177,12 +180,13 @@ judge — a T# that could not run is NOT-RUN, never left out.
 
 - A failure loops back: fix it in the step whose files it touches,
   re-verify (log names starting `step<N>-fix-`), and commit it as
-  `<task-id> step <N>: fix <what>` with its own evidence and trailer. Then
-  re-run the affected T#s under a new `tests-<date>-` name.
+  `step <N>: fix <what>` (subject from `ses checkpoint subject`) with its own evidence and trailer. Then
+  re-run the affected T#s under a new `tests-<date>-` name and record that
+  re-run in its own `tests:` commit, as below — the latest result per T# wins.
 - Once all pass, record the test-plan evidence like a step: an empty commit
   on `<work-repo>`'s task branch (else the first changed repo's),
-  `git commit --allow-empty -m "<task-id> tests: test plan <date>" -m
-  "<trailer>"`, with the trailer from `ses checkpoint trailer <ws>
+  `git commit --allow-empty -m "<subject>" -m "<trailer>"`, the subject from
+  `ses checkpoint subject <ws> <repo-name> tests "test plan <date>"` and the trailer from `ses checkpoint trailer <ws>
   evidence/tests-<date>.txt <its raw logs>` — then run `ses coverage <ws>`
   (a result counts only once its evidence hash is committed).
 
@@ -194,7 +198,7 @@ judge — a T# that could not run is NOT-RUN, never left out.
    judged against that repo's own rules files) — delegated per `<root>/core/reviewers.md`.
    Keep each pass's report:
    `ses review record <ws> code-reviewer <repo-name> --mode <mode> <report>`.
-   Resolve findings — each fix committed as `<task-id> step <N>: fix <what>`
+   Resolve findings — each fix committed as step `<N>`'s `fix <what>` (subject from `ses checkpoint subject`)
    for the step whose files it touches, re-verified with its own evidence
    and trailer, as in §3 —
    or record a conscious waiver (with the user for anything non-trivial).

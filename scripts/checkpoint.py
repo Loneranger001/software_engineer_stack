@@ -3,6 +3,8 @@
 
 Usage:
     checkpoint.py resume  <ws>               is it safe to continue from the recorded state?
+    checkpoint.py subject <ws> <repo-name> <N | tests> <description>
+                                             a checkpoint subject the repo's commit-msg hook accepts
     checkpoint.py trailer <ws> <file>...     Evidence-SHA256 lines for a checkpoint commit
     checkpoint.py verify  <ws> [--delivery]  do the recorded evidence hashes still match?
 
@@ -11,6 +13,13 @@ come from STATUS.md `branch.<repo-name>` fields; a repo name resolves to the
 STATUS work-repo or repos-analyzed path with that basename. A repo with a
 `worktree.<repo-name>` field (made by `ses worktree add`) is checked out
 there: resume and trailer look at that worktree, not the repo's own checkout.
+
+subject — prints the first checkpoint subject that the repo's own commit-msg
+  hook accepts (core.hooksPath honoured; the task worktree is the cwd), trying
+  `<T> step <N>: <d>`, `<T>: step <N>: <d>`, `<T>: <T> step <N>: <d>` — or the
+  same with `tests:` for the test-plan commit. Every form is one `resume`
+  parses (`<T>[:] step <N>`). No hook → the first form. Exit 3 when the hook
+  rejects all three: ask the user how checkpoint commits may be written.
 
 resume — per changed repo: recorded vs checked-out branch, the last
   `<task-id> step <N>` checkpoint commit (the commits are the step record —
@@ -53,6 +62,7 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -60,6 +70,11 @@ from status import Status, StatusError, resolve  # noqa: E402
 
 TRAILER_RE = re.compile(r"^Evidence-SHA256:\s*([0-9a-f]{64})\s+(\S.*?)\s*$", re.M)
 NEEDS_DECISION = 3
+
+
+def step_pattern(task: str) -> re.Pattern[str]:
+    """`<task> step <N>`, also as `<task>: step <N>` — the form a `KEY-N: text` commit-msg hook allows."""
+    return re.compile(rf"(?<![\w-]){re.escape(task)}:?\s+step\s+(\d+)\b")
 
 
 def git(repo: Path, *args: str) -> str:
@@ -88,6 +103,24 @@ def all_repos(st: Status) -> dict[str, Path]:
     if "work-repo" in st.fields:
         candidates.append(Path(st.field("work-repo")))
     return {p.name: p for p in candidates}
+
+
+def detect_mainline(repo: Path) -> str | None:
+    """The branch origin/HEAD points to; else origin's only one of main/master; else None (ask the user)."""
+    r = subprocess.run(["git", "-C", str(repo), "symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD"],
+                       capture_output=True, text=True)
+    if r.returncode == 0 and r.stdout.strip().startswith("origin/"):
+        return r.stdout.strip()[len("origin/"):]
+    have = [b for b in ("main", "master")
+            if subprocess.run(["git", "-C", str(repo), "show-ref", "--verify", "--quiet", f"refs/remotes/origin/{b}"],
+                              capture_output=True).returncode == 0]
+    return have[0] if len(have) == 1 else None
+
+
+def mainline(st: Status, name: str) -> str | None:
+    """The mainline recorded for repo <name> (STATUS mainline.<name>), or None."""
+    f = f"mainline.{name}"
+    return st.field(f) if f in st.fields else None
 
 
 def checkout(st: Status, name: str, repo: Path) -> Path:
@@ -155,7 +188,7 @@ def cmd_resume(ws_arg: str) -> int:
         print("no branch.<repo> recorded — first run: start at branch setup (§1)")
         return 0
     task = st.field("task-id")
-    step_re = re.compile(rf"\b{re.escape(task)} step (\d+)\b")
+    step_re = step_pattern(task)
     steps = impl_steps(ws)
     others = other_tasks_branches(ws, st)
     last = 0
@@ -289,6 +322,50 @@ def cmd_trailer(ws_arg: str, files: list[str]) -> int:
     return 0
 
 
+def commit_msg_hook(co: Path) -> Path | None:
+    """The commit-msg hook git would run in checkout co (core.hooksPath honoured), if executable."""
+    rel = git(co, "rev-parse", "--git-path", "hooks/commit-msg").strip()
+    hook = Path(rel) if os.path.isabs(rel) else co / rel
+    return hook if hook.is_file() and os.access(hook, os.X_OK) else None
+
+
+def cmd_subject(ws_arg: str, name: str, step: str, desc: str) -> int:
+    ws, st = load(ws_arg)
+    repos = all_repos(st)
+    if name not in repos:
+        raise StatusError(f"no repo named '{name}' among work-repo / repos-analyzed ({', '.join(sorted(repos))})")
+    if not (step.isdigit() or step == "tests"):
+        raise StatusError("the step is a number, or `tests` for the test-plan commit")
+    task = st.field("task-id")
+    co = checkout(st, name, repos[name])
+    kind = f"step {step}:" if step.isdigit() else "tests:"
+    forms = [f"{task} {kind} {desc}", f"{task}: {kind} {desc}", f"{task}: {task} {kind} {desc}"]
+    hook = commit_msg_hook(co)
+    if hook is None:
+        precommit = co / ".pre-commit-config.yaml"
+        if precommit.is_file() and "commit-msg" in precommit.read_text():
+            print(f"warning: {name}: .pre-commit-config.yaml has a commit-msg stage that is not installed "
+                  f"as a hook here — check the subject against it by hand", file=sys.stderr)
+        print(forms[0])
+        return 0
+    tried = []
+    for form in forms:
+        with tempfile.NamedTemporaryFile("w", suffix=".msg", delete=False) as f:
+            f.write(form + "\n")
+        try:
+            r = subprocess.run([str(hook), f.name], cwd=co, capture_output=True, text=True)
+        finally:
+            os.unlink(f.name)
+        if r.returncode == 0:
+            print(form)
+            return 0
+        tried.append(f"  {form!r}: {(r.stderr or r.stdout).strip() or f'exit {r.returncode}'}")
+    print(f"ASK THE USER — {name}: its commit-msg hook ({hook}) rejects every checkpoint subject "
+          f"`ses checkpoint resume` can read:", file=sys.stderr)
+    print("\n".join(tried), file=sys.stderr)
+    return NEEDS_DECISION
+
+
 def task_token(task: str) -> re.Pattern[str]:
     """The task id as a whole token: T-1 matches "T-1 step 2" but not "T-12" or "T-1-hotfix"."""
     return re.compile(rf"(?<![\w-]){re.escape(task)}(?![\w-])")
@@ -382,12 +459,16 @@ def cmd_verify(ws_arg: str, delivery: bool = False) -> int:
 
 
 def main(argv: list[str]) -> int:
-    if len(argv) < 2 or argv[0] not in ("resume", "trailer", "verify"):
+    if len(argv) < 2 or argv[0] not in ("resume", "subject", "trailer", "verify"):
         print(__doc__)
         return 1
     cmd, ws, rest = argv[0], argv[1], argv[2:]
     if cmd == "resume":
         return cmd_resume(ws)
+    if cmd == "subject":
+        if len(rest) < 3:
+            raise StatusError("usage: subject <ws> <repo-name> <N | tests> <description>")
+        return cmd_subject(ws, rest[0], rest[1], " ".join(rest[2:]))
     if cmd == "trailer":
         return cmd_trailer(ws, rest)
     if rest not in ([], ["--delivery"]):

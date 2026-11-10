@@ -114,7 +114,7 @@ why they belong on the map.
 2. **Downstream**: what consumes or depends on it — grep for its outputs,
    its package/proc names, its file names, its table writes.
 3. **Associated objects**: wrappers, shared packages, DDL, monitoring hooks.
-4. Search with `ses search --ws <ws> -- <patterns>` (counts
+4. Search with `ses search --ws <ws> --ref mainline -- <patterns>` (counts
    first, every repo, then open the hits that matter) and record its per-repo
    rows — command and sha — so the map is reproducible
    — "nothing depends on this" requires showing the search that found nothing,
