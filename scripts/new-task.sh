@@ -101,6 +101,10 @@ if [ -n "$MAINLINES" ]; then MAINLINES_BLOCK="$MAINLINES
 "; fi
 
 DIR="$ABS_ROOT/work/$TASK_ID"
+# the framework version that scaffolded the task: rules added later (e.g. the
+# 0.16 `Expected from` oracle) apply strictly only to tasks begun under them
+SES_VERSION=$(sed -n 's/^[[:space:]]*"version":[[:space:]]*"\([^"]*\)".*/\1/p' "$HERE/../plugin.json" 2>/dev/null | head -n 1)
+[ -n "$SES_VERSION" ] || SES_VERSION=unknown
 
 # Task workspaces never go into git. When work/ lands inside a repository (a
 # standalone repo, or a parent folder that is itself a repo), exclude it there
@@ -216,6 +220,7 @@ cat > "$DIR/STATUS.md" <<EOF
 - task-id: $TASK_ID
 - pipeline: $PIPELINE
 - created: $(date -u +%Y-%m-%d)
+- ses-version: $SES_VERSION
 - work-repo: $ABS_REPO
 - workspace-root: $ABS_ROOT
 - repos-analyzed: $REPOS_FIELD

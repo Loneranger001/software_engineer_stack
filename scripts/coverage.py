@@ -30,7 +30,10 @@ PARTIAL: the code parsed, it did not run. A PASS needs an `Expected from`
 cell naming where its expected value came from (hand-derived, spec, fixture,
 contract…); a PASS without one, or whose expectation was computed by the code
 under test, is NO-ORACLE — a test that re-runs the implementation's own logic
-agrees with it whether it is right or not. A result counts only from an
+agrees with it whether it is right or not. A task scaffolded before 0.16.0
+(no `ses-version` in STATUS.md, or an older one) keeps a PASS whose Result
+table has no `Expected from` column at all, flagged as legacy: its evidence
+is hashed, so the column cannot be added afterwards. A result counts only from an
 evidence file whose hash a task commit recorded (ses checkpoint trailer) and
 that still matches it; otherwise the row is UNRECORDED.
 
@@ -113,7 +116,15 @@ def cr_rows(ws: Path) -> list[str]:
     return rows
 
 
-def results(ws: Path, recorded: dict[str, str]) -> dict[str, tuple[str, str, bool]]:
+def strict_oracle(st) -> bool:
+    """Whether the `Expected from` rule binds this task: scaffolded by 0.16.0 or later."""
+    if "ses-version" not in st.fields:
+        return False
+    m = re.match(r"^(\d+)\.(\d+)", st.field("ses-version"))
+    return not m or (int(m.group(1)), int(m.group(2))) >= (0, 16)
+
+
+def results(ws: Path, recorded: dict[str, str], strict: bool = True) -> dict[str, tuple[str, str, bool]]:
     """{T# or row ID: (outcome, evidence file, recorded)} — the latest result for each."""
     ev = ws / "evidence"
     files = []
@@ -138,7 +149,7 @@ def results(ws: Path, recorded: dict[str, str]) -> dict[str, tuple[str, str, boo
                 outcome = re.sub(r"[-_ ]", "-", m.group(1))
                 if outcome == "PASS" and mode is not None and mode < len(r) and "static" in r[mode].lower():
                     outcome = "PARTIAL"
-                elif outcome == "PASS":
+                elif outcome == "PASS" and (exp is not None or strict):
                     source = r[exp].strip(" `*") if exp is not None and exp < len(r) else ""
                     if source.lower() in ("", "-", "—", "n/a", "none") or SELF_ORACLE.search(source):
                         outcome = "NO-ORACLE"
@@ -168,7 +179,8 @@ def main(argv: list[str]) -> int:
     if plan and pipeline != "full":
         print(f"coverage {task} ({pipeline}): --plan checks a full-pipeline test plan; nothing to plan here")
         return 0
-    res = {} if plan else results(ws, recorded_evidence(ws, st))
+    strict = strict_oracle(st)
+    res = {} if plan else results(ws, recorded_evidence(ws, st), strict)
     missing: dict[str, str] = {}
     if pipeline == "full":
         rows = tdd_rows(ws)
@@ -222,6 +234,9 @@ def main(argv: list[str]) -> int:
     passed = len(rows) - len(unmet) - len(waived)
     print(f"coverage {task} ({pipeline}): {len(rows)} row(s) — {passed} PASS, {len(waived)} WAIVED, "
           f"{len(unmet)} not met")
+    if not strict:
+        print("note: a task begun before 0.16.0 — a Result table without an `Expected from` column still counts; "
+              "new evidence should carry it")
     print("\n".join(lines))
     if waived:
         print(f"waived (release note: not verified): {' '.join(waived)}")

@@ -226,6 +226,22 @@ class FullPipelineTest(CoverageBase):
                                                    ("T2", "PASS", "live"), expected="spec: contract A1"))
         self.assertEqual(self.coverage().returncode, 0)
 
+    def test_task_begun_before_0_16_keeps_its_legacy_evidence(self):
+        # its evidence is hashed, so an `Expected from` column cannot be added afterwards
+        status = self.ws / "STATUS.md"
+        status.write_text("".join(l for l in status.read_text().splitlines(True) if not l.startswith("- ses-version:")))
+        legacy = results("2026-11-05T05:00Z", ("T1", "PASS", "live"), ("T2", "PASS", "live")) \
+            .replace(" Expected from |", "").replace("|---|---|---|---|---|", "|---|---|---|---|") \
+            .replace(" hand-derived |", "")
+        self.evidence("tests-20261105.txt", legacy)
+        r = self.coverage()
+        self.assertEqual(r.returncode, 0, r.stdout)
+        self.assertIn("a task begun before 0.16.0", r.stdout)
+        # a column that is there but empty is no oracle, in any task
+        self.evidence("tests-20261106.txt", results("2026-11-06T05:00Z", ("T1", "PASS", "live"),
+                                                   ("T2", "PASS", "live"), expected=""))
+        self.assertRegex(self.coverage().stdout, r"A1\s+NO-ORACLE")
+
     def test_plan_mode_checks_mapping_only(self):
         (self.ws / "scope-contract.md").write_text(CONTRACT.replace(
             "| A2 | the incident shape posts once | S2 | e2e |\n", ""))
