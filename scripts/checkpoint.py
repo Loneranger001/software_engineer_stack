@@ -5,7 +5,9 @@ Usage:
     checkpoint.py resume  <ws>               is it safe to continue from the recorded state?
     checkpoint.py subject <ws> <repo-name> <N | tests> <description>
                                              a checkpoint subject the repo's commit-msg hook accepts
-    checkpoint.py trailer <ws> <file>...     Evidence-SHA256 lines for a checkpoint commit
+    checkpoint.py trailer <ws> [--prefix <p>] <file>...
+                                             Evidence-SHA256 lines for a checkpoint commit
+    checkpoint.py seal    <ws> [<file>...]   hash the design-phase evidence the documents cite
     checkpoint.py verify  <ws> [--delivery]  do the recorded evidence hashes still match?
 
 <ws> is the task workspace (work/<task-id>). Changed repos and their branches
@@ -30,13 +32,29 @@ resume — per changed repo: recorded vs checked-out branch, the last
   user needs to choose keep-and-continue or discard-and-redo.
   A checkout on another task's recorded branch is named as such — two tasks
   sharing one checkout is the case `ses worktree add` exists to prevent.
+  Verification by-products are not "uncommitted work" and are left out,
+  counted: __pycache__/, *.pyc, .pytest_cache/, .ruff_cache/, .mypy_cache/.
+  SES_RESUME_IGNORE (space-separated globs) replaces that list.
   Exit 0 = clean (resume at the next step); 3 = needs a decision.
 
-trailer — prints one `Evidence-SHA256: <sha256> <path>` line per file, path
+trailer — `trailer <ws> [--prefix <p>] [<file>...]`: with --prefix, every
+  file in evidence/ and evidence/raw/ whose name starts with <p> (e.g.
+  step4-) joins the files named, so no raw log of the step is left out.
+  Prints one `Evidence-SHA256: <sha256> <path>` line per file, path
   relative to <ws>. Add them as the last paragraph of the checkpoint commit
   message, so the hash of the step's evidence lives in git even though work/
   stays out of every repository. Refuses (exit 1) while any file under work/
   is staged in a recorded repo: workspaces never go into git.
+
+seal — design-phase evidence (research probes, grill probes) is what the
+  TDD cites as its source of truth, long before any checkpoint commit. seal
+  hashes it into evidence/SEALED.sha256: the files named, or — with none —
+  every evidence/ file that research-notes.md, fdd.md, tdd.md or
+  grill-log.md cites (`evidence/<name>`; a name without extension matches
+  evidence/<name>.* and evidence/raw/<name>.*). STATUS records the seal's own
+  hash (evidence-seal), and the first checkpoint commit's trailer carries
+  evidence/SEALED.sha256, so the seal itself ends up in git. A file already
+  sealed with another hash is ALTERED: seal refuses it (exit 1).
 
 verify — reads every Evidence-SHA256 line in this task's commits (subject
   carries the task id) on each recorded task branch and re-hashes the file.
@@ -57,12 +75,14 @@ verify — reads every Evidence-SHA256 line in this task's commits (subject
 """
 from __future__ import annotations
 
+import fnmatch
 import hashlib
 import os
 import re
 import subprocess
 import sys
 import tempfile
+from datetime import date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -168,6 +188,16 @@ def belongs(path: str, tokens: list[str]) -> bool:
     return False
 
 
+BYPRODUCTS = ("__pycache__", "*.pyc", ".pytest_cache", ".ruff_cache", ".mypy_cache")
+
+
+def byproduct(path: str) -> bool:
+    """A file a verification run leaves behind (bytecode, tool caches) — never the user's work."""
+    pats = os.environ["SES_RESUME_IGNORE"].split() if os.environ.get("SES_RESUME_IGNORE") else BYPRODUCTS
+    parts = path.split("/")
+    return any(fnmatch.fnmatch(part, pat) for part in parts for pat in pats)
+
+
 def dirty_files(repo: Path, ignore_prefix: str | None) -> list[str]:
     out = []
     for line in git(repo, "status", "--porcelain=v1", "-uall").splitlines():
@@ -227,10 +257,13 @@ def cmd_resume(ws_arg: str) -> int:
     for name, co, branch, head, repo_last in report:
         rel_ws = os.path.relpath(ws, co)
         dirty = dirty_files(co, None if rel_ws.startswith("..") else Path(rel_ws).parts[0])
+        ignored = [d for d in dirty if byproduct(d)]
+        dirty = [d for d in dirty if d not in ignored]
         expected = [d for d in dirty if name == nxt_repo and belongs(d, nxt_tokens)]
         unexpected = [d for d in dirty if d not in expected]
         print(f"- {name} ({co}) branch {head}, last step here {repo_last or '-'}: "
-              f"{len(dirty)} uncommitted file(s)")
+              f"{len(dirty)} uncommitted file(s)"
+              + (f" ({len(ignored)} verification by-product(s) ignored)" if ignored else ""))
         for d in expected:
             print(f"    expected   {d}   (step {nxt}'s file — likely its half-done work)")
         for d in unexpected:
@@ -295,6 +328,17 @@ def under(path: str, prefix: str) -> bool:
 
 def cmd_trailer(ws_arg: str, files: list[str]) -> int:
     ws, st = load(ws_arg)
+    if "--prefix" in files:
+        i = files.index("--prefix")
+        if i + 1 >= len(files) or not files[i + 1].strip():
+            raise StatusError("--prefix needs a value, e.g. --prefix step4-")
+        prefix = files[i + 1]
+        files = files[:i] + files[i + 2:]
+        found = sorted(str(p.relative_to(ws)) for d in (ws / "evidence", ws / "evidence" / "raw") if d.is_dir()
+                       for p in d.iterdir() if p.is_file() and p.name.startswith(prefix))
+        if not found:
+            raise StatusError(f"no evidence file starts with '{prefix}' in evidence/ or evidence/raw/")
+        files += [f for f in found if f not in files]
     if not files:
         raise StatusError("trailer needs at least one evidence file")
     for name, (repo, _) in sorted(changed_repos(st).items()):
@@ -366,6 +410,79 @@ def cmd_subject(ws_arg: str, name: str, step: str, desc: str) -> int:
     return NEEDS_DECISION
 
 
+SEAL = "evidence/SEALED.sha256"
+SEAL_LINE = re.compile(r"^([0-9a-f]{64})  (\S+)  sealed (\S+)$")
+CITE = re.compile(r"(?<![\w/])evidence/([\w.-]+(?:/[\w.-]+)*)")
+
+
+def sealed(ws: Path) -> dict[str, str]:
+    """{path relative to ws: sha256} from evidence/SEALED.sha256."""
+    f = ws / SEAL
+    out: dict[str, str] = {}
+    if f.is_file():
+        for line in f.read_text().splitlines():
+            m = SEAL_LINE.match(line)
+            if m:
+                out[m.group(2)] = m.group(1)
+    return out
+
+
+def cited_evidence(ws: Path) -> list[str]:
+    """evidence/ files the stage documents cite, resolved to the files on disk."""
+    out: list[str] = []
+    for doc in ("research-notes.md", "fdd.md", "tdd.md", "grill-log.md"):
+        p = ws / doc
+        if not p.is_file():
+            continue
+        for ref in CITE.findall(p.read_text()):
+            ref = ref.rstrip(".")
+            cands = [ws / "evidence" / ref] if (ws / "evidence" / ref).is_file() else \
+                [q for d in (ws / "evidence", ws / "evidence" / "raw") if d.is_dir()
+                 for q in d.glob(f"{Path(ref).name}*") if q.is_file()]
+            for q in cands:
+                rel = str(q.relative_to(ws))
+                if rel != SEAL and rel not in out:
+                    out.append(rel)
+    return sorted(out)
+
+
+def cmd_seal(ws_arg: str, files: list[str]) -> int:
+    ws, st = load(ws_arg)
+    targets = [str((Path(f) if os.path.isabs(f) else ws / f).resolve().relative_to(ws.resolve()))
+               for f in files] if files else cited_evidence(ws)
+    if not targets:
+        print("nothing to seal: no evidence/ file named, and none cited by the stage documents")
+        return 0
+    have = sealed(ws)
+    today = date.today().isoformat()
+    added, problems = [], []
+    for rel in targets:
+        p = ws / rel
+        if not p.is_file():
+            problems.append(f"MISSING  {rel}")
+            continue
+        digest = sha256(p)
+        if rel in have:
+            if have[rel] != digest:
+                problems.append(f"ALTERED  {rel} (sealed with another hash — the evidence changed after it was cited)")
+            continue
+        added.append(f"{digest}  {rel}  sealed {today}")
+    if problems:
+        for b in problems:
+            print(f"  {b}")
+        raise StatusError(f"{len(problems)} evidence file(s) cannot be sealed")
+    seal = ws / SEAL
+    seal.parent.mkdir(parents=True, exist_ok=True)
+    with open(seal, "a") as f:
+        for line in added:
+            f.write(line + "\n")
+    st.set_field("evidence-seal", f"{sha256(seal)} ({len(sealed(ws))} file(s), {today})")
+    st.save()
+    print(f"sealed {len(added)} new file(s) ({len(sealed(ws))} in {SEAL}); put {SEAL} in the next "
+          f"checkpoint trailer so the seal itself is in git")
+    return 0
+
+
 def task_token(task: str) -> re.Pattern[str]:
     """The task id as a whole token: T-1 matches "T-1 step 2" but not "T-12" or "T-1-hotfix"."""
     return re.compile(rf"(?<![\w-]){re.escape(task)}(?![\w-])")
@@ -393,6 +510,21 @@ def recorded_evidence(ws: Path, st: Status) -> dict[str, str]:
     return recorded
 
 
+def seal_problems(ws: Path, st: Status) -> list[str]:
+    out = []
+    seal = sealed(ws)
+    for rel, digest in sorted(seal.items()):
+        p = ws / rel
+        if not p.is_file():
+            out.append(f"MISSING  {rel} (sealed design evidence)")
+        elif sha256(p) != digest:
+            out.append(f"ALTERED  {rel} (sealed design evidence no longer matches its hash)")
+    if seal and "evidence-seal" in st.fields:
+        if sha256(ws / SEAL) != st.field("evidence-seal").split()[0]:
+            out.append(f"ALTERED  {SEAL} (the seal file no longer matches STATUS evidence-seal)")
+    return out
+
+
 def cmd_verify(ws_arg: str, delivery: bool = False) -> int:
     ws, st = load(ws_arg)
     repos = changed_repos(st)
@@ -413,12 +545,15 @@ def cmd_verify(ws_arg: str, delivery: bool = False) -> int:
         bad.append(f"SCOPE    a change request records branches in {len(repos)} repos ({', '.join(sorted(repos))})"
                    f" — it changes one repo; more is /change-request §1's escalation rule")
     if not repos:
+        bad += seal_problems(ws, st)
         if bad:
             print(f"0 recorded evidence file(s), {len(bad)} problem(s)")
             for b in bad:
                 print(f"  {b}")
             return 1
-        print("no task branches recorded (e.g. a document task) — no checkpoint evidence to verify")
+        n = len(sealed(ws))
+        print("no task branches recorded (e.g. a document task) — no checkpoint evidence to verify"
+              + (f"; {n} sealed design evidence file(s) ok" if n else ""))
         return 0
     recorded: dict[str, str] = {}
     for name, (repo, branch) in sorted(repos.items()):
@@ -444,10 +579,16 @@ def cmd_verify(ws_arg: str, delivery: bool = False) -> int:
             bad.append(f"MISSING  {rel} (hash recorded in a checkpoint commit)")
         elif sha256(p) != digest:
             bad.append(f"ALTERED  {rel} (content no longer matches its recorded hash)")
+    seal = sealed(ws)
+    bad += seal_problems(ws, st)
     ev = ws / "evidence"
     unrecorded = sorted(str(p.relative_to(ws)) for p in ev.rglob("*")
-                        if p.is_file() and str(p.relative_to(ws)) not in recorded) if ev.is_dir() else []
+                        if p.is_file() and str(p.relative_to(ws)) not in recorded
+                        and str(p.relative_to(ws)) not in seal and str(p.relative_to(ws)) != SEAL) \
+        if ev.is_dir() else []
     print(f"{len(recorded)} recorded evidence file(s), {len(bad)} problem(s)")
+    if seal:
+        print(f"{len(seal)} sealed design evidence file(s) ({SEAL})")
     for b in bad:
         print(f"  {b}")
     if unrecorded:
@@ -459,7 +600,7 @@ def cmd_verify(ws_arg: str, delivery: bool = False) -> int:
 
 
 def main(argv: list[str]) -> int:
-    if len(argv) < 2 or argv[0] not in ("resume", "subject", "trailer", "verify"):
+    if len(argv) < 2 or argv[0] not in ("resume", "subject", "trailer", "seal", "verify"):
         print(__doc__)
         return 1
     cmd, ws, rest = argv[0], argv[1], argv[2:]
@@ -471,6 +612,8 @@ def main(argv: list[str]) -> int:
         return cmd_subject(ws, rest[0], rest[1], " ".join(rest[2:]))
     if cmd == "trailer":
         return cmd_trailer(ws, rest)
+    if cmd == "seal":
+        return cmd_seal(ws, rest)
     if rest not in ([], ["--delivery"]):
         raise StatusError("usage: verify <ws> [--delivery]")
     return cmd_verify(ws, delivery=bool(rest))

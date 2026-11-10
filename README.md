@@ -44,7 +44,7 @@ The framework is a **GitHub Copilot plugin**: one install serves both the Copilo
 
 ### One-time setup
 
-1. **Prerequisites:** `python3` (3.9+), `git`, a POSIX shell (macOS or Linux), and the GitHub Copilot CLI or VS Code with GitHub Copilot. Optional: `pandoc` to convert documents to Word/PDF/Confluence; `sqlplus` or SQLcl for live SQL and PL/SQL verification.
+1. **Prerequisites:** `python3` (3.9+), `git`, a POSIX shell (macOS or Linux), and the GitHub Copilot CLI or VS Code with GitHub Copilot. Optional: `pandoc` to convert documents to Word/PDF/Confluence, plus a PDF engine for PDF (`pip install weasyprint` is the lightest) and mermaid-cli (`npm install -g @mermaid-js/mermaid-cli`) so the designs' diagrams reach readers as diagrams, not source code; `sqlplus` or SQLcl for live SQL and PL/SQL verification.
 2. **Install the plugin:**
    ```sh
    copilot plugin marketplace add Loneranger001/software_engineer_stack
@@ -137,7 +137,7 @@ ses status validate work/PROJ-123                            # structure + skipp
 
 States are `pending | in-progress | done | approved | waived` (a waiver carries who/why as free text after the state).
 
-**Step record and evidence live in git.** Each `/implement` step is one checkpoint commit `<task-id> step <N>: …` — or the form the repo's own commit-msg hook accepts, which `ses checkpoint subject` finds by running the hook (`<task-id>: step <N>: …`, `<task-id>: <task-id> step <N>: …`) — ending with `Evidence-SHA256: <hash> <path>` lines (`ses checkpoint trailer`). On resume, `ses checkpoint resume` reports the last checkpoint step, branch mismatches, and every uncommitted file (the next step's own files vs anything unexpected), so a half-done step is kept or discarded by your choice, never folded silently into the next commit. `ses checkpoint verify` fails if any recorded evidence file is missing or was edited afterwards, or if a repo the task does not change holds one of its commits; before anything is pushed — the scope audit at `/deliver`, `/change-request` §5 — `--delivery` also fails an empty task branch and a task commit without evidence lines.
+**Step record and evidence live in git.** Each `/implement` step is one checkpoint commit `<task-id> step <N>: …` — or the form the repo's own commit-msg hook accepts, which `ses checkpoint subject` finds by running the hook (`<task-id>: step <N>: …`, `<task-id>: <task-id> step <N>: …`) — ending with `Evidence-SHA256: <hash> <path>` lines (`ses checkpoint trailer`). On resume, `ses checkpoint resume` reports the last checkpoint step, branch mismatches, and every uncommitted file (the next step's own files vs anything unexpected), so a half-done step is kept or discarded by your choice, never folded silently into the next commit. Design-phase evidence — the research and grill probes a TDD cites — is sealed at the design gates (`ses checkpoint seal`, into `evidence/SEALED.sha256`, carried into git by the first checkpoint trailer), and `ses checkpoint trailer --prefix step<N>-` takes every file of a step so no raw log is left out. `ses checkpoint verify` fails if any recorded or sealed evidence file is missing or was edited afterwards, or if a repo the task does not change holds one of its commits; before anything is pushed — the scope audit at `/deliver`, `/change-request` §5 — `--delivery` also fails an empty task branch and a task commit without evidence lines.
 
 **Verified means a recorded PASS.** `ses coverage <ws>` walks every acceptance row — a TDD §7 row (A#, TS#, G#) through its impl-doc T#, or a change request's A# — to the latest result in the evidence files' Result tables, and counts it only when that evidence's hash is committed. The rows are the union of TDD §7, the contract's acceptance criteria and an approved FDD's test scenarios: a contract A# or FDD TS# that never reached §7 is NOT-IN-TDD, because no test plans it (`ses handoff check` already fails such a TDD at the design gate). A test that could not run is NOT-RUN, a static-fallback PASS is PARTIAL, and a PASS whose expected value has no independent source — the Result table's `Expected from`: hand-derived, spec or fixture, never the code under test — is NO-ORACLE: none meets the gate. `ses coverage <ws> --plan` checks the mapping alone at plan time. `/deliver` and the scope auditor need every row met; a row you accept unverified is waived one by one (`ses status field <ws> waiver.<ID> "by <who> <date>: <reason>"`) and named in the release notes.
 
@@ -276,6 +276,8 @@ ses md2pdf  work/PROJ-123/tdd.md          # → deliverables/tdd.pdf
 ses md2confluence work/PROJ-123/tdd.md    # → deliverables/tdd.confluence.txt
 ```
 
-An FDD is converted from its audience view (`ses fdd-view work/PROJ-123/fdd.md --audience business`), never from `fdd.md` directly.
+An FDD is converted from its audience view (`ses fdd-view work/PROJ-123/fdd.md --audience business`), never from `fdd.md` directly; the business view also drops the header lines that name workspace files.
 
-The scripts require [pandoc](https://pandoc.org) (and a LaTeX engine for PDF); they print install instructions if it's missing.
+Mermaid diagrams are rendered to images with mermaid-cli (`mmdc`) when it is installed; without it, every conversion warns how many diagrams will reach the reader as source code. For Confluence, attach the images from `deliverables/<name>-diagrams/` to the page.
+
+The scripts require [pandoc](https://pandoc.org) (and a PDF engine — weasyprint, wkhtmltopdf, tectonic or LaTeX — for PDF); they print install instructions if one is missing.

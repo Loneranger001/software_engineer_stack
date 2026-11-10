@@ -142,9 +142,12 @@ For each impl-doc step N, in order:
    would sweep in `work/` when it sits inside the repo), then `git commit`
    the step **in the step's worktree** with the subject
    `ses checkpoint subject <ws> <repo-name> <N> "<desc>"` prints (§1 step 4), ending with the evidence hashes as
-   their own paragraph — `ses checkpoint trailer <ws>
-   evidence/step<N>-<desc>.txt evidence/raw/<its logs>` prints them
-   (`git commit -m "<subject>" -m "<trailer lines>"`) and refuses while any
+   their own paragraph — `ses checkpoint trailer <ws> --prefix step<N>-`
+   prints them for every file of the step (its evidence file and all its raw
+   logs, so none is left out; name extra files after it). The task's first
+   checkpoint commit also names `evidence/SEALED.sha256`, so the seal of the
+   design evidence is in git too. Commit with
+   `git commit -m "<subject>" -m "<trailer lines>"`; the trailer refuses while any
    workspace file is staged. The workspace itself never goes into git; these
    lines put proof of the evidence there instead.
    Never batch multiple steps into one commit, and never span repos in one
@@ -166,6 +169,18 @@ contract lists as changing. A change that turns out to be needed in
 another repo stops the loop and goes to the user as a scope amendment — not a
 quick fix in a repo nobody approved touching. Bugs or improvements you
 notice along the way go to PARKED.md — even one-line "harmless" fixes.
+
+### Rollback rehearsal (steps with DDL or a data migration)
+
+A rollback that never ran is a hope. For each step that changes a schema or
+migrates data, once its own verification passes and before the next such
+step: run its rollback on dev, check the old state is back (the objects or
+columns are gone, the repo's tests from before the change pass at the base
+commit), then re-apply the step and verify it again. Capture all of it
+(log names `step<N>-rollback-`), write `evidence/step<N>-rollback.txt`, and
+name that file on the impl doc's §5 "Rehearsed on dev" line. A rollback that
+fails here is fixed in the step — or, when it cannot be made to work, goes
+to the user as a risk before /deliver, never discovered in production.
 
 ## 3. Test plan execution
 

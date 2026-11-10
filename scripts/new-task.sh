@@ -233,10 +233,11 @@ cat > "$DIR/PARKED.md" <<EOF
 # PARKED — out-of-scope findings for $TASK_ID
 
 Items discovered during work that are OUTSIDE the scope contract.
-Logged here for later triage; never acted on within this task.
+Logged here for later triage; never acted on within this task. Number each
+P1, P2, … — the grill log, the scope audit and the release notes cite them.
 
-| Date | Found during | Finding | Suggested follow-up |
-|---|---|---|---|
+| P# | Date | Found during | Finding | Suggested follow-up |
+|---|---|---|---|---|
 EOF
 
 cat > "$DIR/ASSUMPTIONS.md" <<EOF

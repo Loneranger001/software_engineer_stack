@@ -20,7 +20,12 @@ OUT="${2:-$def}"
 mkdir -p "$(dirname "$OUT")"
 
 # pandoc's jira writer produces Jira/Confluence wiki markup.
-pandoc "$IN" -f gfm -t jira -o "$OUT"
+HERE=$(cd "$(dirname "$0")" && pwd)
+. "$HERE/mermaid-prep.sh"
+# shellcheck disable=SC2086  # MERMAID_ARGS is one option or empty
+pandoc "$IN" -f gfm -t jira $MERMAID_ARGS -o "$OUT"
 [ -s "$OUT" ] || { echo "error: conversion produced an empty file: $OUT" >&2; exit 1; }
 echo "wrote $OUT"
 echo "paste via Confluence: Insert > Markup > 'Confluence wiki' (or +/markup)"
+[ -n "$MERMAID_ARGS" ] && echo "attach the diagram images in $MERMAID_DIR to the page — the markup references them by name"
+exit 0

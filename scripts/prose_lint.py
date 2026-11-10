@@ -17,7 +17,9 @@ Findings, one per line as `<file>:<line>: [KIND] <match> — <fix>`:
                "we found", "analysis shows", workspace files
     SLASH      two words joined by a slash ("message / publication"); paths,
                `code` and all-capital acronyms (I/O, PL/SQL) are exempt
-    LONG       a sentence over 25 words, or over 20 in a numbered step
+    LONG       a sentence over 25 words, over 20 in a numbered step (a leading
+               "(new)" or "(changed)" marker is not counted), or over 35 in
+               a table cell
     PARAGRAPH  a paragraph over six sentences
     WORDS      a word with a plain replacement (utilize, in order to, prior to …)
 
@@ -39,7 +41,9 @@ import sys
 from pathlib import Path
 
 I = re.I
-STEP_MAX, SENTENCE_MAX, PARAGRAPH_MAX = 20, 25, 6
+STEP_MAX, SENTENCE_MAX, PARAGRAPH_MAX, CELL_MAX = 20, 25, 6, 35
+# the change marker /func-design and /tech-design put on a step is not part of its sentence
+MARKER = re.compile(r"^\s*\((new|changed|new, changed|context)\)\s*", re.I)
 FIX = {
     "PROCESS": "state the fact about the system; the reader never sees how the document was made",
     "SLASH": "write \"or\" or \"and\", or select one word",
@@ -59,6 +63,8 @@ PROCESS = [re.compile(p, I) for p in (
     r"(?<![\w/.])/(intake|func-design|tech-design|grill|impl-plan|implement|deliver|retro|"
     r"change-request|document|understand|verify-code)\b",
     r"\b(ASSUMPTIONS|PARKED|STATUS)\.md\b",
+    r"\bgrill(ed|ing)?\b(?=\s*(#\s*\d|log\b|scenario|answer|question|stage))",
+    r"\bgrill-log(\.md)?\b",
     r"\bwe\s+(found|identified|verified|confirmed|checked|traced|observed|noticed|searched|reviewed)\b",
     r"\b(analysis|investigation|the code|code review|the search|our review)\s+(has\s+|have\s+)?"
     r"(identified|found|showed|shown|shows|confirmed|revealed|indicated|indicates|suggests|suggested)\b",
@@ -207,14 +213,15 @@ def lint(text: str, allow: frozenset[str] = frozenset()) -> list[tuple[int, str,
         for rx, fix in PLAIN:
             for m in rx.finditer(joined):
                 add(line_at(m.start()), "WORDS", m.group(0), fix)
-        limit = STEP_MAX if kind == "step" else SENTENCE_MAX
+        limit = {"step": STEP_MAX, "cell": CELL_MAX}.get(kind, SENTENCE_MAX)
         spans = [(o, s) for o, s in sentences(joined) if words(s)]
-        for o, s in spans:
-            count = words(s)
+        for i, (o, s) in enumerate(spans):
+            count = words(MARKER.sub("", s) if kind == "step" and i == 0 else s)
             if count > limit:
                 lead = " ".join(s.split()[:8])
+                where = {"step": " in a step", "cell": " in a table cell"}.get(kind, "")
                 add(line_at(o), "LONG", f"{count} words: {lead} …",
-                    f"split it — {limit} words at most{' in a step' if kind == 'step' else ''}, one idea per sentence")
+                    f"split it — {limit} words at most{where}, one idea per sentence")
         if kind == "paragraph" and len(spans) > PARAGRAPH_MAX:
             add(chunk[0][0], "PARAGRAPH", f"{len(spans)} sentences")
     return sorted(found)

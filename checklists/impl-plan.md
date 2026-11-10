@@ -8,7 +8,8 @@ Run before presenting the implementation document for approval.
 - [ ] Test plan covers every TDD §7 row — acceptance criteria (A#), FDD test scenarios (TS#), grill scenarios (G#) — each mapped to a T#
 - [ ] Test plan includes regression checks for existing behaviour touched by the change
 - [ ] Deployment steps are executable by someone other than the author (exact commands, environments)
-- [ ] Whole-change rollback plan exists and does not depend on memory ("redeploy previous" names the previous version)
+- [ ] Whole-change rollback plan exists and does not depend on memory ("redeploy previous" names the previous version), with its "Rehearsed on dev" line for steps with DDL or data changes
+- [ ] §1 states the shared test data — which repo's seed or fixture sets up what, and the order the repos' tests run in — or that each repo's tests stand alone
 - [ ] No step implements anything outside the scope contract
 - [ ] ASSUMPTIONS.md reviewed — every open entry presented for ratification at this gate (decision-protocol §4)
 - [ ] `impl-plan=approved` is set (`ses status`) only after the user's explicit approval

@@ -32,6 +32,11 @@ a workspace that nobody hands over.
   in a source section or appendix, or in brackets after the sentence, as
   code references (`<repo>:<path>:<line>`). Do not cite research-notes.md or
   any other workspace file. The reader cannot open it.
+- A fact that a person decided, not the code, cites the decision:
+  `(decision: <role>, <date>)` — "The threshold is 500 in the store's own
+  currency (decision: Loss Prevention, 2026-11-05)." Name the role, not a
+  workspace file; the decision itself is recorded where the people who made
+  it can find it (the scope contract, the grill log).
 - Do not let an ID such as FR1, BR1, or S1 stand in for the words. Say the
   thing, then give the ID in brackets or in a column: "The system skips the
   order (BR1)", not "BR1 applies".

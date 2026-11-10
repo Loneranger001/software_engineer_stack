@@ -80,7 +80,7 @@ VERDICT: PASS | FAIL
 Unmapped changes (diff not traceable to scope):   [file:hunk — why suspicious]
 Unmet scope (in-scope items without work/evidence): [S#/A# — what's missing]
 Exclusion breaches:                                [N# — offending change]
-Parked-but-implemented:                            [PARKED entry — offending change]
+Parked-but-implemented:                            [P# — offending change]
 Open assumptions:                                  [ASSUMPTIONS entry — still unratified]
 Stale handoff summaries:                           [ses handoff check problem]
 Evidence integrity:                                [ses checkpoint verify --delivery — MISSING/ALTERED/IN GIT/EMPTY/NO EVIDENCE/OUT OF SCOPE]

@@ -17,6 +17,9 @@
      change window. Clean repos, branches, environment and rules files are
      /implement's own checks — don't list them. -->
 - {—}
+- Shared test data: {which repo's seed or fixture sets up which tables, and the order the
+  repos' tests run in — e.g. "repo-a test/seed.sql resets ITEM_LOC_COST; repo-b's load test
+  seeds its own items, so it runs after repo-a's suite" | none: each repo's tests stand alone}
 
 ## 2. Implementation steps
 
@@ -52,6 +55,9 @@
 ## 5. Rollback (whole change)
 
 <!-- After deployment. Per repo, reverse dependency order. Name the previous
-     version or the script — never "revert the change". -->
+     version or the script — never "revert the change". A step with DDL or a
+     data migration has its rollback REHEARSED on dev during /implement:
+     apply, roll back, check the old state (and the old tests), re-apply. -->
+- Rehearsed on dev: {evidence/step<N>-rollback-….txt | not needed: no DDL or data change}
 1. {repo-b: redeploy src/py/loader.py@{prev-sha}}
 2. {repo-a: run src/sql/ordhead_drop_col.sql; recompile PKG_ORDER_EDI@{prev-sha}}

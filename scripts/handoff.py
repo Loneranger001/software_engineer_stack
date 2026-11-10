@@ -26,8 +26,11 @@ Usage:
 
 `check` fails (exit 1) when a summary is:
   - missing, or longer than MAX_LINES lines;
-  - missing an ID the body defines or traces — the first cell of a table row
-    (S1, N2, A3, Q1, ...);
+  - missing an ID the body defines or traces — the first cell of a table row,
+    one or several IDs ("A1, TS1") — of the kinds that document's readers rely
+    on: scope-contract S N A Q; research-notes Q; fdd FR BR EX TS Q; tdd S FR A
+    TS G. Other row IDs (a rejected option O2, a risk R3, a parked item P1)
+    are not required; a document of another name is held to every kind;
   - missing its `- Contract version: <n>` line, or naming a version other
     than the workspace's scope-contract.md `- Version: <n>` (a summary built
     on an older contract is stale).
@@ -50,7 +53,15 @@ DOCS = ("scope-contract.md", "research-notes.md", "fdd.md", "tdd.md")
 NO_SUMMARY = ("impl-doc.md",)  # read whole; a summary would only repeat its step table
 MAX_LINES = 40
 START, END = "<!-- handoff:start -->", "<!-- handoff:end -->"
-ID_ROW = re.compile(r"^\|\s*([A-Z]{1,2}\d+)\s*\|", re.M)
+ID_ROW = re.compile(r"^\|\s*((?:[A-Z]{1,2}\d+\s*,\s*)*[A-Z]{1,2}\d+)\s*\|", re.M)
+ID = re.compile(r"[A-Z]{1,2}\d+")
+# the ID kinds each stage document's summary must carry — what later stages trace by
+REQUIRED = {
+    "scope-contract.md": ("S", "N", "A", "Q"),
+    "research-notes.md": ("Q",),
+    "fdd.md": ("FR", "BR", "EX", "TS", "Q"),
+    "tdd.md": ("S", "FR", "A", "TS", "G"),
+}
 VERSION = re.compile(r"^- Contract version:\s*v?(\S+)", re.M)
 CONTRACT_VERSION = re.compile(r"^- Version:\s*v?(\d+)", re.M)
 
@@ -96,7 +107,11 @@ def problems(doc: Path) -> list[str]:
     n = len(summary.splitlines())
     if n > MAX_LINES:
         out.append(f"{doc}: handoff summary is {n} lines (max {MAX_LINES}) — summarize, don't copy")
-    ids = sorted(set(ID_ROW.findall(body)), key=lambda s: (s[0], int(re.sub(r"\D", "", s))))
+    kinds = REQUIRED.get(doc.name)
+    found = {i for cell in ID_ROW.findall(body) for i in ID.findall(cell)}
+    if kinds is not None:
+        found = {i for i in found if re.sub(r"\d", "", i) in kinds}
+    ids = sorted(found, key=lambda s: (re.sub(r"\d", "", s), int(re.sub(r"\D", "", s))))
     missing = [i for i in ids if not re.search(rf"\b{re.escape(i)}\b", summary)]
     if missing:
         out.append(f"{doc}: summary omits ID(s) the body defines or traces: {', '.join(missing)}")

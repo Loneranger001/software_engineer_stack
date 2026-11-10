@@ -12,8 +12,10 @@ Usage:
 
 Both audiences drop HTML comments (template guidance) and the handoff summary.
 `business` (the default) also drops every region between
-`<!-- technical:start -->` and `<!-- technical:end -->` and any
-`## Appendix …` section. `technical` keeps them.
+`<!-- technical:start -->` and `<!-- technical:end -->`, any
+`## Appendix …` section, and the header lines that only make sense in the
+workspace — `- Inputs:` (it names scope-contract.md and research-notes.md,
+which a stakeholder cannot open) and `- Mode:`. `technical` keeps them.
 Default output: fdd.<audience>.md beside the input.
 Exit codes: 0 ok, 1 unbalanced technical markers, 2 usage error.
 """
@@ -28,6 +30,8 @@ TECH = re.compile(r"[ \t]*<!-- technical:start -->.*?<!-- technical:end -->[ \t]
 HANDOFF = re.compile(r"<!-- handoff:start -->.*?<!-- handoff:end -->\n?", re.S)
 COMMENT = re.compile(r"[ \t]*<!--.*?-->[ \t]*\n?", re.S)
 APPENDIX = re.compile(r"^## Appendix\b.*?(?=^## |\Z)", re.S | re.M)
+# header lines above the first `## ` heading that name workspace files or the authoring mode
+WORKSPACE_HEADER = re.compile(r"^- (Inputs|Mode):.*\n", re.M)
 
 
 def render(text: str, audience: str) -> str:
@@ -37,6 +41,8 @@ def render(text: str, audience: str) -> str:
     if audience == "business":
         text = TECH.sub("", text)
         text = APPENDIX.sub("", text)
+        head, sep, body = text.partition("\n## ")
+        text = WORKSPACE_HEADER.sub("", head) + sep + body
     text = COMMENT.sub("", text)
     return re.sub(r"\n{3,}", "\n\n", text).strip() + "\n"
 

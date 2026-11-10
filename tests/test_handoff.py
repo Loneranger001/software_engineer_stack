@@ -185,6 +185,26 @@ class HandoffTest(unittest.TestCase):
         self.assertEqual(r.returncode, 1)
         self.assertIn("TS1 (fdd.md)", r.stderr)
 
+    def test_only_the_documents_own_id_kinds_are_required(self):
+        # research notes: open questions travel; rejected options (O#) and risks (R#) do not
+        self.write("scope-contract.md", CONTRACT.format(version=1))
+        self.write("research-notes.md", "<!-- handoff:start -->\n- Contract version: 1\n- Open questions: Q1 x\n"
+                                        "<!-- handoff:end -->\n\n| Option | Sketch |\n|---|---|\n| O1 | a |\n| O2 | b |\n\n"
+                                        "| # | Question |\n|---|---|\n| Q1 | x |\n| Q2 | y |\n")
+        r = run("check", self.ws / "research-notes.md")
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("omits ID(s) the body defines or traces: Q2", r.stderr)
+        self.assertNotIn("O1", r.stderr)
+
+    def test_several_ids_in_a_first_cell_are_each_required(self):
+        self.write("scope-contract.md", CONTRACT.format(version=1))
+        self.write("tdd.md", "<!-- handoff:start -->\n- Contract version: 1\n- Verification: A1, A2\n"
+                             "<!-- handoff:end -->\n\n## 7. Verification approach\n\n"
+                             "| Criterion | Test type | Sketch |\n|---|---|---|\n| A1, A2, TS4 | unit | x |\n")
+        r = run("check", self.ws / "tdd.md")
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("traces: TS4", r.stderr)
+
     def test_workspace_without_stage_documents_passes(self):
         self.write("analysis.md", "# CR analysis\n")
         r = run("check", self.ws)

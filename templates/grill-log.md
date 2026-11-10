@@ -4,7 +4,8 @@
 > and what happened to it. Produced by /grill between tech-design and
 > impl-plan. Verdicts: covered | gap-fixed | out-of-scope | ask-user →
 > answered | deferred. A testable gap-fixed or answered row #n becomes TDD
-> §7 row `G<n>` (change request: an acceptance criterion A# tagged `(grill #n)`).
+> §7 entry `G<n>`, in its own row or listed with the criteria its test also
+> proves (change request: an acceptance criterion A# tagged `(grill #n)`).
 
 - Target: {tdd.md | analysis.md (change request)} as of {date}
 - Grilled: {date} — phase 2 rounds: {n}

@@ -92,6 +92,42 @@ class CheckpointTest(unittest.TestCase):
         self.assertIn("ASK THE USER", r.stderr)
         self.assertIn("must start with [JIRA-1]", r.stderr)
 
+    def test_resume_ignores_verification_byproducts(self):
+        self.commit_step1()
+        (self.repo / "src" / "__pycache__").mkdir()
+        (self.repo / "src" / "__pycache__" / "x.cpython-313.pyc").write_bytes(b"\0")
+        (self.repo / ".pytest_cache").mkdir()
+        (self.repo / ".pytest_cache" / "v").write_text("x\n")
+        r = self.cp("resume", self.ws)
+        self.assertEqual(r.returncode, 0, r.stdout)
+        self.assertIn("(2 verification by-product(s) ignored)", r.stdout)
+
+    def test_trailer_prefix_takes_every_file_of_the_step(self):
+        (self.ws / "evidence" / "raw").mkdir()
+        for name in ("evidence/step4-x.txt", "evidence/raw/step4-a.log", "evidence/raw/step4-b.log",
+                     "evidence/raw/step5-c.log"):
+            (self.ws / name).write_text(name + "\n")
+        out = self.cp("trailer", self.ws, "--prefix", "step4-").stdout
+        self.assertEqual(out.count("Evidence-SHA256:"), 3)
+        self.assertNotIn("step5-c.log", out)
+        self.assertEqual(self.cp("trailer", self.ws, "--prefix", "step9-").returncode, 1)
+
+    def test_seal_hashes_cited_design_evidence_and_verify_checks_it(self):
+        (self.ws / "evidence" / "raw").mkdir()
+        (self.ws / "evidence" / "research-probe.txt").write_text("207000 duplicates\n")
+        (self.ws / "evidence" / "raw" / "research-probe.log").write_text("raw\n")
+        (self.ws / "tdd.md").write_text("Rerun duplicates lines (`evidence/research-probe`).\n")
+        r = self.cp("seal", self.ws)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("sealed 2 new file(s)", r.stdout)
+        self.assertIn("evidence-seal:", (self.ws / "STATUS.md").read_text())
+        self.assertIn("2 sealed design evidence file(s)", self.cp("verify", self.ws).stdout)
+        (self.ws / "evidence" / "research-probe.txt").write_text("edited\n")
+        r = self.cp("verify", self.ws)
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("ALTERED  evidence/research-probe.txt (sealed design evidence", r.stdout)
+        self.assertEqual(self.cp("seal", self.ws).returncode, 1)   # an altered file is never re-sealed
+
     def test_first_run_is_clean(self):
         r = self.cp("resume", self.ws)
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)

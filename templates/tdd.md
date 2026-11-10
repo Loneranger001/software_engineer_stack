@@ -129,14 +129,17 @@ callers keep working.}
 ## 7. Verification approach
 
 <!-- Every acceptance criterion from the scope contract appears here, and
-     with an approved fdd.md each of its test scenarios (TS#) gets its own
-     row. A criterion with no viable test blocks TDD approval — fix the
-     design or renegotiate the criterion. /grill adds G# rows (grill-log
-     scenario #) for the edge cases it closes; they get tests like any A#.
+     with an approved fdd.md each of its test scenarios (TS#) too. One row
+     per test: the first cell names every criterion that test proves
+     ("A1, TS1") — no duplicate rows. `ses handoff check` and `ses coverage`
+     fail a contract A# or FDD TS# that no row names. A criterion with no
+     viable test blocks TDD approval — fix the design or renegotiate the
+     criterion. /grill adds G# IDs (grill-log scenario #) for the edge cases
+     it closes, to an existing row or a new one; they get tests like any A#.
      The detailed test plan lands in impl-doc §3. -->
-| Criterion (A#, TS# from the FDD, or G# from /grill) | Test type (unit / integration / regression) | Sketch |
+| Criteria (A#, TS# from the FDD, G# from /grill) | Test type (unit / integration / regression) | Sketch |
 |---|---|---|
-| A1 | {…} | {…} |
+| {A1, TS1} | {…} | {…} |
 
 ## 8. Operational impact
 

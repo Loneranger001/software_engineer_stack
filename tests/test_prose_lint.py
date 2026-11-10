@@ -164,5 +164,28 @@ class ProseLintTest(unittest.TestCase):
         self.assertEqual(subprocess.run(LINT + ["/no/such/file.md"], capture_output=True).returncode, 2)
 
 
+class TrialFindingsTest(unittest.TestCase):
+    """The SDD-0417 field trial: false LONG findings, and process words the lint let through."""
+
+    def test_change_marker_is_not_counted_in_a_step(self):
+        step = "1. (changed) " + " ".join(["word"] * 20) + ".\n"
+        self.assertNotIn("LONG", lint(body(step)).stdout)
+        self.assertIn("LONG", lint(body("1. (changed) " + " ".join(["word"] * 21) + ".\n")).stdout)
+
+    def test_table_cells_get_a_longer_limit(self):
+        cell = " ".join(["word"] * 30)
+        table = f"| Test | Sketch |\n|---|---|\n| A5 | {cell} |\n"
+        self.assertNotIn("LONG", lint(body(table)).stdout)
+        table = f"| Test | Sketch |\n|---|---|\n| A5 | {cell} {cell} |\n"
+        self.assertIn("in a table cell", lint(body(table)).stdout)
+
+    def test_grill_references_are_process_words(self):
+        r = lint(body("The control file cuts the code to 10 characters (grill #6).\n"))
+        self.assertIn("[PROCESS]", r.stdout)
+        r = lint(body("The grill log lists every scenario.\n"))
+        self.assertIn("[PROCESS]", r.stdout)
+        self.assertNotIn("[PROCESS]", lint(body("The cook uses a grill and a pan.\n")).stdout)
+
+
 if __name__ == "__main__":
     unittest.main()
