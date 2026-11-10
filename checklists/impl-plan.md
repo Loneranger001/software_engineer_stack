@@ -14,3 +14,4 @@ Run before presenting the implementation document for approval.
 - [ ] `impl-plan=approved` is set (`ses status`) only after the user's explicit approval
 - [ ] Terse and agent-only: tables and fragments, no prose, no design restated from the TDD, no handoff summary; preconditions list only task-specific ones
 - [ ] `ses handoff check <ws>` passes — the contract and TDD the plan rests on are current
+- [ ] `ses impl-check <ws>` passes — every file the test plan, deployment or rollback names is in a step's Files or already in a repo; every step has its own Verify and Rollback; every row is planned

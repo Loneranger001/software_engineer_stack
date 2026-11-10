@@ -157,6 +157,23 @@ class CaptureTest(unittest.TestCase):
         self.assertNotIn("tiger", first)
         self.assertIn("<SES_DB_CONN>", first)
 
+    def test_any_credential_variable_is_redacted_everywhere(self):
+        # the trial's leak: the repo's own INV_DB_CONN printed verbatim into evidence
+        env = {"INV_DB_CONN": "inv_owner/S3cretPw@//db:1521/PDB", "INV_DB_PASSWORD": "S3cretPw",
+               "MY_SERVICE": "plainvalue", "SES_REDACT_VARS": "MY_SERVICE"}
+        r = self.capture("leak", "--grep", "pw", "--", "sh", "-c",
+                         "echo connecting as $INV_DB_CONN; echo pw=$INV_DB_PASSWORD; echo $MY_SERVICE; exit 4",
+                         env=env)
+        self.assertEqual(r.returncode, 4)
+        log = (self.ev / "raw" / "leak.log").read_text()
+        for out in (r.stdout, log):
+            self.assertNotIn("S3cretPw", out)
+            self.assertNotIn("plainvalue", out)
+        self.assertIn("connecting as <INV_DB_CONN>", log)       # whole value first, then the password
+        self.assertIn("pw=<INV_DB_PASSWORD>", log)
+        self.assertIn("<MY_SERVICE>", log)
+        self.assertFalse((self.ev / "raw" / "leak.log.part").exists())
+
     def test_stdin_is_closed(self):
         r = subprocess.run(["sh", str(ROOT / "scripts" / "capture.sh"), str(self.ev), "cat", "--", "cat"],
                            input="should not be read\n", capture_output=True, text=True, timeout=10)

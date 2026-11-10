@@ -60,7 +60,10 @@ first.
 | `SES_PY` | Python interpreter for the work repo (venv-aware) |
 
 - Never echo passwords; prefer wallet/OS auth; redact connect strings in
-  evidence files.
+  evidence files. `ses capture` replaces the value of every credential-looking
+  variable (`*_CONN`, `*PASSWORD*`, `*_PW`, `*SECRET*`, `*TOKEN*`, …) with
+  `<NAME>` in the command line, raw log and summary; name any other secret
+  variable in `SES_REDACT_VARS` (e.g. a repo's own `INV_DB_URL`).
 - Variable unset or connection fails → use the static fallback and record
   `mode: static-fallback` plus the reason in the evidence file. Fallback mode
   is a degraded PASS: tell the user which live checks remain outstanding.

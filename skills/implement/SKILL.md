@@ -48,7 +48,10 @@ committed before the next begins.
    judgment calls passing §2 → ASSUMPTIONS.md; any uncertainty about a
    data-changing statement, an external contract, or the approved design
    stops and asks — regardless of confidence.
-6. `ses status show <ws>` — a recorded `branch.<repo>` means this is a
+6. `ses impl-check <ws>` — the approved plan must still be complete; a
+   problem it reports is an impl-doc amendment (append a note to the row)
+   before any code, not a surprise in the middle of a step.
+7. `ses status show <ws>` — a recorded `branch.<repo>` means this is a
    RESUME. Run `ses checkpoint resume <ws>`: it finds the last
    `<task-id> step <N>` checkpoint commit per repo (the commits are the step
    record — nothing else stores it), checks each task worktree is on its
