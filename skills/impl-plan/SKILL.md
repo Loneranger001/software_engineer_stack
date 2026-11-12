@@ -20,8 +20,10 @@ explanation (**Style** below).
 
 ## 0. Preamble
 
-1. Load applicable lessons: `ses lessons impl-plan` — it prints only
-   the matching entries; don't read the lesson files whole.
+1. Load applicable lessons once step 2 has located `<ws>`:
+   `ses lessons impl-plan --ws <ws>` — it takes the repos and languages from
+   STATUS.md and prints only the matching entries (a lesson tagged for
+   another repo is left out); don't read the lesson files whole.
 2. Locate the workspace and gate:
    `ses status require <ws> tech-design=approved grill=done,waived`
    (`<ws>` = `<workspace-root>/work/<id>`) — non-zero exit = stop. The impl
@@ -92,7 +94,13 @@ explanation (**Style** below).
 
 1. Self-check with `<root>/checklists/impl-plan.md`, and run
    `ses handoff check <ws>` — the documents the plan rests on must still be
-   current.
+   current. Then `ses impl-check <ws>` must pass: every file §3, §4 or §5
+   names is written by some step's Files cell or already exists in a repo
+   (a test file no step creates surfaces mid-implement otherwise), every
+   step has its own Verify and Rollback, and every TDD §7 row, contract A#
+   and approved FDD TS# has a T# (`ses coverage --plan`). A WORKSPACE
+   warning — a test run from the task workspace — means the test is
+   versioned nowhere: move it into the repo, or tell the user why not.
 2. Present it in a few lines: step count per repo, branches, deploy order,
    test coverage (every A#/TS#/G# has a T#), plus open ASSUMPTIONS.md entries for
    ratification (decision-protocol §4). Point to the file; don't paste it.

@@ -166,6 +166,45 @@ class HandoffTest(unittest.TestCase):
         self.assertEqual(r.returncode, 1)
         self.assertIn("omits ID(s) the body defines or traces: G4", r.stderr)
 
+    def test_tdd_must_carry_every_contract_criterion_and_approved_scenario(self):
+        self.write("scope-contract.md", CONTRACT.format(version=1))
+        tdd = ("<!-- handoff:start -->\n- Contract version: 1\n- Traceability: S1, S2\n- Verification: A1, A2\n"
+               "<!-- handoff:end -->\n\n## 7. Verification approach\n\n"
+               "| Criterion | Test type | Sketch |\n|---|---|---|\n| A1 | unit | x |\n")
+        self.write("tdd.md", tdd)
+        r = run("check", self.ws)
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("§7 Verification approach has no row for A2 (scope-contract.md)", r.stderr)
+        self.write("tdd.md", tdd.replace("| A1 | unit | x |", "| A1, A2 | unit | x |"))
+        self.assertEqual(run("check", self.ws / "tdd.md").returncode, 0)
+        # an approved FDD's scenarios join the rows §7 must name
+        self.write("fdd.md", "<!-- handoff:start -->\n- Contract version: 1\n- Scenarios: TS1\n<!-- handoff:end -->\n\n"
+                             "## 14. Functional test scenarios\n\n| # | Scenario |\n|---|---|\n| TS1 | x |\n")
+        self.write("STATUS.md", "# STATUS\n\n- task-id: T-1\n- pipeline: full\n- fdd: approved 2026-11-05 by u\n")
+        r = run("check", self.ws / "tdd.md")
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("TS1 (fdd.md)", r.stderr)
+
+    def test_only_the_documents_own_id_kinds_are_required(self):
+        # research notes: open questions travel; rejected options (O#) and risks (R#) do not
+        self.write("scope-contract.md", CONTRACT.format(version=1))
+        self.write("research-notes.md", "<!-- handoff:start -->\n- Contract version: 1\n- Open questions: Q1 x\n"
+                                        "<!-- handoff:end -->\n\n| Option | Sketch |\n|---|---|\n| O1 | a |\n| O2 | b |\n\n"
+                                        "| # | Question |\n|---|---|\n| Q1 | x |\n| Q2 | y |\n")
+        r = run("check", self.ws / "research-notes.md")
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("omits ID(s) the body defines or traces: Q2", r.stderr)
+        self.assertNotIn("O1", r.stderr)
+
+    def test_several_ids_in_a_first_cell_are_each_required(self):
+        self.write("scope-contract.md", CONTRACT.format(version=1))
+        self.write("tdd.md", "<!-- handoff:start -->\n- Contract version: 1\n- Verification: A1, A2\n"
+                             "<!-- handoff:end -->\n\n## 7. Verification approach\n\n"
+                             "| Criterion | Test type | Sketch |\n|---|---|---|\n| A1, A2, TS4 | unit | x |\n")
+        r = run("check", self.ws / "tdd.md")
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("traces: TS4", r.stderr)
+
     def test_workspace_without_stage_documents_passes(self):
         self.write("analysis.md", "# CR analysis\n")
         r = run("check", self.ws)

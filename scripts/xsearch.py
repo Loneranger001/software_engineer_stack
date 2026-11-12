@@ -14,14 +14,22 @@ Usage:
     --ws     task workspace: repos come from STATUS.md repos-analyzed
     --repos  comma-separated repo paths instead of a workspace
     --ref    search this ref in each repo (e.g. origin/main) instead of the
-             working tree; a repo lacking the ref is reported, not skipped
+             working tree; a repo lacking the ref is reported, not skipped.
+             `--ref mainline` searches EACH repo's own mainline: the
+             mainline.<repo> field of STATUS.md (--ws), else origin/HEAD,
+             else origin's only one of main/master — fetched first; a failed
+             fetch is labelled "possibly stale", a repo with no known mainline
+             is NOT SEARCHED until the user names it
+             (ses status field <ws> mainline.<repo> <branch>)
     -i / -F  case-insensitive / fixed-string patterns (default: extended regex)
     --top N  files listed per repo (default 15); totals always cover all files
     --save   write the complete per-file list (every repo, every file) to FILE,
              e.g. <ws>/evidence/research-search-<term>.txt
 
 Output ends with Markdown rows for research-notes.md's "Cross-repo search
-record": | repo | ref@sha | command | result |. A later stage may reuse a
+record": | repo | ref@sha | command | result | — the command written as
+`git -C <repo-name> …`, so rows stay readable and machine-independent (the
+full path is in the per-repo heading and in --save). A later stage may reuse a
 recorded row while that repo's sha is unchanged; a repo whose sha moved is
 re-searched.
 
@@ -37,11 +45,27 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from checkpoint import detect_mainline  # noqa: E402
 from status import Status, StatusError, resolve  # noqa: E402
 
 
 def git(repo: Path, *args: str) -> subprocess.CompletedProcess:
     return subprocess.run(["git", "-C", str(repo), *args], capture_output=True, text=True)
+
+
+def resolve_mainline(repo: Path, st: Status | None) -> tuple[str, str]:
+    """(origin/<branch>, note) for this repo's mainline, fetched; RuntimeError when it is unknown."""
+    name = repo.name
+    branch = st.field(f"mainline.{name}") if st is not None and f"mainline.{name}" in st.fields else None
+    source = "recorded"
+    if not branch:
+        branch, source = detect_mainline(repo), "detected"
+    if not branch:
+        raise RuntimeError(f"no mainline known for {name} — ask the user which branch it releases from and "
+                           f"record it: ses status field <ws> mainline.{name} <branch>")
+    f = git(repo, "fetch", "--quiet", "origin", branch)
+    note = source if f.returncode == 0 else f"{source}; fetch failed — possibly stale"
+    return f"origin/{branch}", note
 
 
 def search(repo: Path, patterns: list[str], ref: str | None, icase: bool, fixed: bool):
@@ -58,7 +82,7 @@ def search(repo: Path, patterns: list[str], ref: str | None, icase: bool, fixed:
     if ref:
         args.append(ref)
     args.append("--")
-    cmd = "git -C " + shlex.quote(str(repo)) + " " + " ".join(shlex.quote(a) for a in args)
+    cmd = "git -C " + shlex.quote(repo.name) + " " + " ".join(shlex.quote(a) for a in args)
     r = git(repo, *args)
     if r.returncode not in (0, 1):  # 1 = no match
         raise RuntimeError(r.stderr.strip() or f"git grep exited {r.returncode}")
@@ -86,9 +110,11 @@ def main(argv: list[str]) -> int:
     ap.add_argument("patterns", nargs="+")
     a = ap.parse_args(argv)
 
+    st = None
     if a.ws:
         try:
-            repos = [Path(p) for p in Status(resolve(a.ws)).repos_analyzed()]
+            st = Status(resolve(a.ws))
+            repos = [Path(p) for p in st.repos_analyzed()]
         except StatusError as e:
             print(f"error: {e}", file=sys.stderr)
             return 2
@@ -104,7 +130,9 @@ def main(argv: list[str]) -> int:
     for repo in repos:
         name = repo.name
         try:
-            label, sha, cmd, counts = search(repo, a.patterns, a.ref, a.icase, a.fixed)
+            ref, note = (resolve_mainline(repo, st) if a.ref == "mainline" else (a.ref, ""))
+            label, sha, cmd, counts = search(repo, a.patterns, ref, a.icase, a.fixed)
+            tag = f" ({note})" if note and note != "recorded" else ""
         except RuntimeError as e:
             failed += 1
             print(f"\n## {name}: NOT SEARCHED — {e}")
@@ -115,15 +143,15 @@ def main(argv: list[str]) -> int:
         ranked = sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
         result = (f"{total} match(es) in {nfiles} file(s)" if counts
                   else "searched, no references found")
-        print(f"\n## {name} ({label}@{sha}): {result}")
-        print(f"   {cmd}")
+        print(f"\n## {name} ({label}@{sha}{tag}): {result}")
+        print(f"   {cmd}   # in {repo}")
         for path, n in ranked[:a.top]:
             print(f"   {n:5d}  {path}")
         if nfiles > a.top:
             print(f"   … {nfiles - a.top} more file(s)" + (f" — full list in {a.save}" if a.save else
                                                           " — rerun with --save to keep the full list"))
-        rows.append(f"| {name} | {label}@{sha} | `{cmd}` | {result} |")
-        full.append(f"## {name} ({label}@{sha}): {result}\n{cmd}")
+        rows.append(f"| {name} | {label}@{sha}{tag} | `{cmd}` | {result} |")
+        full.append(f"## {name} ({label}@{sha}{tag}): {result}\n{cmd}   # in {repo}")
         full += [f"{n:5d}  {path}" for path, n in ranked]
 
     print("\nCross-repo search record rows:")

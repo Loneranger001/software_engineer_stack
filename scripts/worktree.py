@@ -17,8 +17,10 @@ add — checks <branch> out in <ws>/wt/<repo-name>. A new branch is cut from
   repo has checked out. An existing branch is checked out as it is (a
   resume). Records in STATUS.md: branch.<repo-name>, base.<repo-name> (the
   ref the branch was cut from: every later diff and log compares against
-  it) and worktree.<repo-name>. --base is required unless base.<repo-name>
-  is already recorded — the mainline is the user's call, never a guess.
+  it) and worktree.<repo-name>. --base defaults to the recorded
+  base.<repo-name>, else mainline.<repo-name> (recorded at intake and
+  confirmed by the user); with neither, it is required — the mainline is the
+  user's call, never a guess.
   Re-running for a worktree that already exists reuses it.
   A change-request workspace changes one repo: asking for a second exits 3
   (the escalation rule, /change-request §1).
@@ -34,7 +36,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from checkpoint import all_repos, load  # noqa: E402
+from checkpoint import all_repos, load, mainline  # noqa: E402
 from status import StatusError  # noqa: E402
 
 DECIDE = 3
@@ -90,10 +92,11 @@ def cmd_add(ws_arg: str, name: str, branch: str, base_arg: str | None) -> int:
               f"/change-request §1's escalation rule: recommend the full pipeline. Nothing was changed.",
               file=sys.stderr)
         return DECIDE
-    base = base_arg or (st.field(f"base.{name}") if f"base.{name}" in st.fields else None)
+    base = (base_arg or (st.field(f"base.{name}") if f"base.{name}" in st.fields else None)
+            or mainline(st, name))
     if not base:
-        raise StatusError(f"no --base given and no base.{name} recorded — ask the user which branch "
-                          f"{name} releases from")
+        raise StatusError(f"no --base given and no base.{name} or mainline.{name} recorded — ask the user "
+                          f"which branch {name} releases from (ses status field <ws> mainline.{name} <branch>)")
     path = ws / "wt" / name
     if path.exists():
         if run(path, "rev-parse", "--is-inside-work-tree").returncode != 0:

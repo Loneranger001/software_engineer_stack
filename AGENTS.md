@@ -48,12 +48,18 @@ packaging is parked in `parked/`). Full docs: README.md.
    changed repo's task branch is checked out in its own worktree,
    `wt/<repo>/` (`ses worktree add`); the repo's own checkout is never
    switched. Checkpoint commits carry the step record and evidence hashes;
-   `ses coverage` decides whether every acceptance row has a recorded PASS. Conversation history
+   `ses coverage` decides whether every acceptance row — TDD §7, the
+   contract's A# and an approved FDD's TS# — has a recorded PASS with an
+   independent expected value. Each repo's mainline is recorded per repo
+   (`mainline.<repo>`) and analysis searches it with `ses search --ref
+   mainline`. Conversation history
    and in-session progress are the harness's job.
 5. The reviewers in `com.github.copilot/agents/` (scope-auditor,
    code-reviewer, doc-fact-checker) run apart from the authoring session as
    `<root>/core/reviewers.md` describes: the plugin's custom agent, else a
    fresh subagent, else a separate fresh pass held to the report format.
+   Every report is kept with how it ran (`ses review record`) and gates read
+   it back (`ses review require`); a self-pass is named to the user.
 6. Task workspaces never go into git: `ses new-task` excludes `work/`
    locally when it sits inside a repo, commits stage files by name, and
    `ses checkpoint` refuses or fails on workspace files.

@@ -4,7 +4,7 @@ Run before presenting the TDD for approval.
 
 - [ ] Traceability table maps EVERY in-scope item to a design section (no orphans either way)
 - [ ] Nothing in the design implements an out-of-scope/non-goal item
-- [ ] If an approved FDD exists: every FR# is traced in §2 and every TS# has its own §7 row, and no section contradicts its business rules (BR#) or exceptions (EX#) — a needed departure was re-approved as an FDD amendment
+- [ ] If an approved FDD exists: every FR# is traced in §2 and every TS# and contract A# is named in a §7 row (`ses handoff check` enforces it), and no section contradicts its business rules (BR#) or exceptions (EX#) — a needed departure was re-approved as an FDD amendment
 - [ ] Every claim about existing behaviour carries a source reference (`<repo>:<path>:<line>`, query, doc) — never research-notes.md or another workspace file
 - [ ] §1 Overview lists every business term relied on: global ones with their `Meaning` line copied verbatim from `<workspace-root>/work/domain-glossary.md` (none re-defined), repo-specific ones defined for their repo
 - [ ] Interface impact analysis is backed by the research call graph — "no callers affected" is proven, not assumed
@@ -15,7 +15,7 @@ Run before presenting the TDD for approval.
 - [ ] Verification-approach table covers every acceptance criterion (an untestable criterion blocks approval); operational impact stated line by line, "none" explicit
 - [ ] Non-functional section addresses performance, security, operability — or states why not applicable
 - [ ] At least one alternative was considered and its rejection justified
-- [ ] doc-fact-checker agent ran on the TDD and its findings were resolved
+- [ ] doc-fact-checker ran on the TDD, its report is kept (`ses review record`), its findings were resolved, and `ses review require <ws> doc-fact-checker tdd` passes; a self-pass is named to the user
 - [ ] Open questions from research are resolved or explicitly carried as risks
 - [ ] ASSUMPTIONS.md reviewed — open entries presented for ratification; design-shaping ones promoted into the TDD (decision-protocol §4)
 - [ ] `tech-design=approved` is set (`ses status`) only after the user's explicit approval

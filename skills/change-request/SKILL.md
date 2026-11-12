@@ -20,7 +20,10 @@ verification, same scope discipline.
 ## 0. Preamble
 
 1. Load applicable lessons: `ses lessons change-request` — it prints only
-   the matching entries; don't read the lesson files whole.
+   the matching entries; don't read the lesson files whole. Once the
+   workspace exists, re-run it as `ses lessons change-request --ws <ws>`: the
+   repos and languages then come from STATUS.md, and lessons tagged for
+   another repo drop out.
 2. Resolve `<work-repo>`, `<workspace-root>`, and the `<repo-set>` per
    `<root>/core/repo-resolution.md` (cwd is not assumed to be
    the repo; sibling repos are in analysis scope by default), then create the
@@ -37,11 +40,11 @@ verification, same scope discipline.
 ## 1. Impact analysis
 
 Analyse the mainline, never a checkout: a repo's checkout may be on another
-task's unmerged branch. First `git -C <repo> fetch origin <mainline>` in every
-repo of `<repo-set>` (`<mainline>`: the branch the repo releases from —
-`git -C <repo> symbolic-ref --short refs/remotes/origin/HEAD` names it when
-set, else ask; a failed fetch is recorded as "searched a possibly-stale
-local ref", never skipped silently).
+task's unmerged branch. Each repo's mainline is `mainline.<repo>` in STATUS.md
+(`ses new-task` records the ones origin names; confirm them with the user
+and record the rest with `ses status field <ws> mainline.<repo> <branch>`).
+`ses search --ws <ws> --ref mainline` fetches and searches each one; a failed
+fetch is labelled "possibly stale", never skipped silently.
 
 1. Read the target interface fully at `origin/<mainline>` (spec and body /
    whole script, not just the lines to change —
@@ -53,7 +56,7 @@ local ref", never skipped silently).
    `ses list-repos <repos-folder>` and record the
    list): search object/proc/script names, imports, scheduler references,
    config and deployment manifests with
-   `ses search --ws <ws> --ref origin/<mainline> -- <patterns>` — counts
+   `ses search --ws <ws> --ref mainline -- <patterns>` — counts
    first in every repo, then open only the hits that matter. Paste its per-repo rows
    (command, sha, result) into analysis.md, including repos that returned
    nothing — "no other repo uses this" is
@@ -102,7 +105,7 @@ On approval: `ses status set <ws> mini-contract=approved --note "by <who>"`.
 
 0. Gate: `ses status require <ws> mini-contract=approved` — non-zero exit = stop.
 1. Check the branch out in its own worktree:
-   `ses worktree add <ws> <repo-name> <branch> --base <mainline>`, the branch
+   `ses worktree add <ws> <repo-name> <branch>` (base: `mainline.<repo>`), the branch
    named per the repo rules (else the repo's existing branch naming). It is
    cut from `origin/<mainline>`, the repo's own checkout is left as it is,
    and it records `branch.<repo>`, `base.<repo>` and `worktree.<repo>`. From
@@ -142,10 +145,12 @@ On approval: `ses status set <ws> mini-contract=approved --note "by <who>"`.
    `evidence/raw/`; only its summary goes into the evidence file; a rerun
    after a commit gets a new name). The evidence's Result table has one row
    per acceptance criterion it proves (A1…An): PASS, FAIL, PARTIAL or
-   NOT-RUN, and the mode it ran in.
+   NOT-RUN, the mode it ran in, and `Expected from` — where the expected
+   value came from (hand-derived, spec, fixture; never the code under test).
 4. All PASS → commit, one commit per logical unit referencing the task id:
-   - first inspect the repo's `commit-msg` hook and follow its exact format
-     (as /implement §1 step 4 — the hook, not recent history, decides);
+   - take each subject from `ses checkpoint subject <ws> <repo-name> <N> "<desc>"`
+     (as /implement §1 step 4: the repo's own `commit-msg` hook decides; exit 3 =
+     it rejects every form — ask the user);
    - stage the changed files by name (`git -C <wt> add <files>`, never
      `git add -A` / `git add .` — `work/` may sit inside the repo);
    - end each message with its evidence hash lines from
@@ -164,6 +169,8 @@ A change request delivers itself — /deliver is the full pipeline's stage.
    multi-file changes, also run the audit procedure in
    `<root>/com.github.copilot/agents/scope-auditor.agent.md` against the mini contract —
    delegated per `<root>/core/reviewers.md` — passing `analysis.md` as the contract.
+   Keep the report (`ses review record <ws> scope-auditor cr --mode <mode> <report>`);
+   `ses review require <ws> scope-auditor cr` must pass before the push.
 2. Always, the audit or not: `ses checkpoint verify <ws> --delivery` —
    non-zero exit = stop. It proves the committed evidence hashes still
    match, that the branch holds this task's commits and each carries its

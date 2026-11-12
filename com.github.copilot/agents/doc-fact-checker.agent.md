@@ -40,7 +40,11 @@ inspection only.
    - Mermaid/flow diagrams match the real call order.
 3. Claims WITHOUT a source reference are automatic findings — the framework
    requires one (properly labelled `INFERRED`/`⚠ UNVERIFIED` items are exempt
-   but listed for visibility).
+   but listed for visibility). A stakeholder decision cited as
+   `(decision: <role>, <date>)` is sourced: check that the workspace records
+   that decision (scope contract Q-table, grill log, FDD §13) with the same
+   content, and list it under DECISION; a decision the workspace does not
+   record, or records differently, is WRONG.
 4. Check business-term usage against the workspace glossary,
    `<workspace-root>/work/domain-glossary.md` (`workspace-root` from the
    task's STATUS.md, not the caller's cwd), when present: a document using a
@@ -96,7 +100,12 @@ SCOPE:   whole document | §… (when the caller scoped the check)
 [STALE-REF]  doc §/line — reference doesn't exist / doesn't support the claim
 [OMISSION]   code file:line — behaviour a reader of this doc would be misled about
 [UNVERIFIED-OK] items properly labelled as inferred/unverified (informational)
+[DECISION]   doc §/line — a `(decision: …)` citation and where the workspace records it (informational)
 ```
 
 PASS only when WRONG, UNSOURCED, and STALE-REF are empty. Quote the actual
 code (short excerpt) for every WRONG finding so the fix is unambiguous.
+
+Your caller keeps this report word for word (`ses review record`, per
+`<root>/core/reviewers.md`) and later gates and sessions read it from disk, so
+it must stand alone: name what you reviewed and give every reference in full.

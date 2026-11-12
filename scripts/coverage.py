@@ -11,15 +11,29 @@ row by row, where it stands:
   change request:  acceptance criterion A# in analysis.md → its latest
                    result in evidence/
 
+In the full pipeline the rows are the UNION of TDD §7, the contract's
+acceptance criteria (A#) and an approved FDD's test scenarios (TS#): a
+contract or FDD row that never reached §7 is NOT-IN-TDD and not met — no test
+plans it, so no T# could prove it.
+
 Usage:
-    coverage.py <ws>
+    coverage.py <ws>            the gate: every row → T# → recorded PASS
+    coverage.py <ws> --plan     the plan check (/impl-plan): every row reaches §7
+                                and has a T#; results are not read
 
 Results come from the result table of each evidence/*.txt file
 (templates/test-evidence.md, "## Result"): a table whose header has an
 `Outcome` column, one row per test (T#) or criterion (A#), outcome PASS |
 FAIL | PARTIAL | NOT-RUN. The latest result wins (the file's `- Date:` line,
 then its name). A PASS whose Mode column says static-fallback counts as
-PARTIAL: the code parsed, it did not run. A result counts only from an
+PARTIAL: the code parsed, it did not run. A PASS needs an `Expected from`
+cell naming where its expected value came from (hand-derived, spec, fixture,
+contract…); a PASS without one, or whose expectation was computed by the code
+under test, is NO-ORACLE — a test that re-runs the implementation's own logic
+agrees with it whether it is right or not. A task scaffolded before 0.16.0
+(no `ses-version` in STATUS.md, or an older one) keeps a PASS whose Result
+table has no `Expected from` column at all, flagged as legacy: its evidence
+is hashed, so the column cannot be added afterwards. A result counts only from an
 evidence file whose hash a task commit recorded (ses checkpoint trailer) and
 that still matches it; otherwise the row is UNRECORDED.
 
@@ -41,70 +55,19 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from checkpoint import load, recorded_evidence, sha256  # noqa: E402
 from status import StatusError  # noqa: E402
 
+from doctables import ROW_ID, TEST_ID, col, rows_missing_from_tdd, section, tables, tdd_verification_ids  # noqa: E402
+
 NOT_MET = 3
 # worst first: a row takes the worst status of its tests
-ORDER = ("NO-TEST", "FAIL", "NOT-RUN", "NO-RESULT", "UNRECORDED", "PARTIAL", "PASS")
-ROW_ID = re.compile(r"\b(?:A|TS|G)\d+\b")
-TEST_ID = re.compile(r"\bT\d+\b")
-
-
-def cells(line: str) -> list[str]:
-    return [c.strip().replace("\\|", "|") for c in re.split(r"(?<!\\)\|", line.strip().strip("|"))]
-
-
-def tables(text: str) -> list[tuple[list[str], list[list[str]]]]:
-    """[(header cells, rows)] for every Markdown table in text."""
-    out: list[tuple[list[str], list[list[str]]]] = []
-    cur: tuple[list[str], list[list[str]]] | None = None
-    for line in text.splitlines():
-        s = line.strip()
-        if s.startswith("|") and s.endswith("|") and len(s) > 1:
-            row = cells(s)
-            if cur is None:
-                cur = (row, [])
-            elif not all(re.fullmatch(r":?-{3,}:?", c) for c in row if c):
-                cur[1].append(row)
-        elif cur is not None:
-            out.append(cur)
-            cur = None
-    if cur is not None:
-        out.append(cur)
-    return out
-
-
-def section(text: str, heading: re.Pattern[str]) -> str:
-    """The body under the first heading matching `heading`, up to the next heading of its level or above."""
-    lines = text.splitlines()
-    for i, line in enumerate(lines):
-        m = re.match(r"^(#+)\s+(.*)$", line)
-        if m and heading.search(m.group(2)):
-            level = len(m.group(1))
-            body = []
-            for nxt in lines[i + 1:]:
-                h = re.match(r"^(#+)\s", nxt)
-                if h and len(h.group(1)) <= level:
-                    break
-                body.append(nxt)
-            return "\n".join(body)
-    return ""
-
-
-def col(header: list[str], name: str) -> int | None:
-    for i, h in enumerate(header):
-        if h.lower().replace(" ", "").startswith(name):
-            return i
-    return None
+ORDER = ("NOT-IN-TDD", "NO-TEST", "FAIL", "NOT-RUN", "NO-RESULT", "UNRECORDED", "NO-ORACLE", "PARTIAL", "PASS")
+# an expectation the code under test produced is no expectation at all
+SELF_ORACLE = re.compile(r"\b(code under test|implementation|same (query|sql|function|logic))\b", re.I)
 
 
 def tdd_rows(ws: Path) -> list[str]:
-    doc = ws / "tdd.md"
-    if not doc.is_file():
+    if not (ws / "tdd.md").is_file():
         raise StatusError(f"no tdd.md in {ws} — coverage starts from its §7 Verification approach")
-    body = section(doc.read_text(), re.compile(r"^7\.|verification approach", re.I))
-    rows: list[str] = []
-    for _header, trs in tables(body)[:1]:
-        for r in trs:
-            rows += [i for i in ROW_ID.findall(r[0]) if i not in rows]
+    rows = tdd_verification_ids(ws) or []
     if not rows:
         raise StatusError("tdd.md §7 has no rows keyed A#, TS# or G#")
     return rows
@@ -153,7 +116,15 @@ def cr_rows(ws: Path) -> list[str]:
     return rows
 
 
-def results(ws: Path, recorded: dict[str, str]) -> dict[str, tuple[str, str, bool]]:
+def strict_oracle(st) -> bool:
+    """Whether the `Expected from` rule binds this task: scaffolded by 0.16.0 or later."""
+    if "ses-version" not in st.fields:
+        return False
+    m = re.match(r"^(\d+)\.(\d+)", st.field("ses-version"))
+    return not m or (int(m.group(1)), int(m.group(2))) >= (0, 16)
+
+
+def results(ws: Path, recorded: dict[str, str], strict: bool = True) -> dict[str, tuple[str, str, bool]]:
     """{T# or row ID: (outcome, evidence file, recorded)} — the latest result for each."""
     ev = ws / "evidence"
     files = []
@@ -166,7 +137,7 @@ def results(ws: Path, recorded: dict[str, str]) -> dict[str, tuple[str, str, boo
         rel = f"evidence/{name}"
         ok = rel in recorded and sha256(f) == recorded[rel]
         for header, trs in tables(text):
-            o, mode = col(header, "outcome"), col(header, "mode")
+            o, mode, exp = col(header, "outcome"), col(header, "mode"), col(header, "expectedfrom")
             if o is None or o == 0:
                 continue
             for r in trs:
@@ -178,6 +149,10 @@ def results(ws: Path, recorded: dict[str, str]) -> dict[str, tuple[str, str, boo
                 outcome = re.sub(r"[-_ ]", "-", m.group(1))
                 if outcome == "PASS" and mode is not None and mode < len(r) and "static" in r[mode].lower():
                     outcome = "PARTIAL"
+                elif outcome == "PASS" and (exp is not None or strict):
+                    source = r[exp].strip(" `*") if exp is not None and exp < len(r) else ""
+                    if source.lower() in ("", "-", "—", "n/a", "none") or SELF_ORACLE.search(source):
+                        outcome = "NO-ORACLE"
                 for key in TEST_ID.findall(r[0]) + ROW_ID.findall(r[0]):
                     out[key] = (outcome, rel, ok)
     return out
@@ -191,6 +166,8 @@ def status_of(res: tuple[str, str, bool] | None) -> str:
 
 
 def main(argv: list[str]) -> int:
+    plan = "--plan" in argv
+    argv = [a for a in argv if a != "--plan"]
     if len(argv) != 1 or argv[0] in ("-h", "--help"):
         print(__doc__)
         return 0 if argv and argv[0] in ("-h", "--help") else 2
@@ -199,18 +176,34 @@ def main(argv: list[str]) -> int:
     if pipeline not in ("full", "change-request"):
         print(f"coverage {task} ({pipeline}): no acceptance rows to verify in this pipeline")
         return 0
-    recorded = recorded_evidence(ws, st)
-    res = results(ws, recorded)
+    if plan and pipeline != "full":
+        print(f"coverage {task} ({pipeline}): --plan checks a full-pipeline test plan; nothing to plan here")
+        return 0
+    strict = strict_oracle(st)
+    res = {} if plan else results(ws, recorded_evidence(ws, st), strict)
+    missing: dict[str, str] = {}
     if pipeline == "full":
         rows = tdd_rows(ws)
+        for rid, source in rows_missing_from_tdd(ws):
+            missing[rid] = source
+            rows.append(rid)
         tests = impl_tests(ws)
     else:
         rows = cr_rows(ws)
         tests = {}
     lines, unmet, waived = [], [], []
     for rid in rows:
-        if pipeline == "full":
+        if rid in missing:
+            row, detail = "NOT-IN-TDD", f"{missing[rid]} defines it; tdd.md §7 has no row for it, so no test plans it"
+        elif pipeline == "full":
             ts = tests.get(rid, [])
+            if plan:
+                row = "PLANNED" if ts else "NO-TEST"
+                detail = ", ".join(ts) or "no T# in impl-doc §3 covers it"
+                if not ts:
+                    unmet.append(rid)
+                lines.append(f"  {rid:<5} {row:<11} {detail}")
+                continue
             parts = [(t, status_of(res.get(t)), res.get(t)) for t in ts]
             row = (min((p[1] for p in parts), key=ORDER.index) if parts else "NO-TEST")
             detail = "; ".join(f"{t} {s}" + (f" ({r[1]})" if r else "") for t, s, r in parts) \
@@ -220,22 +213,42 @@ def main(argv: list[str]) -> int:
             row = status_of(r)
             detail = r[1] if r else "no result in evidence/"
         w = f"waiver.{rid}"
-        if row != "PASS" and w in st.fields:
+        if plan:
+            unmet.append(rid)            # only NOT-IN-TDD reaches here in plan mode
+        elif row != "PASS" and w in st.fields:
             waived.append(rid)
             detail = f"was {row}: {detail} — waived {st.field(w)}"
             row = "WAIVED"
         elif row != "PASS":
             unmet.append(rid)
         lines.append(f"  {rid:<5} {row:<11} {detail}")
+    if plan:
+        print(f"coverage plan {task}: {len(rows)} row(s) — {len(rows) - len(unmet)} planned, "
+              f"{len(unmet)} without a test")
+        print("\n".join(lines))
+        if unmet:
+            print(f"NOT PLANNED: {' '.join(unmet)} — give each a TDD §7 row and an impl-doc §3 T# whose "
+                  f"Covers column names it")
+            return NOT_MET
+        return 0
     passed = len(rows) - len(unmet) - len(waived)
     print(f"coverage {task} ({pipeline}): {len(rows)} row(s) — {passed} PASS, {len(waived)} WAIVED, "
           f"{len(unmet)} not met")
+    if not strict:
+        print("note: a task begun before 0.16.0 — a Result table without an `Expected from` column still counts; "
+              "new evidence should carry it")
     print("\n".join(lines))
     if waived:
         print(f"waived (release note: not verified): {' '.join(waived)}")
     if unmet:
         print(f"NOT MET: {' '.join(unmet)} — run each and record its result in evidence/ (a task commit's "
               f"trailer), or the user waives it: ses status field <ws> waiver.<ID> \"by <who> <date>: <reason>\"")
+        if any(rid in missing for rid in unmet):
+            print("NOT-IN-TDD rows: amend TDD §7 (and the impl-doc test plan) first — the design never "
+                  "planned their verification")
+        if any("NO-ORACLE" in l for l in lines):
+            print("NO-ORACLE: fill the evidence Result table's `Expected from` cell with where the expected "
+                  "value came from (hand-derived, spec, fixture) — never the code under test")
         return NOT_MET
     return 0
 

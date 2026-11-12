@@ -52,6 +52,38 @@ class LessonsTest(unittest.TestCase):
         self.assertIn("Verify PL/SQL lesson", out)
         self.assertNotIn("Research ksh", out)
 
+    def test_single_language_is_not_dropped(self):
+        # the trial's bug: `read` never saw the last, unterminated value, so --lang plsql matched nothing
+        out = self.run_lessons("implement", "--lang", "plsql").stdout
+        self.assertIn("Verify PL/SQL lesson", out)
+        out = self.run_lessons("implement", "--lang", "sql,plsql").stdout
+        self.assertIn("Verify PL/SQL lesson", out)
+
+    def test_repo_tagged_lesson_for_another_repo_is_left_out(self):
+        out = self.run_lessons("verify", "--repo", "orders").stdout
+        self.assertNotIn("Verify PL/SQL lesson", out, "tagged repo:billing — not this repo's lesson")
+        self.assertIn("Any-stage lesson", out)
+        out = self.run_lessons("verify", "--repo", "orders,billing").stdout
+        self.assertIn("Verify PL/SQL lesson", out)
+        out = self.run_lessons("verify").stdout     # no --repo: the stage match stands
+        self.assertIn("Verify PL/SQL lesson", out)
+
+    def test_ws_derives_repos_and_languages(self):
+        base = Path(self.tmp.name)
+        repo = base / "billing"
+        subprocess.run(["git", "init", "-q", str(repo)], check=True)
+        (repo / "pkg.pkb").write_text("x\n")
+        subprocess.run(["git", "-C", str(repo), "add", "pkg.pkb"], check=True)
+        ws = base / "work" / "T-1"
+        ws.mkdir(parents=True)
+        (ws / "STATUS.md").write_text(f"# STATUS\n\n- task-id: T-1\n- work-repo: {repo}\n"
+                                      f"- repos-analyzed: {repo}\n")
+        r = self.run_lessons("implement", "--ws", str(ws))
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("Verify PL/SQL lesson", r.stdout)
+        self.assertIn("lang:plsql repo:billing", r.stdout)
+        self.assertEqual(self.run_lessons("implement", "--ws", str(base / "nope")).returncode, 2)
+
     def test_repo_matches_literally(self):
         out = self.run_lessons("intake", "--repo", "a.b").stdout
         self.assertIn("Research ksh lesson", out)
@@ -124,6 +156,23 @@ class CaptureTest(unittest.TestCase):
         first = r.stdout.splitlines()[0]
         self.assertNotIn("tiger", first)
         self.assertIn("<SES_DB_CONN>", first)
+
+    def test_any_credential_variable_is_redacted_everywhere(self):
+        # the trial's leak: the repo's own INV_DB_CONN printed verbatim into evidence
+        env = {"INV_DB_CONN": "inv_owner/S3cretPw@//db:1521/PDB", "INV_DB_PASSWORD": "S3cretPw",
+               "MY_SERVICE": "plainvalue", "SES_REDACT_VARS": "MY_SERVICE"}
+        r = self.capture("leak", "--grep", "pw", "--", "sh", "-c",
+                         "echo connecting as $INV_DB_CONN; echo pw=$INV_DB_PASSWORD; echo $MY_SERVICE; exit 4",
+                         env=env)
+        self.assertEqual(r.returncode, 4)
+        log = (self.ev / "raw" / "leak.log").read_text()
+        for out in (r.stdout, log):
+            self.assertNotIn("S3cretPw", out)
+            self.assertNotIn("plainvalue", out)
+        self.assertIn("connecting as <INV_DB_CONN>", log)       # whole value first, then the password
+        self.assertIn("pw=<INV_DB_PASSWORD>", log)
+        self.assertIn("<MY_SERVICE>", log)
+        self.assertFalse((self.ev / "raw" / "leak.log.part").exists())
 
     def test_stdin_is_closed(self):
         r = subprocess.run(["sh", str(ROOT / "scripts" / "capture.sh"), str(self.ev), "cat", "--", "cat"],

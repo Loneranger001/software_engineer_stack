@@ -74,13 +74,18 @@ it only when a case here is ambiguous.
   means `<ws>/evidence/`, `<ws>/scope-contract.md` — never relative to cwd.
 - git, test runners, and code greps run with the target repo as cwd —
   inside a task, its task worktree once one is recorded (below).
-- Analysis reads the mainline, never a checkout: fetch it and pass
-  `--ref origin/<mainline>` to `ses search`, `git show origin/<mainline>:<path>`
-  to read a file. A repo's checkout may be on another task's unmerged
-  branch; what it shows is not the system.
+- Each repo's mainline — the branch it releases from — is recorded per repo
+  as `mainline.<repo>` (`ses new-task` records the ones origin names; the
+  user confirms them and names the rest). Repos in one workspace often
+  differ (`main`, `master`, `develop`): never assume one name for all.
+- Analysis reads the mainline, never a checkout: `ses search --ws <ws>
+  --ref mainline` fetches and searches each repo's own mainline;
+  `git show origin/<mainline>:<path>` reads a file. A repo's checkout may be
+  on another task's unmerged branch; what it shows is not the system.
 - Task branches: each changed repo's task branch is checked out in its own
   worktree, `<ws>/wt/<repo-name>`, made by
-  `ses worktree add <ws> <repo-name> <branch> --base <mainline>` and
+  `ses worktree add <ws> <repo-name> <branch>` (`--base` defaults to
+  `mainline.<repo>`) and
   recorded as `worktree.<repo>` (with `branch.<repo>` and `base.<repo>`).
   The repo's own checkout is never switched, so two tasks in one repo never
   share files and the user's own work there is never touched. Every edit,
@@ -88,8 +93,8 @@ it only when a case here is ambiguous.
 
 **Analysis covers every repo in `<repo-set>`**
 - Enumerate first and record the list (STATUS `repos-analyzed` + notes).
-- Search every repo with `ses search --ws <ws>
-  [--ref origin/<mainline>] -- <patterns>`: counts first, one command and
+- Search every repo with `ses search --ws <ws> --ref mainline
+  -- <patterns>`: counts first, one command and
   sha recorded per repo, zero hits reported as "searched, no references
   found" — never omitted. Open only the files that matter (`git grep -n …
   -- <path>`). A recorded search row may be reused while that repo's sha is

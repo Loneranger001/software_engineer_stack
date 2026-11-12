@@ -63,6 +63,71 @@ class CheckpointTest(unittest.TestCase):
         git(self.repo, "commit", "-qm", "T-7 step 1: add column", "-m", trailer)
         return trailer
 
+    def test_subject_fits_the_commit_msg_hook_and_resume_reads_it(self):
+        self.assertEqual(self.cp("subject", self.ws, "repo-a", "1", "add column").stdout.strip(),
+                         "T-7 step 1: add column")        # no hook: the plain form
+        hook = self.repo / ".git" / "hooks" / "commit-msg"
+        hook.write_text("#!/bin/sh\nhead -1 \"$1\" | grep -Eq '^[A-Z][A-Z0-9]*-[0-9]+: .{5,}' || "
+                        "{ echo 'subject must match <KEY>: <text>' >&2; exit 1; }\n")
+        hook.chmod(0o755)
+        r = self.cp("subject", self.ws, "repo-a", "1", "add column")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        subject = r.stdout.strip()
+        self.assertEqual(subject, "T-7: step 1: add column")
+        self.assertEqual(self.cp("subject", self.ws, "repo-a", "tests", "test plan").stdout.strip(),
+                         "T-7: tests: test plan")
+        (self.repo / "a.sql").write_text("x\n")
+        (self.ws / "evidence" / "step1-ddl.txt").write_text("ok\n")
+        trailer = self.cp("trailer", self.ws, "evidence/step1-ddl.txt").stdout.strip()
+        git(self.repo, "add", "a.sql")
+        git(self.repo, "commit", "-qm", subject, "-m", trailer)   # the hook accepts it
+        self.assertIn("last checkpoint commit is step 1", self.cp("resume", self.ws).stdout)
+
+    def test_subject_asks_when_the_hook_rejects_every_form(self):
+        hook = self.repo / ".git" / "hooks" / "commit-msg"
+        hook.write_text("#!/bin/sh\necho 'subject must start with [JIRA-1]' >&2; exit 1\n")
+        hook.chmod(0o755)
+        r = self.cp("subject", self.ws, "repo-a", "2", "body")
+        self.assertEqual(r.returncode, 3)
+        self.assertIn("ASK THE USER", r.stderr)
+        self.assertIn("must start with [JIRA-1]", r.stderr)
+
+    def test_resume_ignores_verification_byproducts(self):
+        self.commit_step1()
+        (self.repo / "src" / "__pycache__").mkdir()
+        (self.repo / "src" / "__pycache__" / "x.cpython-313.pyc").write_bytes(b"\0")
+        (self.repo / ".pytest_cache").mkdir()
+        (self.repo / ".pytest_cache" / "v").write_text("x\n")
+        r = self.cp("resume", self.ws)
+        self.assertEqual(r.returncode, 0, r.stdout)
+        self.assertIn("(2 verification by-product(s) ignored)", r.stdout)
+
+    def test_trailer_prefix_takes_every_file_of_the_step(self):
+        (self.ws / "evidence" / "raw").mkdir()
+        for name in ("evidence/step4-x.txt", "evidence/raw/step4-a.log", "evidence/raw/step4-b.log",
+                     "evidence/raw/step5-c.log"):
+            (self.ws / name).write_text(name + "\n")
+        out = self.cp("trailer", self.ws, "--prefix", "step4-").stdout
+        self.assertEqual(out.count("Evidence-SHA256:"), 3)
+        self.assertNotIn("step5-c.log", out)
+        self.assertEqual(self.cp("trailer", self.ws, "--prefix", "step9-").returncode, 1)
+
+    def test_seal_hashes_cited_design_evidence_and_verify_checks_it(self):
+        (self.ws / "evidence" / "raw").mkdir()
+        (self.ws / "evidence" / "research-probe.txt").write_text("207000 duplicates\n")
+        (self.ws / "evidence" / "raw" / "research-probe.log").write_text("raw\n")
+        (self.ws / "tdd.md").write_text("Rerun duplicates lines (`evidence/research-probe`).\n")
+        r = self.cp("seal", self.ws)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("sealed 2 new file(s)", r.stdout)
+        self.assertIn("evidence-seal:", (self.ws / "STATUS.md").read_text())
+        self.assertIn("2 sealed design evidence file(s)", self.cp("verify", self.ws).stdout)
+        (self.ws / "evidence" / "research-probe.txt").write_text("edited\n")
+        r = self.cp("verify", self.ws)
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("ALTERED  evidence/research-probe.txt (sealed design evidence", r.stdout)
+        self.assertEqual(self.cp("seal", self.ws).returncode, 1)   # an altered file is never re-sealed
+
     def test_first_run_is_clean(self):
         r = self.cp("resume", self.ws)
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)

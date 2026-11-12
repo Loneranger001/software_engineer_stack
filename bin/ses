@@ -28,6 +28,8 @@ COMMANDS = {
     "checkpoint": ("checkpoint.py", "resume report, evidence trailers, evidence verification"),
     "worktree": ("worktree.py", "check a task branch out in its own worktree (never the repo's checkout)"),
     "coverage": ("coverage.py", "every acceptance row -> its test -> recorded PASS, or waived"),
+    "impl-check": ("impl_check.py", "is the impl doc complete: files, own verify/rollback, every row planned"),
+    "review": ("review.py", "keep reviewer reports (and how they ran) on disk; gate on the latest"),
     "search": ("xsearch.py", "count-first search across every analyzed repo"),
     "review-diff": ("review-diff.sh", "stat-first, file-by-file review of a branch"),
     "capture": ("capture.sh", "run a command, keep the full log, print a bounded summary"),

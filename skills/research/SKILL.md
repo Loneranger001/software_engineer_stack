@@ -18,8 +18,10 @@ confidently, with every finding traceable to a source.
 
 ## 0. Preamble
 
-1. Load applicable lessons: `ses lessons research` — it prints only
-   the matching entries; don't read the lesson files whole.
+1. Load applicable lessons once step 2 has located `<ws>`:
+   `ses lessons research --ws <ws>` — it takes the repos and languages from
+   STATUS.md and prints only the matching entries (a lesson tagged for
+   another repo is left out); don't read the lesson files whole.
 2. Locate the workspace: the given task-id, else the single
    `<workspace-root>/work/*/STATUS.md` with next action /research, else ask.
    Gate:
@@ -40,13 +42,13 @@ confidently, with every finding traceable to a source.
    before assuming; judgment calls that pass §2 go to ASSUMPTIONS.md.
 5. **Cross-repo preflight (mandatory, before §1).** For EVERY repo in
    `<repo-set>` — not only the repo the contract nominates:
-   - Refresh and search the mainline, not just the checkout:
-     `git -C <repo> fetch origin <mainline>`, then run every search below
-     with `ses search --ref origin/<mainline>` as well as without (the
-     working tree). A nominated repo, a stale clone, or a feature branch can
-     omit the tables, views, and consumers that mainline has. Record per repo
-     the ref and SHA searched; a failed fetch is recorded as "searched a
-     possibly-stale local ref", never silently skipped.
+   - Search the mainline, not the checkout: run every search below with
+     `ses search --ws <ws> --ref mainline`, which fetches and searches each
+     repo's own `mainline.<repo>` (a repo with none recorded is NOT
+     SEARCHED until the user names it). A nominated repo, a stale clone, or
+     a feature branch can omit the tables, views, and consumers that
+     mainline has. The rows record per repo the ref and SHA searched; a
+     failed fetch is labelled "possibly stale", never silently skipped.
    - Run `ses repo-rules <repo>` for each repo and record what it
      lists. A repo with no rules files is noted in research notes (framework
      `standards/` and its surrounding code's style will apply).
@@ -66,7 +68,7 @@ expand it:
    — a caller in a sibling repo is exactly what this stage exists to find, and
    a search that never visited that repo reports the same "no callers" as a
    search that did. Use
-   `ses search --ws <ws> [--ref origin/<mainline>] --save
+   `ses search --ws <ws> --ref mainline --save
    <ws>/evidence/research-search-<term>.txt -- <patterns>`: it searches every
    repo, prints counts and the top files, and ends with the rows for the
    Cross-repo search record (repo, ref@sha, command, result — including

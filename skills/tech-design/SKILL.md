@@ -21,8 +21,10 @@ below).
 
 ## 0. Preamble
 
-1. Load applicable lessons: `ses lessons tech-design` — it prints only
-   the matching entries; don't read the lesson files whole.
+1. Load applicable lessons once step 2 has located `<ws>`:
+   `ses lessons tech-design --ws <ws>` — it takes the repos and languages from
+   STATUS.md and prints only the matching entries (a lesson tagged for
+   another repo is left out); don't read the lesson files whole.
 2. Locate the workspace and gate:
    `ses status require <ws> research=done`
    (`<ws>` = `<workspace-root>/work/<id>`) — non-zero exit = stop. Take
@@ -38,8 +40,10 @@ below).
    If the task has an approved functional design (`<ws>/fdd.md`; approval in
    `ses status get <ws> fdd`), read its handoff summary
    (`ses handoff show <ws>/fdd.md`): the TDD realises it — every FR# joins the
-   S# items in §2 traceability, every functional test scenario (TS#) gets
-   its own §7 row (its sketch may say "same test as A1"), its business rules
+   S# items in §2 traceability, every functional test scenario (TS#) is
+   named in §7 — in its own row, or in the first cell of the row whose test
+   proves it ("A1, TS1"); `ses handoff check` fails a TS# that no row
+   names — its business rules
    (BR#) and exceptions (EX#) are honoured, and a design that has to depart
    from it goes back to the user as an FDD amendment, re-approved before the
    TDD diverges. Deferred FDD questions (§13) become §11 risks.
@@ -101,7 +105,9 @@ summary is for agents and is not held to the standard.
 
 - Claims about existing behaviour keep their source references: copy the
   code references (`<repo>:<path>:<line>`, per `<root>/core/repo-resolution.md`)
-  over from research-notes.md and add new ones for anything newly read. Never cite research-notes.md itself — it stays
+  over from research-notes.md and add new ones for anything newly read. A
+  fact the user or a stakeholder decided cites the decision instead:
+  `(decision: <role>, <date>)` (`<root>/standards/writing.md`). Never cite research-notes.md itself — it stays
   in the workspace, so the reader of the handed-over TDD cannot open it.
 - Pseudocode/signatures must compile against reality: correct object names,
   parameter types from the actual specs.
@@ -111,19 +117,24 @@ summary is for agents and is not held to the standard.
 1. Self-check with `<root>/checklists/tech-design.md`.
 2. Run the fact-check procedure in
    `<root>/com.github.copilot/agents/doc-fact-checker.agent.md` on tdd.md (it verifies
-   every claim against the code) — delegated per `<root>/core/reviewers.md`. Resolve all
-   findings.
+   every claim against the code) — delegated per `<root>/core/reviewers.md`. Keep each
+   report: `ses review record <ws> doc-fact-checker tdd --mode <mode> <report>`.
+   Resolve all findings, then re-check until a report says PASS.
 3. Run `ses prose-lint <ws>/tdd.md` and fix every finding by rewriting the
    sentence, never by working around the pattern.
 4. Write the TDD's **handoff summary** block now — after the fact-check
    fixes — and run `ses handoff check <ws>/tdd.md`; it must pass.
-5. Present the TDD to the user for approval, starting from §1 and the
-   summary: key decisions, traceability table, risks — plus open
+5. `ses review require <ws> doc-fact-checker tdd` must pass. Present the
+   TDD to the user for approval, starting from §1 and the summary: key
+   decisions, traceability table, risks, how the fact-check ran (name a
+   self-pass) — plus open
    ASSUMPTIONS.md entries for ratification (decision-protocol §4); promote
    design-shaping ones into the TDD. Iterate until approved — each revision
    updates the summary in the same edit and re-runs the handoff check and
    the prose lint. Record approval + date in the TDD header.
-6. Record:
+6. Seal the evidence the TDD cites (`ses checkpoint seal <ws>` — the research
+   and design probes under `evidence/`): from now on `ses checkpoint verify`
+   reports any of it MISSING or ALTERED. Then record:
    `ses status set <ws> tech-design=approved --next "Run /grill."`
    (the
    adversarial completeness interrogation runs before any implementation

@@ -32,6 +32,9 @@ if [ -d "$dir/deliverables" ]; then def="$dir/deliverables/$base.pdf"; else def=
 OUT="${2:-$def}"
 mkdir -p "$(dirname "$OUT")"
 
-pandoc "$IN" -f gfm --toc --pdf-engine="$ENGINE" -o "$OUT"
+HERE=$(cd "$(dirname "$0")" && pwd)
+. "$HERE/mermaid-prep.sh"
+# shellcheck disable=SC2086  # MERMAID_ARGS is one option or empty
+pandoc "$IN" -f gfm --toc --pdf-engine="$ENGINE" $MERMAID_ARGS -o "$OUT"
 [ -s "$OUT" ] || { echo "error: conversion produced an empty file: $OUT" >&2; exit 1; }
 echo "wrote $OUT (engine: $ENGINE)"

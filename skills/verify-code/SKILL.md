@@ -21,7 +21,9 @@ fallback proves it parses and conforms. Every run produces an evidence file
 ## Lessons and output capture (all recipes)
 
 - Load applicable lessons:
-  `ses lessons verify --lang <languages of the files>`.
+  `ses lessons verify --lang <languages of the files>` — inside a task, add
+  `--ws <ws>` so lessons tagged for the task's repos come in and other
+  repos' lessons drop out.
 - Run every command below through `ses capture`:
   `ses capture <evidence-dir> <run>-<file>-<check> --grep '<errors>' -- <command>`,
   where `<run>` is the caller's prefix: `step<N>` in /implement's step loop,
@@ -58,7 +60,10 @@ first.
 | `SES_PY` | Python interpreter for the work repo (venv-aware) |
 
 - Never echo passwords; prefer wallet/OS auth; redact connect strings in
-  evidence files.
+  evidence files. `ses capture` replaces the value of every credential-looking
+  variable (`*_CONN`, `*PASSWORD*`, `*_PW`, `*SECRET*`, `*TOKEN*`, …) with
+  `<NAME>` in the command line, raw log and summary; name any other secret
+  variable in `SES_REDACT_VARS` (e.g. a repo's own `INV_DB_URL`).
 - Variable unset or connection fails → use the static fallback and record
   `mode: static-fallback` plus the reason in the evidence file. Fallback mode
   is a degraded PASS: tell the user which live checks remain outstanding.
@@ -134,6 +139,8 @@ For each file verified, append to the evidence file: recipe used, mode
 code, error-line matches, tail — plus the raw log path), PASS/FAIL/PARTIAL,
 and the assertion that justifies the verdict. A run for a test (T#) or an
 acceptance criterion (A#) also gets its row in the Result table — PASS,
-FAIL, PARTIAL or NOT-RUN, with its mode — which `ses coverage` reads. Never paste a full raw log
+FAIL, PARTIAL or NOT-RUN, with its mode and where its expected value came
+from (`Expected from`: hand-derived, spec or fixture — never the code under
+test) — which `ses coverage` reads. Never paste a full raw log
 into the evidence file. /implement and /change-request treat
 anything but PASS as a blocker to resolve or escalate.

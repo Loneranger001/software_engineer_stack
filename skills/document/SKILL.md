@@ -19,7 +19,10 @@ skill documents what the code DOES, not what anyone believes it does.
 ## 0. Preamble
 
 1. Load applicable lessons: `ses lessons document` — it prints only
-   the matching entries; don't read the lesson files whole.
+   the matching entries; don't read the lesson files whole. Once the
+   workspace exists, re-run it as `ses lessons document --ws <ws>`: the
+   repos and languages then come from STATUS.md, and lessons tagged for
+   another repo drop out.
 2. Determine the doc type; if not given, ask:
    - **howto** — a procedure someone performs (template: howto.md)
    - **kb-article** — answers a recurring question/problem (template: kb-article.md)
@@ -61,7 +64,7 @@ skill documents what the code DOES, not what anyone believes it does.
      doc-format "..."`), not into the team's rules files.
    - Build the **complete dependency map** both directions (upstream feeds,
      downstream consumers, associated packages/scripts, schedules, config) —
-     searched with `ses search --ws <ws> -- <patterns>` (every
+     searched with `ses search --ws <ws> --ref mainline -- <patterns>` (every
      repo, counts first) and its per-repo rows recorded so the map is
      reproducible. "Nothing depends on this" requires showing the search
      that found nothing. Then
@@ -99,8 +102,12 @@ skill documents what the code DOES, not what anyone believes it does.
 1. Run the fact-check procedure in
    `<root>/com.github.copilot/agents/doc-fact-checker.agent.md` on the draft —
    delegated per `<root>/core/reviewers.md`. It re-verifies each claim against the code; resolve
-   every finding (fix the doc or the fact table).
-2. `ses status set <ws> fact-check=done`.
+   every finding (fix the doc or the fact table). Keep each report
+   (`ses review record <ws> doc-fact-checker <doc-type> --mode <mode> <report>`,
+   `<doc-type>` = howto, kb or understanding) and re-check until one passes.
+2. `ses review require <ws> doc-fact-checker <doc-type>` must pass; then
+   `ses status set <ws> fact-check=done`. Tell the user how the fact-check
+   ran — a self-pass by name.
 
 ## 4. Deliver
 

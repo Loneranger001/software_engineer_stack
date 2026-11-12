@@ -91,7 +91,7 @@ logging, deployment layout.}
 
 ## Out-of-scope findings
 
-{Logged to PARKED.md — list the PARKED entry IDs here for cross-reference.}
+{Logged to PARKED.md — list the P# IDs here for cross-reference.}
 
 ## Open questions for the user
 

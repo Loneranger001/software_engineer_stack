@@ -78,6 +78,22 @@ class FddViewTest(unittest.TestCase):
         self.assertNotIn("Appendix", outs["fdd.business.md"])
         self.assertIn("## 1. Purpose", outs["fdd.business.md"])
 
+    def test_business_view_drops_workspace_header_lines(self):
+        doc = ("# FDD — T-1\n\n- Status: user-approved\n- Mode: forward (proposed change)\n"
+               "- Inputs: scope-contract.md v1 + research-notes.md\n- Audience: business\n\n"
+               "## 1. Purpose\n\nText.\n")
+        with tempfile.TemporaryDirectory() as d:
+            src = Path(d) / "fdd.md"
+            src.write_text(doc)
+            subprocess.run([*VIEW, str(src)], check=True, capture_output=True)
+            business = (Path(d) / "fdd.business.md").read_text()
+            self.assertNotIn("research-notes.md", business)
+            self.assertNotIn("- Mode:", business)
+            self.assertIn("- Status: user-approved", business)
+            self.assertIn("- Audience: business", business)
+            subprocess.run([*VIEW, str(src), "--audience", "technical"], check=True, capture_output=True)
+            self.assertIn("- Inputs: scope-contract.md", (Path(d) / "fdd.technical.md").read_text())
+
     def test_unbalanced_markers_fail(self):
         r, _ = render("# FDD\n<!-- technical:start -->\nx\n")
         self.assertEqual(r.returncode, 1)

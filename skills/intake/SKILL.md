@@ -19,9 +19,10 @@ the user has explicitly approved. Nothing downstream may begin before that appro
 
 ## 0. Preamble (every stack skill starts this way)
 
-1. Load applicable lessons: `ses lessons intake`,
-   re-run with `--repo <work-repo name> --lang <languages>` once step 2 and
-   the brief tell you them. Apply them; don't read the lesson files whole.
+1. Load applicable lessons: `ses lessons intake`; once §1 has created the
+   workspace, re-run it as `ses lessons intake --ws <ws>` (repos and
+   languages from STATUS.md; add `--lang` for a language the brief brings
+   in). Apply them; don't read the lesson files whole.
 2. Resolve `<work-repo>`, `<workspace-root>`, and the `<repo-set>` per
    `<root>/core/repo-resolution.md` — do NOT assume the current
    directory is the repo. If cwd is a parent folder holding several repos, ask
@@ -55,6 +56,11 @@ the user has explicitly approved. Nothing downstream may begin before that appro
      `ses status show <ws>`
      (`<ws>` = `<workspace-root>/work/<id>`) and RESUME from the recorded
      state instead of starting over.
+   - **Mainlines.** `ses new-task` prints the mainline it found for each repo
+     (`mainline.<repo>`, from origin) and the repos it could not tell. Show
+     the user both and confirm them; record a correction or a missing one
+     with `ses status field <ws> mainline.<repo> <branch>` — every later
+     search and branch is cut from it.
    - Run `ses status validate <ws>`; a workspace that fails validation (e.g.
      one scaffolded by an older version, missing `workspace-root`) is fixed
      before anything else is written into it.
@@ -89,8 +95,9 @@ the user has explicitly approved. Nothing downstream may begin before that appro
   question — the brief may be wrong or the glossary stale; never silently
   pick a side.
 - Do a first scan **across every repo in `<repo-set>`** for the objects the
-  brief names (`ses search --ws <ws> --
-  <names>` — counts first, every repo), to populate the "interfaces & objects expected to change" table
+  brief names (`ses search --ws <ws> --ref mainline -- <names>` — each
+  repo's own mainline, fetched first, never a checkout; counts first, every
+  repo), to populate the "interfaces & objects expected to change" table
   — each row carries its repo. A brief written against one repo routinely
   implicates others; finding that at intake is cheap, finding it during
   /implement is not.

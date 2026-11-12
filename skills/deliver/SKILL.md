@@ -18,8 +18,10 @@ audited against scope, evidenced, and converted to the formats the user needs.
 
 ## 0. Preamble
 
-1. Load applicable lessons: `ses lessons deliver` — it prints only
-   the matching entries; don't read the lesson files whole.
+1. Load applicable lessons once step 2 has located `<ws>`:
+   `ses lessons deliver --ws <ws>` — it takes the repos and languages from
+   STATUS.md and prints only the matching entries (a lesson tagged for
+   another repo is left out); don't read the lesson files whole.
 2. Locate the workspace and gate on the prior stage:
    `ses status require <ws> implement=done`
    (`<ws>` = `<workspace-root>/work/<id>`) — non-zero exit = stop. This is
@@ -45,8 +47,10 @@ audited against scope, evidenced, and converted to the formats the user needs.
    (the auditor reads the diff itself via `ses review-diff`),
    PARKED.md, ASSUMPTIONS.md, and the evidence directory (it runs
    `ses checkpoint verify` against the hashes in the checkpoint commits) —
-   delegated per `<root>/core/reviewers.md`.
-3. Outcomes:
+   delegated per `<root>/core/reviewers.md`. Keep each report:
+   `ses review record <ws> scope-auditor delivery --mode <mode> <report>`.
+3. Outcomes (the latest report decides — `ses review require <ws> scope-auditor delivery`
+   must pass before §3; tell the user how the audit ran, a self-pass by name):
    - PASS → proceed.
    - Violations → either remove the out-of-scope change (preferred) or get an
      explicit written user waiver / scope-contract version bump. A version
