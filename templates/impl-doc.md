@@ -39,12 +39,14 @@
 
 <!-- Every TDD §7 row (A#, TS#, G#) → at least one T#. Regression rows re-check
      the callers in TDD §6. The repo's own tooling. A long before/after
-     query goes in a fenced block under the table, named by its T#. -->
-| T# | Covers | Type | How run | Expected |
-|---|---|---|---|---|
-| T1 | {A1} | {unit} | {utPLSQL: ut.run('ut_pkg_order_edi')} | {pass} |
-| T2 | {A2, G1} | {integration} | {pytest tests/test_loader.py} | {pass} |
-| T3 | {§6 callers} | {regression} | {…} | {…} |
+     query goes in a fenced block under the table, named by its T#.
+     Test data: the seed, fixture or input rows the test runs on — the
+     unit-test workbook's Test data column. Expected: a value, not "pass". -->
+| T# | Covers | Type | Test data | How run | Expected |
+|---|---|---|---|---|---|
+| T1 | {A1} | {unit} | {test/seed_order_edi.sql: 2 orders, 1 sent} | {utPLSQL: ut.run('ut_pkg_order_edi')} | {1 order sent; EDI_SENT_DATE set} |
+| T2 | {A2, G1} | {integration} | {tests/fixtures/orders.csv: 3 rows} | {pytest tests/test_loader.py} | {3 rows loaded, 0 rejected} |
+| T3 | {§6 callers} | {regression} | {…} | {…} | {…} |
 
 ## 4. Deployment
 

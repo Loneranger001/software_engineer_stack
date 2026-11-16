@@ -147,6 +147,10 @@ On approval: `ses status set <ws> mini-contract=approved --note "by <who>"`.
    per acceptance criterion it proves (A1…An): PASS, FAIL, PARTIAL or
    NOT-RUN, the mode it ran in, and `Expected from` — where the expected
    value came from (hand-derived, spec, fixture; never the code under test).
+   Each A# also gets its Test cases row and its captured data
+   (`cr-A<n>-<what>`, `--ext csv` for rows) for the unit-test workbook
+   (`<root>/skills/unit-test-results/SKILL.md` §1); `ses ut-workbook <ws>
+   --check` must exit 0 before the commits below hash the evidence.
 4. All PASS → commit, one commit per logical unit referencing the task id:
    - take each subject from `ses checkpoint subject <ws> <repo-name> <N> "<desc>"`
      (as /implement §1 step 4: the repo's own `commit-msg` hook decides; exit 3 =
@@ -180,7 +184,10 @@ A change request delivers itself — /deliver is the full pipeline's stage.
    trimmed): change, deploy step, rollback step, evidence table — written
    to `<root>/standards/writing.md`; `ses prose-lint <ws>/release-notes.md`
    must pass.
-4. Push the branch (`git -C <wt> push -u origin <branch>`); then
+4. Build the unit-test workbook: `ses ut-workbook <ws>` (`--ods` when the
+   user wants ODS) → `deliverables/<task-id>-unit-test-results.xlsx`;
+   exit 3 is handled as `<root>/skills/unit-test-results/SKILL.md` §2 says.
+5. Push the branch (`git -C <wt> push -u origin <branch>`); then
    `ses worktree remove <ws> <repo-name>` (the branch stays; a review fix
    later re-adds the worktree). Report to the user;
    `ses status set <ws> deliver=done`; offer /retro (a one-lesson retro is

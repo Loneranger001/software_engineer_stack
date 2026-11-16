@@ -141,6 +141,11 @@ and the assertion that justifies the verdict. A run for a test (T#) or an
 acceptance criterion (A#) also gets its row in the Result table — PASS,
 FAIL, PARTIAL or NOT-RUN, with its mode and where its expected value came
 from (`Expected from`: hand-derived, spec or fixture — never the code under
-test) — which `ses coverage` reads. Never paste a full raw log
+test) — which `ses coverage` reads. A T# or A# row also gets its Test cases
+row — test data, expected and actual result as values, and the captured
+files that hold the data the test read and produced (`ses capture … --ext
+csv` for rows: SQL*Plus `SET MARKUP CSV ON`, SQLcl `SET SQLFORMAT CSV`) —
+which the unit-test workbook renders
+(`<root>/skills/unit-test-results/SKILL.md`). Never paste a full raw log
 into the evidence file. /implement and /change-request treat
 anything but PASS as a blocker to resolve or escalate.

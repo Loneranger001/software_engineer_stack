@@ -47,6 +47,24 @@ Raw logs: `evidence/raw/{name}.log` (full output, opened only to diagnose)
 - Outcome: PASS | FAIL | PARTIAL | NOT-RUN
 - Follow-up (if not PASS): {…}
 
+## Test cases
+
+<!-- One row per T# (or A#) in the Result table — what the unit-test
+     workbook shows for it (`ses ut-workbook`: its Summary row and TC sheet).
+     Write it now: once a commit hashes this file, a gap can only be filled by
+     a re-run under a new name. `ses ut-workbook <ws> --check` lists gaps.
+     Test data: the input — seed or fixture file, rows, parameters.
+     Expected result / Actual result: concrete values, never just "pass";
+     the expected value as its `Expected from` source gives it.
+     Captured: the evidence/ files holding the data the test read and
+     produced — evidence/raw/<run>-T<n>-<what>.csv from
+     `ses capture … --ext csv` for rows, else the runner's raw log. Each
+     becomes a block on the test's TC sheet. A step's own check with no T#
+     has no row here. -->
+| Test | Description | Test data | Expected result | Actual result | Captured |
+|---|---|---|---|---|---|
+| {T1 \| A1} | {a 0.01 difference is reported} | {fixture test/seed_bal.sql: 3 accounts} | {1 row: ACC-2, diff 0.01} | {1 row: ACC-2, diff 0.01} | {evidence/raw/tests-2026-11-16-T1-actual.csv, evidence/raw/tests-2026-11-16-T1-utplsql.log} |
+
 ## Before / after (data changes only)
 
 | Query | Before | After |

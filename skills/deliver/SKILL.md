@@ -1,6 +1,6 @@
 ---
 name: deliver
-description: Package a finished full-pipeline task - scope audit, evidence bundle, release notes, document conversion to Word/PDF/Confluence, branch push. The final gate before handover. Use when implementation is complete. (A change request and a document task deliver themselves, in /change-request §5 and /document §4.)
+description: Package a finished full-pipeline task - scope audit, evidence bundle, release notes, document conversion to Word/PDF/Confluence, the unit-test results workbook, branch push. The final gate before handover. Use when implementation is complete. (A change request and a document task deliver themselves, in /change-request §5 and /document §4.)
 argument-hint: "[task-id]"
 ---
 
@@ -95,7 +95,13 @@ The documents must match what was actually built:
    (`ses fdd-view <ws>/fdd.md --audience <fdd-audience>`, the audience from
    `ses status get <ws> fdd-audience`),
    never directly.
-3. Push every changed repo's task branch (the `branch.<repo>` fields:
+3. Build the unit-test workbook — always, after §2's coverage gate:
+   `ses ut-workbook <ws>`, plus `--ods` when `formats` names `ods` →
+   `deliverables/<task-id>-unit-test-results.xlsx`. It renders the hashed
+   evidence; exit 3 (a gap) is handled as
+   `<root>/skills/unit-test-results/SKILL.md` §2 says — a re-run, or the
+   user accepts the gaps. Never edit the workbook or the evidence to close one.
+4. Push every changed repo's task branch (the `branch.<repo>` fields:
    `git -C <wt> push -u origin <branch>`, `<wt>` from `worktree.<repo>`, else
    the repo; retry with backoff on network failure). Then remove each task
    worktree: `ses worktree remove <ws> <repo-name>` (the branch stays; a

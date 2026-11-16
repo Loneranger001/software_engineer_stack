@@ -25,8 +25,8 @@ def ses_commands():
 # which skills drive which pipeline (a skill may serve several)
 PIPELINE_SKILLS = {
     "full": ["intake", "research", "func-design", "tech-design", "grill", "impl-plan", "implement",
-             "deliver", "retro"],
-    "change-request": ["change-request", "grill", "func-design", "retro"],
+             "deliver", "unit-test-results", "retro"],
+    "change-request": ["change-request", "grill", "func-design", "unit-test-results", "retro"],
     "document": ["document"],
     "understand": ["understand"],
     "func-design": ["func-design"],

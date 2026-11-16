@@ -10,6 +10,7 @@ Run before declaring the task delivered.
 - [ ] `ses coverage` exits 0: every TDD §7 row (A#, TS#, G#) → T# → recorded PASS, or waived by the user row by row (`waiver.<ID>`) — waived rows named in the release notes as not verified
 - [ ] All task documents are internally consistent (TDD ↔ impl-doc ↔ actual diff; stale sections updated)
 - [ ] Requested output formats produced (docx/pdf/Confluence) and files open/render correctly
+- [ ] Unit-test workbook built by `ses ut-workbook` into deliverables/ (ODS too if asked); every gap it lists re-run or accepted by the user — the workbook and the evidence never edited to close one
 - [ ] PARKED.md items summarized in release notes as follow-ups
 - [ ] `ses checkpoint verify --delivery` passes (no empty branch, no task commit without evidence lines, no task commit in a repo outside the changed ones)
 - [ ] Work branch pushed in every changed repo; commits reference the task id; task worktrees removed (`ses worktree remove`)

@@ -4,7 +4,7 @@
 # error lines). The summary is what goes into the evidence file and the
 # agent's context; the raw log is the audit trail, opened only when needed.
 #
-# Usage: capture.sh <evidence-dir> <name> [--tail N] [--grep REGEX] -- <command> [args...]
+# Usage: capture.sh <evidence-dir> <name> [--tail N] [--grep REGEX] [--ext EXT] -- <command> [args...]
 #   evidence-dir  the task's evidence/ directory (created if missing)
 #   name          log name; output goes to <evidence-dir>/raw/<name>.log. Use a
 #                 new name for every run: a checkpoint commit may already hold
@@ -14,6 +14,10 @@
 #   --tail N      lines of output to show (default 40)
 #   --grep REGEX  also show every line matching REGEX (extended regex), capped
 #                 at 40 — e.g. 'ORA-|PLS-|SP2-|ERROR|FAILED|Traceback'
+#   --ext EXT     the raw file's extension (default log) — `--ext csv` for a
+#                 command that prints a test's data as CSV (sqlplus SET MARKUP
+#                 CSV ON, SQLcl SET SQLFORMAT CSV, a csv.writer, `cat` of an
+#                 output file): `ses ut-workbook` lays a .csv out in cells
 #
 # Exits with the command's own exit code, so callers still see failure.
 # stdin is /dev/null: a sqlplus script without EXIT ends instead of hanging.
@@ -28,15 +32,17 @@
 # prefer wallet/OS auth and keep connect strings off command lines.
 set -u
 
-DIR="${1:?usage: capture.sh <evidence-dir> <name> [--tail N] [--grep RE] -- cmd...}"
-NAME="${2:?usage: capture.sh <evidence-dir> <name> [--tail N] [--grep RE] -- cmd...}"
+DIR="${1:?usage: capture.sh <evidence-dir> <name> [--tail N] [--grep RE] [--ext EXT] -- cmd...}"
+NAME="${2:?usage: capture.sh <evidence-dir> <name> [--tail N] [--grep RE] [--ext EXT] -- cmd...}"
 shift 2
 TAIL=40
 GREP=""
+EXT=log
 while [ $# -gt 0 ]; do
   case "$1" in
     --tail) TAIL="${2:?--tail needs a number}"; shift 2 ;;
     --grep) GREP="${2:?--grep needs a regex}"; shift 2 ;;
+    --ext) EXT="${2:?--ext needs an extension}"; shift 2 ;;
     --) shift; break ;;
     *) echo "error: expected options then -- <command>, got '$1'" >&2; exit 2 ;;
   esac
@@ -44,9 +50,10 @@ done
 [ $# -gt 0 ] || { echo "error: no command after --" >&2; exit 2; }
 case "$TAIL" in ''|*[!0-9]*) echo "error: --tail must be a number" >&2; exit 2 ;; esac
 case "$NAME" in *[!A-Za-z0-9._-]*) echo "error: name may only contain letters, digits, . _ -" >&2; exit 2 ;; esac
+case "$EXT" in ''|*[!A-Za-z0-9]*) echo "error: --ext may only contain letters and digits" >&2; exit 2 ;; esac
 
 mkdir -p "$DIR/raw" || exit 2
-LOG="$DIR/raw/$NAME.log"
+LOG="$DIR/raw/$NAME.$EXT"
 REPLACED=""
 [ -e "$LOG" ] && REPLACED=1
 
@@ -93,7 +100,7 @@ LINES=$(wc -l <"$LOG" | tr -d ' ')
 
 echo "command:$CMDLINE"
 echo "started: $START   exit: $RC   output: $LINES line(s)   raw log: $LOG"
-[ -n "$REPLACED" ] && echo "note: replaced an existing $NAME.log — if a commit recorded its hash, rerun under a new name"
+[ -n "$REPLACED" ] && echo "note: replaced an existing $NAME.$EXT — if a commit recorded its hash, rerun under a new name"
 if [ -n "$GREP" ]; then
   HITS=$(grep -cE -- "$GREP" "$LOG" || true)
   echo "--- lines matching /$GREP/: $HITS (first 40) ---"
