@@ -199,8 +199,10 @@ judge — a T# that could not run is NOT-RUN, never left out.
 Each T# also gets its Test cases row and its captured data, for the
 unit-test workbook (`<root>/skills/unit-test-results/SKILL.md` §1): the data
 it read and produced captured into `evidence/raw/tests-<date>-T<n>-<what>`
-(`ses capture … --ext csv` for rows), and its description, test data,
-expected and actual result written as values. Before the commit below,
+(`ses capture … --ext csv`, or SQL*Plus output with its headings), its
+description, test data, expected and actual result written as values, and
+the fields that prove it named in Check — the workbook shows the rows in
+cells and colours each checked value. Before the commit below,
 `ses ut-workbook <ws> --check` must exit 0 — afterwards the evidence is
 hashed and a gap can only be closed by a re-run.
 

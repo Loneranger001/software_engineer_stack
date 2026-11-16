@@ -8,7 +8,7 @@ Run before marking the implement stage done.
 - [ ] /verify-code ran for every changed file, in live mode where the environment was reachable; fallback mode is recorded in the evidence when not
 - [ ] All tests in the impl-doc test plan pass; failures are fixed or explicitly accepted by the user
 - [ ] Every PASS names its `Expected from` — hand-derived, spec or fixture, never the code under test (`ses coverage` counts a PASS without one as NO-ORACLE)
-- [ ] Every T# has its Test cases row (test data, expected and actual result as values) and its captured data in evidence/raw/; `ses ut-workbook --check` exited 0 before the `tests:` commit
+- [ ] Every T# has its Test cases row (test data, expected and actual result as values, the fields to Check) and its captured rows in evidence/raw/; `ses ut-workbook --check` exited 0 before the `tests:` commit
 - [ ] `ses coverage` run after the `tests:` commit: every TDD §7 row (A#, TS#, G#) has a recorded PASS through its T#, or each row it lists (NOT-RUN, PARTIAL, …) is told to the user and kept in the next action for /deliver
 - [ ] Diff reviewed against the scope contract: every changed file maps to an in-scope item
 - [ ] Out-of-scope discoveries went to PARKED.md, not into the diff

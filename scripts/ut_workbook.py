@@ -10,12 +10,18 @@ the same bytes (same SHA-256).
 
 Layout (one consolidated .xlsx):
   Summary   one row per test case — TC link, test ID, what it covers, type,
-            description, test data, expected result, actual result, outcome,
-            mode, where the expected value came from, evidence file, notes
+            description, test data, expected result, actual result, data
+            check, outcome, mode, where the expected value came from, notes
   TC<n>     one sheet per test case, linked both ways with the Summary: the
-            case's full record, then each file it captured (a .csv/.tsv laid
-            out in cells, any other file one line per row), each with its
-            SHA-256 and whether a task commit recorded it
+            case's record, the values that differ, then the data itself —
+            every table the test captured laid out in cells (a .csv/.tsv, or
+            SQL*Plus/SQLcl output in its default layout), the fields its Check
+            names highlighted and each checked value green (as expected) or
+            red (differs); other output one line per row. Only what cells
+            cannot hold (a binary file, or rows past --max-rows) is a link
+            to the file instead.
+  Evidence  every file the workbook was built from, with its SHA-256 and
+            whether a task commit recorded it — the proof, kept off the TC sheets
 
 Test cases, in order:
   full pipeline    the T# rows of impl-doc.md §3 test plan  → sheet TC<n> for T<n>
@@ -26,9 +32,12 @@ Per test case, from the evidence file holding its LATEST result (the file
   Result table      Outcome, Mode, Expected from, Assertion checked
   Test cases table  (templates/test-evidence.md "## Test cases", one row per
                     T# or A#) Description, Test data, Expected result,
-                    Actual result, Captured — the evidence/ files with the
-                    data the test read and produced, normally
-                    evidence/raw/<run>-T<n>-<what>.csv from `ses capture --ext csv`
+                    Actual result, Check — the fields to check (ut_data.py
+                    has its syntax), Captured — the evidence/ files with the
+                    data the test read and produced, each optionally
+                    labelled ("Actual rows: evidence/raw/….csv"); a label
+                    starting "Expected" marks the expected table, one
+                    starting data/input/before/seed/setup/fixture the input
 Missing there, the plan fills in what it can (impl-doc §3 Type, How run, Test
 data and Expected, marked "planned"; the Result table's Assertion checked as
 the actual result), and the gap is reported.
@@ -36,12 +45,13 @@ the actual result), and the gap is reported.
 Gaps — what the workbook cannot show for a test case: no result; no Test cases
 row; an empty Test data, Expected result or Actual result, or one that says only
 "pass"; no captured file; a captured file that is missing or outside
-evidence/; and, when building, a captured file whose hash no task commit
-recorded (or that changed since). Fill them while the evidence is still
-uncommitted — `--check`, before the test-plan commit. After the commit hashes
-it, only a re-run under a new run name can. A task scaffolded before 0.17.0
-(STATUS.md `ses-version`) has no Test cases tables to read: its gaps are
-listed but do not fail.
+evidence/; a Check that cannot be read or names a field no captured table
+has; captured data that contradicts a recorded PASS; and, when building, a
+captured file whose hash no task commit recorded (or that changed since).
+Fill them while the evidence is still uncommitted — `--check`, before the
+test-plan commit. After the commit hashes it, only a re-run under a new run
+name can. A task scaffolded before 0.17.0 (STATUS.md `ses-version`) has no
+Test cases tables to read: its gaps are listed but do not fail.
 
 Usage:
     ut_workbook.py <ws> --check
@@ -51,8 +61,8 @@ Usage:
           write the workbook (default <ws>/deliverables/<task-id>-unit-test-results.xlsx).
           Outcomes are `ses coverage`'s: an unrecorded result shows as UNRECORDED.
           --ods       also convert it to .ods with LibreOffice (soffice), headless
-          --max-rows  rows shown per captured file (default 2000); the rest is
-                      named, and stays in the file the sheet cites
+          --max-rows  rows shown per captured file (default 2000); the sheet
+                      links the full file for the rest. Checks run on every row.
 
 Exit codes: 0 complete; 3 a gap (0.17.0+ tasks; the workbook is still
 written, gaps marked); 1 error; 2 usage; 127 --ods without LibreOffice (the
@@ -60,8 +70,8 @@ written, gaps marked); 1 error; 2 usage; 127 --ods without LibreOffice (the
 """
 from __future__ import annotations
 
-import csv
-import io
+import math
+import os
 import re
 import shutil
 import subprocess
@@ -70,6 +80,7 @@ import tempfile
 import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
+from urllib.parse import quote
 from xml.etree import ElementTree
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -78,19 +89,26 @@ from coverage import results, status_of, strict_oracle  # noqa: E402
 from doctables import ROW_ID, TEST_ID, col, section, strip_comments, tables  # noqa: E402
 from status import StatusError  # noqa: E402
 
+import ut_data  # noqa: E402
 import xlsx  # noqa: E402
-from xlsx import FAIL, GRID, GRID_HEAD, HEADER, KEY, LINK, LINK_PLAIN, MONO, NOTE, PASS, SECTION, TEXT, TITLE, WARN  # noqa: E402
+from xlsx import (BAD, CHECK_HEAD, EYE, FAIL, GOOD, GRID, GRID_HEAD, HEADER, KEY, KEY_HEAD, LINK, LINK_PLAIN,  # noqa: E402
+                  MONO, NOTE, PASS, SECTION, TEXT, TITLE, WARN)
 
 GAPS = 3
 MAX_ROWS = 2000
+MAX_DIFFS = 500
 SINCE = (0, 17)
 EMPTY = re.compile(r"^(|-+|—|–|tbd|\?+|\{.*\})$", re.I)
 NO_VALUE = re.compile(r"^(pass(ed|es)?|ok|success(ful)?|as expected|works?|fine|correct)\.?$", re.I)
-CAPTURED = re.compile(r"evidence/[A-Za-z0-9._/-]+")
+CAPTURED = re.compile(r"(?:([^,;:|`<>]+?)\s*:\s*)?`?(evidence/[A-Za-z0-9._/-]+)")
 SUMMARY_COLS = [("TC", 8), ("Test", 7), ("Covers", 12), ("Type", 12), ("Description", 34), ("Test data", 34),
-                ("Expected result", 34), ("Actual result", 34), ("Outcome", 13), ("Mode", 14),
-                ("Expected from", 24), ("Evidence", 30), ("Notes", 44)]
+                ("Expected result", 34), ("Actual result", 34), ("Data check", 26), ("Outcome", 13), ("Mode", 14),
+                ("Expected from", 24), ("Notes", 44)]
 HEADER_ROW = 7
+RECORD_SPAN = 8                  # a TC sheet's record values span columns B..H
+MARK_STYLE = {"match": GOOD, "differ": BAD, "eye": EYE}
+LEGEND = ("Blue headings: the fields checked · grey headings: the columns that match rows to the expected "
+          "table · green: as expected · red: differs · amber: check by eye")
 
 
 @dataclass
@@ -113,13 +131,19 @@ class Case:
     data: str = ""
     expected: str = ""
     actual: str = ""
-    captured: list[str] = field(default_factory=list)
+    check: str = ""
+    files: list[ut_data.Captured] = field(default_factory=list)
+    result: ut_data.Result = field(default_factory=ut_data.Result)
     gaps: list[str] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
 
     @property
     def tc(self) -> str:
         return "TC" + re.sub(r"\D", "", self.id)
+
+    @property
+    def data_check(self) -> tuple[str, str]:
+        return self.result.summary()
 
 
 def blank(s: str) -> bool:
@@ -204,6 +228,14 @@ def cell(found: tuple[list[str], list[str]] | None, name: str) -> str:
     return r[i].strip() if i is not None and i < len(r) else ""
 
 
+def label_for(case_id: str, rel: str) -> str:
+    """tests-2026-11-16-T1-actual-rows.csv → "Actual rows"."""
+    stem = Path(rel).stem
+    m = re.search(rf"(?:^|-){re.escape(case_id)}-(.+)$", stem)
+    words = re.sub(r"[-_]+", " ", m.group(1) if m else stem).strip()
+    return words[:1].upper() + words[1:]
+
+
 def fill(case: Case, ws: Path, res: dict, recorded: dict[str, str], texts: dict[str, str], check: bool) -> None:
     r = res.get(case.id)
     if r is None:
@@ -228,6 +260,7 @@ def fill(case: Case, ws: Path, res: dict, recorded: dict[str, str], texts: dict[
     case.data = cell(tc, "testdata")
     case.expected = cell(tc, "expected")
     case.actual = cell(tc, "actual")
+    case.check = "" if blank(cell(tc, "check")) else cell(tc, "check")
     for label, attr, fallback in (("Test data", "data", case.plan_data), ("Expected result", "expected",
                                   case.plan_expected), ("Actual result", "actual", case.assertion)):
         value = getattr(case, attr)
@@ -240,20 +273,33 @@ def fill(case: Case, ws: Path, res: dict, recorded: dict[str, str], texts: dict[
                 setattr(case, attr, "")
         elif NO_VALUE.match(value.strip(" `*")):
             case.gaps.append(f"{label} says only '{value.strip()}' — state the value")
-    for rel in CAPTURED.findall(cell(tc, "captured")):
+    for label, rel in CAPTURED.findall(cell(tc, "captured")):
         rel = rel.rstrip(".,;")
         p = (ws / rel).resolve()
         if ".." in Path(rel).parts or not p.is_relative_to((ws / "evidence").resolve()):
             case.gaps.append(f"captured file outside evidence/: {rel}")
-        elif not p.is_file():
+            continue
+        if not p.is_file():
             case.gaps.append(f"captured file missing: {rel}")
-        else:
-            case.captured.append(rel)
-            if not check and recorded.get(rel) != sha256(p):
-                state = "changed since a task commit recorded it" if rel in recorded else "recorded by no task commit"
-                case.gaps.append(f"captured file {state}: {rel}")
-    if tc is not None and not case.captured and not any(g.startswith("captured file") for g in case.gaps):
+            continue
+        label = label.strip() or label_for(case.id, rel)
+        blocks, lines = ut_data.read(p)
+        case.files.append(ut_data.Captured(label, rel, ut_data.role_of(label), blocks, lines))
+        if not check and recorded.get(rel) != sha256(p):
+            state = "changed since a task commit recorded it" if rel in recorded else "recorded by no task commit"
+            case.gaps.append(f"captured file {state}: {rel}")
+    if tc is not None and not case.files and not any(g.startswith("captured file") for g in case.gaps):
         case.gaps.append("no Captured file — the TC sheet has no data to show")
+    checks, errors = ut_data.parse(case.check)
+    case.gaps += errors
+    case.result = ut_data.compare(case.files, checks)
+    if case.result.unknown:
+        case.gaps.append("the Check names " + ", ".join(case.result.unknown)
+                         + ", which no captured table has (a CSV, or SQL*Plus output with its headings)")
+    if case.result.differ and case.outcome == "PASS":
+        case.gaps.append(f"the captured data contradicts the recorded PASS: {len(case.result.differ)} "
+                         f"checked value(s) differ ({case.tc}) — the code, the outcome or the expected value "
+                         f"is wrong; find which")
 
 
 def explain(case: Case, st) -> None:
@@ -275,17 +321,14 @@ def outcome_style(outcome: str) -> int:
     return PASS if outcome == "PASS" else FAIL if outcome == "FAIL" else WARN
 
 
-def read_rows(path: Path, max_rows: int) -> tuple[bool, list[list[str]], int]:
-    """(is a grid, rows shown, total rows) of a captured file."""
-    data = path.read_bytes().decode("utf-8", errors="replace").replace("\x00", "")
-    if path.suffix.lower() in (".csv", ".tsv"):
-        try:
-            rows = list(csv.reader(io.StringIO(data), dialect="excel-tab" if path.suffix.lower() == ".tsv" else "excel"))
-            return True, rows[:max_rows], len(rows)
-        except csv.Error:
-            pass
-    lines = data.splitlines()
-    return False, [[line] for line in lines[:max_rows]], len(lines)
+def check_style(state: str) -> int:
+    return {"PASS": PASS, "FAIL": FAIL, "WARN": WARN}.get(state, TEXT)
+
+
+def file_target(ws: Path, rel: str, out: Path) -> str:
+    """The captured file, relative to the workbook's folder (where Excel resolves a relative link)."""
+    target = os.path.relpath(ws / rel, out.parent).replace(os.sep, "/")
+    return quote(target, safe="/._-~")
 
 
 def summary_sheet(wb: xlsx.Workbook, st, cases: list[Case]) -> xlsx.Sheet:
@@ -300,78 +343,175 @@ def summary_sheet(wb: xlsx.Workbook, st, cases: list[Case]) -> xlsx.Sheet:
     sh.set(2, 1, f"Pipeline: {pipeline} · Branches: {branches}")
     sh.set(3, 1, f"As of: {asof} (latest evidence)")
     sh.set(4, 1, f"Result: {len(cases)} test case(s) — " + ", ".join(f"{n} {o}" for o, n in sorted(counts.items())))
-    sh.set(5, 1, "Rendered by ses ut-workbook from the task's evidence/ files; outcomes are those ses coverage "
-                 "reads. Rebuild it — never edit it.", NOTE)
+    sh.set(5, 1, "Rendered by ses ut-workbook from the task's evidence; outcomes are those ses coverage reads. "
+                 "Each TC sheet holds the test's data; the Evidence sheet holds the hashes. Rebuild it — never "
+                 "edit it.", NOTE)
     for i, (name, width) in enumerate(SUMMARY_COLS, 1):
         sh.set(HEADER_ROW, i, name, HEADER)
         sh.width(i, width)
     for n, c in enumerate(cases, HEADER_ROW + 1):
         sh.link(n, 1, c.tc, c.tc, "A1", LINK)
+        check_text, check_state = c.data_check
         values = [c.id, c.covers, c.type, c.desc or c.plan_desc or f"{c.type}: {c.how}", c.data, c.expected,
-                  c.actual, c.outcome, c.mode or "—", c.expected_from or "—", c.evidence or "—",
+                  c.actual, check_text, c.outcome, c.mode or "—", c.expected_from or "—",
                   "; ".join(c.notes + [f"gap: {g}" for g in c.gaps]) or "—"]
         for i, v in enumerate(values, 2):
-            sh.set(n, i, v or "—", outcome_style(c.outcome) if i == 9 else TEXT)
+            style = outcome_style(c.outcome) if i == 10 else check_style(check_state) if i == 9 else TEXT
+            sh.set(n, i, v or "—", style)
     sh.freeze_rows = HEADER_ROW
     sh.autofilter = f"A{HEADER_ROW}:{xlsx.col_letter(len(SUMMARY_COLS))}{HEADER_ROW + len(cases)}"
     return sh
 
 
-def case_sheet(wb: xlsx.Workbook, ws: Path, case: Case, summary_row: int, recorded: dict[str, str],
-               texts: dict[str, str], max_rows: int) -> None:
-    sh = wb.add_sheet(case.tc)
-    sh.width(1, 24)
-    sh.width(2, 60)
-    for c in range(3, 27):
-        sh.width(c, 18)
-    sh.link(1, 1, "← Summary", "Summary", f"A{summary_row}", LINK_PLAIN)
-    sh.set(2, 1, f"{case.tc} — {case.id}: {case.desc or case.plan_desc or case.how}", TITLE)
-    ev = "—"
-    if case.evidence:
-        ev = f"{case.evidence} — sha256 {sha256(ws / case.evidence)} — " + \
-             ("recorded by a task commit" if case.recorded else "NOT recorded by a task commit")
-    record = [("Test case", case.tc), ("Test", case.id), ("Covers", case.covers), ("Type", case.type),
-              ("How run", case.how), ("Description", case.desc or case.plan_desc or "—"),
-              ("Test data", case.data), ("Expected result", case.expected),
-              ("Expected from", case.expected_from), ("Actual result", case.actual),
-              ("Assertion checked", case.assertion), ("Outcome", case.outcome), ("Mode", case.mode),
-              ("Ran", case.date), ("Evidence", ev), ("Notes", "; ".join(case.notes) or "—"),
-              ("Gaps", "; ".join(case.gaps) or "none")]
-    row = 4
-    for key, value in record:
-        sh.set(row, 1, key, KEY)
-        sh.set(row, 2, value or "—", outcome_style(case.outcome) if key == "Outcome" else TEXT)
-        row += 1
-    blocks = [(rel, f"Captured {i} of {len(case.captured)}: {rel}") for i, rel in enumerate(case.captured, 1)]
-    if not blocks and case.evidence:
-        blocks = [(case.evidence, f"Evidence file (this test lists no captured data): {case.evidence}")]
-    for rel, title in blocks:
-        p = ws / rel
-        grid, rows, total = read_rows(p, max_rows)
-        state = "recorded" if recorded.get(rel) == sha256(p) else "NOT recorded by a task commit"
-        row += 1
-        sh.set(row, 1, title, SECTION)
-        sh.set(row + 1, 1, f"sha256 {sha256(p)} — {state} — {total} row(s)", NOTE)
-        row += 2
-        for i, r in enumerate(rows):
-            if row >= xlsx.MAX_ROWS - 2:
-                break
-            if grid:
-                sh.row(row, r, GRID_HEAD if i == 0 else GRID)
+def grid(sh: xlsx.Sheet, row: int, b: ut_data.Block, limit: int) -> int:
+    for ri, r in enumerate(b.rows[:limit + 1]):
+        for ci, v in enumerate(r):
+            if ri == 0:
+                style = CHECK_HEAD if ci in b.checked else KEY_HEAD if ci in b.keys else GRID_HEAD
             else:
-                sh.set(row, 1, r[0], MONO)
+                style = MARK_STYLE.get(b.marks.get((ri, ci)), GRID)
+            sh.set(row, ci + 1, v, style)
+        row += 1
+    return row
+
+
+def column_widths(case: Case) -> dict[int, float]:
+    """Each column as wide as the data it shows (8-50 characters); the record's key column at least 24."""
+    need: dict[int, int] = {}
+    for f in case.files:
+        for b in f.blocks:
+            if b.kind != "grid":
+                continue
+            for r in b.rows[:200]:
+                for ci, v in enumerate(r, 1):
+                    need[ci] = max(need.get(ci, 0), len(v))
+    for d in case.result.differ[:MAX_DIFFS]:                 # the Differences table shares the columns
+        for ci, v in enumerate(d, 1):
+            need[ci] = max(need.get(ci, 0), len(v))
+    out = {1: max(24.0, min(50, need.get(1, 0) + 2))}
+    for c in range(2, max([RECORD_SPAN, *need]) + 1):
+        out[c] = float(max(12 if c <= RECORD_SPAN else 8, min(50, need.get(c, 0) + 2)))
+    return out
+
+
+def case_sheet(wb: xlsx.Workbook, ws: Path, case: Case, summary_row: int, out: Path, max_rows: int) -> None:
+    sh = wb.add_sheet(case.tc)
+    widths = column_widths(case)
+    for c, w in widths.items():
+        sh.width(c, w)
+    per_line = sum(widths[c] for c in range(2, RECORD_SPAN + 1)) * 1.1
+    sh.link(1, 1, "← Summary", "Summary", f"A{summary_row}", LINK_PLAIN)
+    sh.link(1, 2, "Evidence and hashes →", "Evidence", "A1", LINK_PLAIN)
+    sh.set(2, 1, f"{case.tc} — {case.id}: {case.desc or case.plan_desc or case.how}", TITLE)
+    check_text, check_state = case.data_check
+    record = [("Test case", case.tc, TEXT), ("Test", case.id, TEXT), ("Covers", case.covers, TEXT),
+              ("Type", case.type, TEXT), ("How run", case.how, TEXT),
+              ("Description", case.desc or case.plan_desc or "—", TEXT), ("Test data", case.data, TEXT),
+              ("Expected result", case.expected, TEXT), ("Expected from", case.expected_from, TEXT),
+              ("Actual result", case.actual, TEXT), ("Check", case.check, TEXT),
+              ("Data check", check_text, check_style(check_state)), ("Assertion checked", case.assertion, TEXT),
+              ("Outcome", case.outcome, outcome_style(case.outcome)), ("Mode", case.mode, TEXT),
+              ("Ran", case.date, TEXT), ("Notes", "; ".join(case.notes) or "—", TEXT),
+              ("Gaps", "; ".join(case.gaps) or "none", TEXT)]
+    row = 4
+    for key, value, style in record:
+        value = value or "—"
+        sh.set(row, 1, key, KEY)
+        sh.set(row, 2, value, style)
+        for c in range(3, RECORD_SPAN + 1):       # the merged cell keeps its border across
+            sh.set(row, c, "", style)
+        sh.merge(row, 2, RECORD_SPAN)
+        lines = sum(max(1, math.ceil(len(part) / per_line)) for part in value.split("\n"))
+        if lines > 1:
+            sh.height(row, 15 * lines)
+        row += 1
+    if case.result.differ:
+        row += 1
+        sh.set(row, 1, f"Differences ({len(case.result.differ)})", SECTION)
+        row += 1
+        sh.row(row, ["Where", "Row", "Field", "Expected", "Actual"], GRID_HEAD)
+        row += 1
+        for where, which, fld, want, got in case.result.differ[:MAX_DIFFS]:
+            sh.row(row, [where, which, fld, want], GRID)
+            sh.set(row, 5, got, BAD)
             row += 1
-        if total > len(rows):
-            sh.set(row, 1, f"… {total - len(rows)} more row(s) not shown — the full file is {rel}", NOTE)
+        if len(case.result.differ) > MAX_DIFFS:
+            sh.set(row, 1, f"… {len(case.result.differ) - MAX_DIFFS} more — every one is red in the data below", NOTE)
+            row += 1
+    if not case.files and case.evidence:          # nothing captured: the output the evidence file recorded
+        text = (ws / case.evidence).read_text(errors="replace")
+        body = section(text, re.compile(r"^output", re.I)) or text
+        lines = [l for l in body.splitlines() if not l.strip().startswith("```")]
+        row += 1
+        sh.set(row, 1, "Output recorded in the evidence file — this test lists no captured data", SECTION)
+        row += 1
+        for line in lines[:max_rows]:
+            sh.set(row, 1, line, MONO)
+            row += 1
+    for f in case.files:
+        row += 1
+        sh.set(row, 1, f.label, SECTION)
+        role = {"expected": "the expected result", "input": "the test's input — shown, not checked"}.get(f.role, "")
+        sh.set(row + 1, 1, f"From {f.rel}" + (f" — {role}" if role else ""), NOTE)
+        row += 2
+        if any(b.checked for b in f.blocks):
+            sh.set(row, 1, LEGEND, NOTE)
+            row += 1
+        total = sum(len(b.rows) for b in f.blocks if b.kind != "file")
+        shown = 0
+        for b in f.blocks:
+            if b.kind == "file":
+                sh.set(row, 1, f"Not shown in cells: {b.reason}.", NOTE)
+                sh.link_file(row + 1, 1, f"Open {Path(f.rel).name}", file_target(ws, f.rel, out))
+                row += 2
+                continue
+            room = max_rows - shown
+            if room <= 0 or row >= xlsx.MAX_ROWS - max_rows - 10:
+                break
+            if b.kind == "grid":
+                n = min(len(b.rows), room + 1)          # the headings, then up to `room` rows
+                row = grid(sh, row, b, n - 1) + 1
+            else:
+                n = min(len(b.rows), room)
+                for r in b.rows[:n]:
+                    sh.set(row, 1, r[0], MONO)
+                    row += 1
+            shown += n
+        if total > shown:
+            ran = "; the Check ran on every row" if any(b.checked for b in f.blocks) else ""
+            sh.set(row, 1, f"… {total - shown} more row(s) not shown{ran} —", NOTE)
+            sh.link_file(row, 2, f"open the full {Path(f.rel).name}", file_target(ws, f.rel, out))
             row += 1
 
 
-def build(path: Path, ws: Path, st, cases: list[Case], recorded: dict[str, str], texts: dict[str, str],
-          max_rows: int) -> None:
+def evidence_sheet(wb: xlsx.Workbook, ws: Path, cases: list[Case], recorded: dict[str, str]) -> None:
+    sh = wb.add_sheet("Evidence")
+    for i, (name, width) in enumerate([("TC", 8), ("Test", 7), ("What", 24), ("File", 52), ("SHA-256", 70),
+                                       ("Recorded by a task commit", 26)], 1):
+        sh.set(3, i, name, HEADER)
+        sh.width(i, width)
+    sh.set(1, 1, "Evidence — the files this workbook was built from", TITLE)
+    sh.set(2, 1, "Each hash is checked against the task's commits (ses checkpoint verify); a rebuild from the same "
+                 "files gives the same workbook.", NOTE)
+    row = 4
+    for c in cases:
+        items = ([("Result and test record", c.evidence)] if c.evidence else []) + [(f.label, f.rel) for f in c.files]
+        for what, rel in items:
+            digest = sha256(ws / rel)
+            ok = recorded.get(rel) == digest
+            sh.link(row, 1, c.tc, c.tc, "A1", LINK)
+            sh.row(row, [c.id, what, rel, digest], TEXT, start=2)
+            sh.set(row, 6, "yes" if ok else ("changed since" if rel in recorded else "no"), PASS if ok else WARN)
+            row += 1
+    sh.freeze_rows = 3
+
+
+def build(path: Path, ws: Path, st, cases: list[Case], recorded: dict[str, str], max_rows: int) -> None:
     wb = xlsx.Workbook(f"Unit test results — {st.field('task-id')}")
     summary_sheet(wb, st, cases)
     for n, case in enumerate(cases, HEADER_ROW + 1):
-        case_sheet(wb, ws, case, n, recorded, texts, max_rows)
+        case_sheet(wb, ws, case, n, path, max_rows)
+    evidence_sheet(wb, ws, cases, recorded)
     wb.save(path)
     with zipfile.ZipFile(path) as z:            # read it back: every part must parse
         for name in z.namelist():
@@ -449,7 +589,8 @@ def main(argv: list[str]) -> int:
     print(f"ut-workbook{' check' if check else ''} {task} ({pipeline}): {len(cases)} test case(s) — "
           + ", ".join(f"{n} {o}" for o, n in sorted(counts.items())))
     for c in cases:
-        detail = f"{len(c.captured)} captured" + (f"; {len(c.gaps)} gap(s)" if c.gaps else "")
+        detail = f"{len(c.files)} captured" + (f"; {c.data_check[0]}" if c.data_check[0] else "") \
+            + (f"; {len(c.gaps)} gap(s)" if c.gaps else "")
         print(f"  {c.tc:<5} {c.id:<4} {c.outcome:<11} {c.evidence or '—':<34} {detail}")
 
     code = 0
@@ -458,8 +599,8 @@ def main(argv: list[str]) -> int:
         if out.suffix.lower() != ".xlsx":
             print(f"error: --out must end in .xlsx: {out}", file=sys.stderr)
             return 2
-        build(out, ws, st, cases, recorded, texts, max_rows)
-        print(f"wrote {out} ({1 + len(cases)} sheets, sha256 {sha256(out)})")
+        build(out, ws, st, cases, recorded, max_rows)
+        print(f"wrote {out} ({2 + len(cases)} sheets, sha256 {sha256(out)})")
         if opts["--ods"]:
             ods = to_ods(out)
             if ods is None:

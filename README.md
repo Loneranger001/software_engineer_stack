@@ -38,7 +38,7 @@ flowchart LR
 | `/understand <interface>` | Build a code-verified working understanding of any existing interface or integration: trace it end-to-end, map dependencies both directions, explain it in layers, answer follow-ups from the code | — |
 | `/document <type> <target>` | Produce a how-to, KB article, or understanding document for an existing interface | Fact-checker passes |
 | `/verify-code <files>` | Run per-language verification (live DB/host where available, static fallback) | — |
-| `/unit-test-results [task-id]` | The consolidated unit-test results workbook (XLSX, or ODS): a Summary sheet — one row per test case with test data, expected result, actual result and outcome — linked to a `TC<n>` sheet per test holding the data it captured. Rendered from the task's hashed evidence by `ses ut-workbook`, never typed in, so its outcomes are `ses coverage`'s. Captured at `/implement` §3 (checked with `--check` before the test-plan commit), built at `/deliver` §3 and `/change-request` §5 | Every test case has its data, expected and actual result |
+| `/unit-test-results [task-id]` | The consolidated unit-test results workbook (XLSX, or ODS): a Summary sheet — one row per test case with test data, expected result, actual result, data check and outcome — linked to a `TC<n>` sheet per test holding its actual rows in cells, the fields to check highlighted and each checked value coloured as expected or differing. Rendered from the task's hashed evidence by `ses ut-workbook`, never typed in, so its outcomes are `ses coverage`'s. Captured at `/implement` §3 (checked with `--check` before the test-plan commit), built at `/deliver` §3 and `/change-request` §5 | Every test case has its data, expected and actual result |
 | `/retro` | Capture lessons from a finished task into the framework's knowledge base | User approves framework edits |
 | `/meeting-minutes` | Structured minutes from meeting notes or a transcript | — |
 
@@ -251,7 +251,8 @@ scripts/      what `ses` runs: status.py (gates), new-task.sh, list-repos.sh, wo
               repo-rules.sh, handoff.py, checkpoint.py, worktree.py, coverage.py, review.py, impl_check.py, xsearch.py,
               review-diff.sh, lessons.sh, capture.sh, fdd_lint.py, fdd_view.py, prose_lint.py, ut_workbook.py,
               md2docx.sh, md2pdf.sh, md2confluence.sh; doctables.py (stage-document tables, imported by the
-              others) and xlsx.py (a stdlib-only XLSX writer, imported by ut_workbook.py);
+              others), ut_data.py (captured rows and the Check) and xlsx.py (a stdlib-only XLSX writer),
+              both imported by ut_workbook.py;
               check_knowledge.py (maintenance)
 tests/        unittest suite for ses, the scripts, and the skill wiring (run by CI and the pre-commit hook)
 examples/     sample work repo + a worked example task workspace
@@ -297,6 +298,15 @@ ses ut-workbook work/PROJ-123           # → deliverables/PROJ-123-unit-test-re
 ses ut-workbook work/PROJ-123 --ods     # … and .ods beside it, through LibreOffice
 ```
 
-The **Summary** sheet has one row per test case (each T# of the test plan; each A# in a change request): test data, expected result, actual result, outcome, mode, where the expected value came from, and the evidence file. Each row links to its own **TC<n>** sheet, which holds the test's full record and the data it captured — a CSV laid out in cells, a log one line per row — each file with its SHA-256 and whether a task commit recorded it.
+The **Summary** sheet has one row per test case (each T# of the test plan; each A# in a change request): test data, expected result, actual result, data check, outcome, mode and where the expected value came from. Each row links to its own **TC<n>** sheet, which holds the test's record and **its data in cells**. Each table the test captured is laid out as rows and columns: a CSV, or SQL*Plus/SQLcl output in its default layout. The fields its **Check** names are highlighted and each checked value is coloured: green as expected, red differs, amber to check by eye. A Differences table opens the sheet. Only what cells cannot hold, a binary file or rows past the first 2000, is a link to the file. The **Evidence** sheet holds the hashes.
 
-Nothing in it is typed in. Each test's data is captured when it runs (`ses capture … --ext csv`, so redaction still applies) and described in the evidence file's **Test cases** table; the workbook renders that, with the outcomes `ses coverage` reads. A test that is UNRECORDED, PARTIAL or NO-ORACLE for the gate shows the same in the workbook. The same evidence always rebuilds the same bytes, so the hash proves the copy a reviewer holds. The writer is plain Python (no openpyxl, no Excel); ODS goes through LibreOffice because a second native writer would only duplicate this one.
+The Check sits in the evidence file's **Test cases** row, next to the test data and expected and actual results:
+
+```
+| Test | … | Check               | Captured                                                                                            |
+| T2   | … | UNIT_COST, STATUS=P | Cost rows: evidence/raw/tests-…-T2-actual.log, Expected costs: evidence/raw/tests-…-T2-expected.csv |
+```
+
+`STATUS=P` means every row must hold P. `UNIT_COST` is compared with the expected table, a fixture matched to the actual rows on its other columns (here ITEM and LOC); without an expected table, the field is highlighted to check by eye. Numbers compare as numbers, so Oracle's `.5` equals `0.5`.
+
+Nothing in it is typed in. Each test's data is captured when it runs (`ses capture`, so redaction still applies) and described in the Test cases row. The workbook renders that, with the outcomes `ses coverage` reads. A test that is UNRECORDED, PARTIAL or NO-ORACLE for the gate shows the same in the workbook. Captured data that contradicts a recorded PASS is a gap `--check` reports before the commit. The same evidence always rebuilds the same bytes, so the hash proves the copy a reviewer holds. The writer is plain Python (no openpyxl, no Excel); ODS goes through LibreOffice because a second native writer would only duplicate this one.

@@ -5,7 +5,8 @@ few SpreadsheetML parts a workbook needs by hand: text cells (inline strings —
 nothing is ever a formula, so no cell value can execute), a fixed style
 table, column widths, a frozen header, an autofilter, and hyperlinks between
 sheets (`<hyperlink location="'TC1'!A1">`, which Excel, LibreOffice and
-Google Sheets all follow). Every zip entry carries the same timestamp, so the
+Google Sheets all follow), and links to files beside the workbook (an
+external relationship with a relative target). Every zip entry carries the same timestamp, so the
 same content always produces the same bytes: a workbook rebuilt from
 unchanged evidence has the same SHA-256.
 
@@ -23,12 +24,13 @@ from xml.sax.saxutils import escape, quoteattr
 MAX_CELL = 32767
 MAX_ROWS = 1048576
 _ANSI = re.compile(r"\x1b\[[0-9;?]*[ -/]*[@-~]")
-_ILLEGAL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f￾￿]")
+_ILLEGAL = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f\ufffe\uffff]")
 _BAD_SHEET = re.compile(r"[\[\]:*?/\\]")
 _STAMP = (1980, 1, 1, 0, 0, 0)
 
 # cell styles — indexes into <cellXfs> below
-DEFAULT, TITLE, HEADER, TEXT, LINK, KEY, PASS, FAIL, WARN, MONO, GRID_HEAD, GRID, NOTE, LINK_PLAIN, SECTION = range(15)
+(DEFAULT, TITLE, HEADER, TEXT, LINK, KEY, PASS, FAIL, WARN, MONO, GRID_HEAD, GRID, NOTE, LINK_PLAIN, SECTION,
+ GOOD, BAD, EYE, CHECK_HEAD, KEY_HEAD) = range(20)
 
 _FONTS = [
     '<font><sz val="11"/><name val="Calibri"/><family val="2"/></font>',
@@ -41,12 +43,15 @@ _FONTS = [
     '<font><b/><sz val="11"/><color rgb="FF006100"/><name val="Calibri"/><family val="2"/></font>',
     '<font><b/><sz val="11"/><color rgb="FF9C0006"/><name val="Calibri"/><family val="2"/></font>',
     '<font><b/><sz val="11"/><color rgb="FF9C5700"/><name val="Calibri"/><family val="2"/></font>',
+    '<font><sz val="11"/><color rgb="FF006100"/><name val="Calibri"/><family val="2"/></font>',
+    '<font><sz val="11"/><color rgb="FF9C5700"/><name val="Calibri"/><family val="2"/></font>',
+    '<font><b/><sz val="11"/><color rgb="FF1F4E78"/><name val="Calibri"/><family val="2"/></font>',
 ]
 _FILLS = [
     '<fill><patternFill patternType="none"/></fill>',
     '<fill><patternFill patternType="gray125"/></fill>',
     *(f'<fill><patternFill patternType="solid"><fgColor rgb="FF{c}"/><bgColor indexed="64"/></patternFill></fill>'
-      for c in ("1F4E78", "C6EFCE", "FFC7CE", "FFEB9C", "F2F2F2")),
+      for c in ("1F4E78", "C6EFCE", "FFC7CE", "FFEB9C", "F2F2F2", "BDD7EE", "D9D9D9")),
 ]
 _BORDERS = [
     '<border><left/><right/><top/><bottom/><diagonal/></border>',
@@ -70,6 +75,11 @@ _XF = [
     (6, 0, 0, False),   # NOTE
     (3, 0, 0, False),   # LINK_PLAIN
     (4, 0, 0, False),   # SECTION
+    (10, 3, 1, False),  # GOOD — a checked value as expected
+    (8, 4, 1, False),   # BAD — a checked value that differs
+    (11, 5, 1, False),  # EYE — a field to check by eye
+    (12, 7, 1, False),  # CHECK_HEAD — the heading of a checked column
+    (4, 8, 1, False),   # KEY_HEAD — the heading of a column that matches rows
 ]
 
 _NS = ('xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
@@ -115,6 +125,9 @@ class Sheet:
         self.cells: dict[int, dict[int, tuple[str, int]]] = {}
         self.widths: dict[int, float] = {}
         self.links: list[tuple[str, str, str]] = []
+        self.files: list[tuple[str, str, str]] = []
+        self.merges: list[str] = []
+        self.heights: dict[int, float] = {}
         self.freeze_rows = 0
         self.autofilter: str | None = None
 
@@ -131,6 +144,27 @@ class Sheet:
         """A cell that opens another sheet of this workbook."""
         self.set(row, col, text, style)
         self.links.append((ref(row, col), sheet_ref(sheet, cell), clean(text)))
+
+    def link_file(self, row: int, col: int, text: str, target: str, style: int = LINK_PLAIN) -> None:
+        """A cell that opens a file outside the workbook; target is relative to the workbook's folder."""
+        self.set(row, col, text, style)
+        self.files.append((ref(row, col), target, clean(text)))
+
+    def rels(self) -> str | None:
+        if not self.files:
+            return None
+        return (f'{_HEAD}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+                + "".join(f'<Relationship Id="rId{i}" Type="http://schemas.openxmlformats.org/officeDocument/2006/'
+                          f'relationships/hyperlink" Target={quoteattr(t)} TargetMode="External"/>'
+                          for i, (_c, t, _x) in enumerate(self.files, 1))
+                + "</Relationships>")
+
+    def merge(self, row: int, first: int, last: int) -> None:
+        """One cell across columns first..last of a row (its value and style sit in the first)."""
+        self.merges.append(f"{ref(row, first)}:{ref(row, last)}")
+
+    def height(self, row: int, points: float) -> None:
+        self.heights[row] = points
 
     def width(self, col: int, chars: float) -> None:
         self.widths[col] = chars
@@ -159,7 +193,8 @@ class Sheet:
                                             for c, w in sorted(self.widths.items())) + "</cols>")
         parts.append("<sheetData>")
         for r in rows:
-            parts.append(f'<row r="{r}">')
+            ht = f' ht="{self.heights[r]:g}" customHeight="1"' if r in self.heights else ""
+            parts.append(f'<row r="{r}"{ht}>')
             for c in sorted(self.cells[r]):
                 text, style = self.cells[r][c]
                 s = f' s="{style}"' if style else ""
@@ -168,10 +203,15 @@ class Sheet:
         parts.append("</sheetData>")
         if self.autofilter:
             parts.append(f'<autoFilter ref="{self.autofilter}"/>')
-        if self.links:
+        if self.merges:
+            parts.append(f'<mergeCells count="{len(self.merges)}">'
+                         + "".join(f'<mergeCell ref="{m}"/>' for m in self.merges) + "</mergeCells>")
+        if self.links or self.files:
             parts.append("<hyperlinks>" + "".join(
                 f'<hyperlink ref="{cell}" location={quoteattr(target)} display={quoteattr(text)}/>'
-                for cell, target, text in self.links) + "</hyperlinks>")
+                for cell, target, text in self.links) + "".join(
+                f'<hyperlink ref="{cell}" r:id="rId{i}" display={quoteattr(text)}/>'
+                for i, (cell, _t, text) in enumerate(self.files, 1)) + "</hyperlinks>")
         parts.append('<pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/>')
         parts.append('<pageSetup orientation="landscape" fitToWidth="1" fitToHeight="0"/>')
         parts.append("</worksheet>")
@@ -253,6 +293,7 @@ class Workbook:
             ("xl/styles.xml", self._styles()),
         ]
         out += [(f"xl/worksheets/sheet{i}.xml", s.xml(i == 1)) for i, s in enumerate(self.sheets, 1)]
+        out += [(f"xl/worksheets/_rels/sheet{i}.xml.rels", s.rels()) for i, s in enumerate(self.sheets, 1) if s.rels()]
         return out
 
     def save(self, path: Path) -> None:
