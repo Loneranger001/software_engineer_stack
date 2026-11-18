@@ -36,9 +36,13 @@ below).
    (`ses handoff show <ws>/research-notes.md`) and open a
    research section only when designing the component it concerns.
    `ses handoff check <ws>/research-notes.md` reporting an older contract
-   version means research is stale: send the user back to /research.
+   version means research is stale: send the user back to /research, which
+   adds only what the changed items need (/intake "Scope changes after
+   approval").
    If the task has an approved functional design (`<ws>/fdd.md`; approval in
-   `ses status get <ws> fdd`), read its handoff summary
+   `ses status get <ws> fdd`), `ses review current <ws> <ws>/fdd.md` must
+   pass — an FDD amendment whose fact-check is not done stops here — then
+   read its handoff summary
    (`ses handoff show <ws>/fdd.md`): the TDD realises it — every FR# joins the
    S# items in §2 traceability, every functional test scenario (TS#) is
    named in §7 — in its own row, or in the first cell of the row whose test
@@ -115,24 +119,42 @@ summary is for agents and is not held to the standard.
 ## 2. Quality gates
 
 1. Self-check with `<root>/checklists/tech-design.md`.
-2. Run the fact-check procedure in
+2. Run `ses prose-lint <ws>/tdd.md` and fix every finding by rewriting the
+   sentence, never by working around the pattern. Lint before the
+   fact-check: a rewrite can change a meaning, and the fact-check catches it.
+3. Run the fact-check procedure in
    `<root>/com.github.copilot/agents/doc-fact-checker.agent.md` on tdd.md (it verifies
-   every claim against the code) — delegated per `<root>/core/reviewers.md`. Keep each
-   report: `ses review record <ws> doc-fact-checker tdd --mode <mode> <report>`.
-   Resolve all findings, then re-check until a report says PASS.
-3. Run `ses prose-lint <ws>/tdd.md` and fix every finding by rewriting the
-   sentence, never by working around the pattern.
+   every claim against the code) — delegated per `<root>/core/reviewers.md`.
+   The first check reads the whole TDD. Keep each report the moment it
+   returns, before any edit:
+   `ses review record <ws> doc-fact-checker tdd --mode <mode> --doc <ws>/tdd.md <report>`.
+   Resolve all findings, then re-check only what changed — the sections and
+   findings `ses review changed <ws> <ws>/tdd.md` lists
+   (`<root>/core/reviewers.md` "Re-checks"), recorded with `--scope "§…"` —
+   until a report says PASS.
 4. Write the TDD's **handoff summary** block now — after the fact-check
-   fixes — and run `ses handoff check <ws>/tdd.md`; it must pass.
+   fixes — and run `ses handoff check <ws>/tdd.md`; it must pass. The
+   summary is outside the fact-check's fingerprint, so writing it needs no
+   re-check.
 5. `ses review require <ws> doc-fact-checker tdd` must pass. Present the
    TDD to the user for approval, starting from §1 and the summary: key
    decisions, traceability table, risks, how the fact-check ran (name a
    self-pass) — plus open
    ASSUMPTIONS.md entries for ratification (decision-protocol §4); promote
    design-shaping ones into the TDD. Iterate until approved — each revision
-   updates the summary in the same edit and re-runs the handoff check and
-   the prose lint. Record approval + date in the TDD header.
-6. Seal the evidence the TDD cites (`ses checkpoint seal <ws>` — the research
+   (a scope-contract change included, per **Changes after approval**)
+   updates the summary in the same edit and re-runs the prose lint and the
+   handoff check. Revisions are not fact-checked one at a time: when you
+   present them, name the sections not yet re-checked; step 6 re-checks
+   them all at once (`<root>/core/reviewers.md` "Re-checks").
+6. Once the user approves, re-check every section revised since the last
+   report, as in step 3 — `ses review changed <ws> <ws>/tdd.md` lists them;
+   no revision, no re-check. A finding goes back to the user as a fix to
+   approve, on its own. Then `ses review require <ws> doc-fact-checker tdd`
+   must pass — it fails when the TDD changed after its last fact-check, so
+   no revision is approved unchecked. Record approval + date in the TDD
+   header. Seal the evidence the TDD cites
+   (`ses checkpoint seal <ws>` — the research
    and design probes under `evidence/`): from now on `ses checkpoint verify`
    reports any of it MISSING or ALTERED. Then record:
    `ses status set <ws> tech-design=approved --next "Run /grill."`
@@ -140,9 +162,30 @@ summary is for agents and is not held to the standard.
    adversarial completeness interrogation runs before any implementation
    planning).
 
+## Changes after approval
+
+Never edit an approved TDD silently: a change needs re-approval and a note
+in the header. An amendment re-runs the §2 gates on what it changed: the
+prose lint and the handoff summary, updated in the same edit, with
+`ses handoff check` on each edit; then one fact-check re-check of every
+section the amendment changed (`ses review changed`,
+`<root>/core/reviewers.md` "Re-checks"), after its last edit — the user's
+follow-up changes included — not one per edit. Then
+`ses review require <ws> doc-fact-checker tdd` must pass, and the
+re-approval is recorded:
+`ses status set <ws> tech-design=approved --note "amended <date>: <what>"`.
+Amendments follow **Writing** like the first draft.
+
+A scope-contract change — a new contract version, before or after approval
+— reaches the TDD through its own §2 traceability table. Amend only the
+sections that table maps to the added, changed or removed S# and A# items,
+plus the TDD §7 rows of those criteria, and re-check only those. A section the change does not
+touch keeps its fact-check. Once each section still holds, bump the
+summary's `Contract version` line and the header's Inputs line; both sit
+outside the fingerprint.
+
 ## Fault tolerance
 
 Write the TDD incrementally. On resume, diff the traceability table against
-the scope contract to find unfinished sections. Never edit an approved TDD
-silently — changes after approval require re-approval and a note in the
-header. Amendments follow **Writing** like the first draft.
+the scope contract to find unfinished sections. A change to an approved TDD
+follows **Changes after approval**.

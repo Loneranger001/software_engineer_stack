@@ -132,9 +132,25 @@ the user has explicitly approved. Nothing downstream may begin before that appro
    pass on the version the user approves. Record approver and date in the
    contract, set version 1. Any later scope change bumps the version
    and updates the summary in the same edit (`ses handoff check` flags every
-   downstream summary still on the old version).
+   downstream summary still on the old version); it reaches the later
+   documents as **Scope changes after approval** says.
 3. Only after approval:
    `ses status set <ws> intake=approved --note "by <who>, contract v1" --next "Run /research."`.
+
+## Scope changes after approval
+
+A new contract version (History row, the user's approval) reaches each
+later document through its traceability, never as a rewrite. Take the
+added, changed and removed S# and A# items from the History row. Then:
+
+- research-notes.md: /research adds findings only for those items.
+- fdd.md and tdd.md: only the sections that trace to those items are
+  amended, re-checked and re-approved (/func-design and /tech-design
+  "Changes after approval"). A section the change does not touch keeps its
+  fact-check — the re-check is scoped by `ses review changed`
+  (`<root>/core/reviewers.md` "Re-checks").
+- Every document bumps its summary's `Contract version` line once its
+  untouched sections still hold; `ses handoff check <ws>` then passes.
 
 ## Fault tolerance
 

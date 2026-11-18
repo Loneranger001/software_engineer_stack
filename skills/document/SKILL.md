@@ -102,16 +102,24 @@ skill documents what the code DOES, not what anyone believes it does.
 1. Run the fact-check procedure in
    `<root>/com.github.copilot/agents/doc-fact-checker.agent.md` on the draft —
    delegated per `<root>/core/reviewers.md`. It re-verifies each claim against the code; resolve
-   every finding (fix the doc or the fact table). Keep each report
-   (`ses review record <ws> doc-fact-checker <doc-type> --mode <mode> <report>`,
-   `<doc-type>` = howto, kb or understanding) and re-check until one passes.
+   every finding (fix the doc or the fact table). The first check reads the
+   whole draft. Keep each report the moment it returns
+   (`ses review record <ws> doc-fact-checker <doc-type> --mode <mode> --doc <ws>/<doc-name>.md <report>`,
+   `<doc-type>` = howto, kb or understanding). After the fixes, run
+   `ses prose-lint` again, then re-check only what changed — the sections and
+   findings `ses review changed <ws> <ws>/<doc-name>.md` lists
+   (`<root>/core/reviewers.md` "Re-checks"), recorded with `--scope "§…"` —
+   until a report passes.
 2. `ses review require <ws> doc-fact-checker <doc-type>` must pass; then
    `ses status set <ws> fact-check=done`. Tell the user how the fact-check
    ran — a self-pass by name.
 
 ## 4. Deliver
 
-1. Ask which output formats are needed (unless `ses status get <ws> formats`
+1. `ses review require <ws> doc-fact-checker <doc-type>` must still pass —
+   edits since the fact-check (the user's feedback included) get one
+   re-check of all the sections they changed first, as in §3. Ask which output
+   formats are needed (unless `ses status get <ws> formats`
    already answers it) and record them: `ses status field <ws> formats
    "<docx,pdf,...>"`. Convert via
    `ses md2docx | ses md2pdf | ses md2confluence`

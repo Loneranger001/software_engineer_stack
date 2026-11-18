@@ -25,10 +25,12 @@ explanation (**Style** below).
    STATUS.md and prints only the matching entries (a lesson tagged for
    another repo is left out); don't read the lesson files whole.
 2. Locate the workspace and gate:
-   `ses status require <ws> tech-design=approved grill=done,waived`
+   `ses status require <ws> tech-design=approved grill=done,waived` and
+   `ses review current <ws> <ws>/tdd.md`
    (`<ws>` = `<workspace-root>/work/<id>`) — non-zero exit = stop. The impl
    doc plans a design that has survived the interrogation, not a first
-   draft. A user who skips the grill at this point is recorded first
+   draft, and only a TDD whose fact-check is done: STATUS still reads
+   approved while an amendment is in progress. A user who skips the grill at this point is recorded first
    (`ses status set <ws> grill="waived by <who> <date>: <reason>"`), never
    assumed.
 3. Read the approved tdd.md fully (you decompose all of it) and the
