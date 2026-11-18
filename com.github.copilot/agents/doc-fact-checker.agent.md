@@ -23,9 +23,12 @@ inspection only.
 - For an FDD: its mode (forward, as-built, or change) and, in change mode,
   the pinned refs (`change-base` / `change-head`, or `change-base.<repo>` /
   `change-head.<repo>` per repo for a multi-repo change)
-- Optional scope: sections to check (e.g. the TDD sections /grill edited).
-  Check every claim in them, plus claims elsewhere that rely on what they
-  changed; skip the rest and name the scope in the report
+- Optional scope, for a re-check: the sections to check (those
+  `ses review changed` lists, or the TDD sections /grill edited) and, when
+  the previous report did not pass, its findings. Check every claim in those
+  sections, plus claims elsewhere that rely on what they changed. Report
+  each previous finding again unless it is now resolved. Skip the rest and
+  name the scope in the report
 
 ## Procedure
 

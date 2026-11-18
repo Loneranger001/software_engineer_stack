@@ -8,20 +8,45 @@ custom agent, by a fresh subagent, or by the author re-reading its own work
 (core/reviewers.md options 1–3). The last is the weakest, and the user must be
 told when it is all there was.
 
+A doc-fact-checker report also fingerprints the document it checked: a hash
+of the document's body and one per section. The gate then fails when the
+document changed after the report, so an edit made after a PASS — a revision
+asked for at approval, an amendment, a lint rewrite — is never approved
+unchecked. And `changed` names the sections that moved since the last check,
+so a re-check reads those sections, not the whole document
+(core/reviewers.md "Re-checks").
+
+The body is everything from the first `##`–`####` heading on, without the
+handoff summary block and without HTML comments. The title and the metadata
+lines above the first heading (Status, Inputs, approval notes) and the
+summary are left out: they are rewritten after every fact-check by design,
+and `ses handoff check` holds the summary to the body.
+
 Usage:
-    review.py record  <ws> <reviewer> <target> --mode <mode> [--scope TEXT] [<report-file> | -]
+    review.py record  <ws> <reviewer> <target> --mode <mode> [--doc <file>] [--scope TEXT] [<report-file> | -]
         Saves the report (a file, or stdin with `-` / no file) as
         <ws>/reviews/<reviewer>-<target>-<n>.md (n = next free number), and
         records STATUS field review.<reviewer>.<target> =
         "<VERDICT> (<mode>, <date>, reviews/<file>)". The report keeps its own
-        VERDICT line(s); a MODE line is written above them.
+        VERDICT line(s); a MODE line is written above them. --doc names the
+        document reviewed and is required for doc-fact-checker: its
+        fingerprint is taken now, so record the report the moment it
+        returns, before editing the document. --scope names what a scoped
+        re-check covered.
     review.py require <ws> <reviewer> <target>
         Exit 3 unless the LATEST report for <reviewer>/<target> passes: every
         VERDICT line in it says PASS (doc-fact-checker, scope-auditor) or
-        APPROVE (code-reviewer). Prints the verdict and the mode — a
-        self-pass is named, so the gate can tell the user.
+        APPROVE (code-reviewer) — and, when the report fingerprinted its
+        document, the document's body is unchanged since. Prints the verdict
+        and the mode — a self-pass is named, so the gate can tell the user.
+    review.py changed <ws> <doc>
+        What the next fact-check of <doc> must cover: the sections changed,
+        added or removed since its latest fingerprinted doc-fact-checker
+        report (any target — tdd and tdd-grill both check tdd.md), and that
+        report's findings when it did not pass.
     review.py list    <ws>
-        The latest report per reviewer/target: verdict, mode, file.
+        The latest report per reviewer/target: verdict, mode, file — and
+        "doc changed" when its document moved since.
 
     <reviewer>  doc-fact-checker | code-reviewer | scope-auditor
     <target>    what was reviewed, lower-case [a-z0-9._-]: fdd, tdd, tdd-grill,
@@ -33,20 +58,31 @@ Exit codes: 0 ok, 1 error, 2 usage, 3 the review gate is not met.
 """
 from __future__ import annotations
 
+import hashlib
 import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from handoff import END, START  # noqa: E402
 from status import Status, StatusError, resolve  # noqa: E402
 
 REVIEWERS = ("doc-fact-checker", "code-reviewer", "scope-auditor")
+NEEDS_DOC = ("doc-fact-checker",)
 MODES = ("custom-agent", "subagent", "self-pass")
 PASSING = {"PASS", "APPROVE"}
 TARGET_RE = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
 VERDICT_RE = re.compile(r"^\s*VERDICT:\s*([A-Z-]+)", re.M)
 MODE_RE = re.compile(r"^\s*MODE:\s*([a-z-]+)", re.M)
+DATE_RE = re.compile(r"^DATE:\s*(\S+)", re.M)
+DOC_RE = re.compile(r"^DOC:\s*(.+?)\s*$", re.M)
+DOC_SHA_RE = re.compile(r"^DOC-SHA256:\s*([0-9a-f]{64})\s*$", re.M)
+SECTIONS_RE = re.compile(r"^<!-- doc-sections[^\n]*\n(.*?)^-->", re.M | re.S)
+SECTION_LINE = re.compile(r"^([0-9a-f]{12})  (.+)$")
+FINDING_RE = re.compile(r"^\s*\[(WRONG|UNSOURCED|STALE-REF|OMISSION)\].*$", re.M)
+HEADING_RE = re.compile(r"^(#{2,4})\s+(.*?)\s*#*\s*$")
+FENCE_RE = re.compile(r"^\s*(```|~~~)")
 NOT_MET = 3
 
 
@@ -62,6 +98,72 @@ def check_names(reviewer: str, target: str) -> None:
         raise StatusError(f"target '{target}' must be lower-case letters, digits, . _ - (e.g. tdd, inv-core)")
 
 
+# --- document fingerprint ----------------------------------------------------
+
+def sections(text: str) -> list[tuple[str, str]]:
+    """[(heading path, content)] of the body: from the first ##–#### heading on,
+    without the handoff summary block and HTML comments. A heading inside a
+    code fence is content. Repeated paths get ' #2', ' #3', … so each is a key."""
+    if START in text and END in text:
+        head, rest = text.split(START, 1)
+        text = head + rest.split(END, 1)[1]
+    text = re.sub(r"<!--.*?-->", "", text, flags=re.S)
+    out: list[tuple[str, list[str]]] = []
+    stack: list[tuple[int, str]] = []
+    fence = None
+    for line in text.splitlines():
+        f = FENCE_RE.match(line)
+        if fence:
+            if f and f.group(1) == fence:
+                fence = None
+        elif f:
+            fence = f.group(1)
+        else:
+            m = HEADING_RE.match(line)
+            if m:
+                level = len(m.group(1))
+                stack = [(lv, t) for lv, t in stack if lv < level] + [(level, m.group(2))]
+                out.append((" > ".join(t for _lv, t in stack), []))
+                continue
+        if out:
+            out[-1][1].append(line.rstrip())
+    seen: dict[str, int] = {}
+    result = []
+    for key, lines in out:
+        seen[key] = seen.get(key, 0) + 1
+        result.append((key if seen[key] == 1 else f"{key} #{seen[key]}", "\n".join(lines).strip("\n")))
+    return result
+
+
+def fingerprint(doc: Path) -> tuple[str, dict[str, str]]:
+    """(body sha256, {section path: 12-hex sha256 of its content})."""
+    secs = sections(doc.read_text(errors="replace"))
+    body = "\n".join(f"{key}\n{content}" for key, content in secs)
+    per = {key: hashlib.sha256(content.encode()).hexdigest()[:12] for key, content in secs}
+    return hashlib.sha256(body.encode()).hexdigest(), per
+
+
+def diff_sections(old: dict[str, str], new: dict[str, str]) -> list[tuple[str, str]]:
+    """[(changed|added|removed, section)] in document order (removed last)."""
+    out = [("changed" if k in old else "added", k) for k in new if old.get(k) != new[k]]
+    return out + [("removed", k) for k in old if k not in new]
+
+
+def doc_ref(ws: Path, doc: Path) -> str:
+    doc = doc.resolve()
+    try:
+        return str(doc.relative_to(ws.resolve()))
+    except ValueError:
+        return str(doc)
+
+
+def doc_path(ws: Path, ref: str) -> Path:
+    p = Path(ref)
+    return p if p.is_absolute() else ws / p
+
+
+# --- reports -------------------------------------------------------------------
+
 def reports(ws: Path, reviewer: str, target: str) -> list[Path]:
     """Reports for reviewer/target, oldest first by their number."""
     d = ws / "reviews"
@@ -74,8 +176,52 @@ def verdicts(text: str) -> list[str]:
     return VERDICT_RE.findall(text)
 
 
+class Report:
+    def __init__(self, path: Path):
+        self.path = path
+        self.text = path.read_text()
+        self.verdicts = verdicts(self.text)
+        m = MODE_RE.search(self.text)
+        self.mode = m.group(1) if m else "unknown"
+        m = DATE_RE.search(self.text)
+        self.date = m.group(1) if m else ""
+        m, s = DOC_RE.search(self.text), DOC_SHA_RE.search(self.text)
+        self.doc = m.group(1) if m else None
+        self.doc_sha = s.group(1) if s else None
+        self.sections: dict[str, str] = {}
+        block = SECTIONS_RE.search(self.text)
+        for line in (block.group(1).splitlines() if block else []):
+            sm = SECTION_LINE.match(line)
+            if sm:
+                self.sections[sm.group(2)] = sm.group(1)
+
+    @property
+    def passed(self) -> bool:
+        return bool(self.verdicts) and all(v in PASSING for v in self.verdicts)
+
+    def findings(self) -> list[str]:
+        return [m.group(0).strip() for m in FINDING_RE.finditer(self.text)]
+
+    def drift(self, ws: Path) -> list[tuple[str, str]] | None:
+        """Sections of its document changed since this report; None when it holds no fingerprint."""
+        if not (self.doc and self.doc_sha):
+            return None
+        doc = doc_path(ws, self.doc)
+        if not doc.is_file():
+            return [("missing", self.doc)]
+        sha, per = fingerprint(doc)
+        if sha == self.doc_sha:
+            return []
+        return diff_sections(self.sections, per) or [("changed", "(section order or headings)")]
+
+
+def latest(ws: Path, reviewer: str, target: str) -> Report | None:
+    found = reports(ws, reviewer, target)
+    return Report(found[-1]) if found else None
+
+
 def cmd_record(argv: list[str]) -> int:
-    mode = scope = None
+    mode = scope = doc_arg = None
     rest = []
     i = 0
     while i < len(argv):
@@ -83,16 +229,29 @@ def cmd_record(argv: list[str]) -> int:
             mode, i = argv[i + 1], i + 2
         elif argv[i] == "--scope" and i + 1 < len(argv):
             scope, i = argv[i + 1], i + 2
+        elif argv[i] == "--doc" and i + 1 < len(argv):
+            doc_arg, i = argv[i + 1], i + 2
         else:
             rest.append(argv[i])
             i += 1
     if len(rest) not in (3, 4) or mode is None:
-        raise StatusError("usage: record <ws> <reviewer> <target> --mode <mode> [--scope TEXT] [<report-file> | -]")
+        raise StatusError("usage: record <ws> <reviewer> <target> --mode <mode> [--doc <file>] [--scope TEXT] "
+                          "[<report-file> | -]")
     ws, st = workspace(rest[0])
     reviewer, target = rest[1], rest[2]
     check_names(reviewer, target)
     if mode not in MODES:
         raise StatusError(f"--mode must be one of {' | '.join(MODES)} (core/reviewers.md options 1-3)")
+    doc = None
+    if doc_arg is not None:
+        doc = Path(doc_arg)
+        if not doc.is_absolute() and not doc.is_file() and (ws / doc).is_file():
+            doc = ws / doc
+        if not doc.is_file():
+            raise StatusError(f"--doc {doc_arg}: no such file")
+    elif reviewer in NEEDS_DOC:
+        raise StatusError(f"{reviewer} reports need --doc <file>, the document it checked: its fingerprint "
+                          "lets the gate catch an edit made after the check (core/reviewers.md)")
     src = rest[3] if len(rest) == 4 else "-"
     text = sys.stdin.read() if src == "-" else Path(src).read_text()
     found = verdicts(text)
@@ -103,11 +262,17 @@ def cmd_record(argv: list[str]) -> int:
     n = int(re.search(r"-(\d+)\.md$", existing[-1].name).group(1)) + 1 if existing else 1
     out = ws / "reviews" / f"{reviewer}-{target}-{n}.md"
     out.parent.mkdir(parents=True, exist_ok=True)
-    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
+    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     header = f"# {reviewer} — {target} — report {n}\n\nMODE: {mode}\nDATE: {stamp}\n"
     if scope:
         header += f"REVIEW-SCOPE: {scope}\n"
-    out.write_text(header + "\n" + text.rstrip("\n") + "\n")
+    footer = ""
+    if doc is not None:
+        sha, per = fingerprint(doc)
+        header += f"DOC: {doc_ref(ws, doc)}\nDOC-SHA256: {sha}\n"
+        footer = ("\n<!-- doc-sections (fingerprint of the document as checked; ses review changed reads it)\n"
+                  + "".join(f"{h}  {k}\n" for k, h in per.items()) + "-->\n")
+    out.write_text(header + "\n" + text.rstrip("\n") + "\n" + footer)
     verdict = "/".join(dict.fromkeys(found))
     rel = out.relative_to(ws)
     st.set_field(f"review.{reviewer}.{target}", f"{verdict} ({mode}, {stamp[:10]}, {rel})")
@@ -117,15 +282,6 @@ def cmd_record(argv: list[str]) -> int:
         print("note: self-pass — the author re-read its own work (core/reviewers.md option 3); "
               "say so to the user at the gate")
     return 0
-
-
-def latest(ws: Path, reviewer: str, target: str) -> tuple[Path, list[str], str] | None:
-    found = reports(ws, reviewer, target)
-    if not found:
-        return None
-    text = found[-1].read_text()
-    m = MODE_RE.search(text)
-    return found[-1], verdicts(text), (m.group(1) if m else "unknown")
 
 
 def cmd_require(argv: list[str]) -> int:
@@ -139,14 +295,73 @@ def cmd_require(argv: list[str]) -> int:
         print(f"review gate NOT met: no {reviewer} report for {target} in {ws / 'reviews'} — run the "
               f"review (core/reviewers.md) and keep it: ses review record <ws> {reviewer} {target} --mode <mode>")
         return NOT_MET
-    path, found, mode = last
-    rel = path.relative_to(ws)
-    if not found or not all(v in PASSING for v in found):
+    rel = last.path.relative_to(ws)
+    if not last.passed:
         print(f"review gate NOT met: latest {reviewer} report for {target} ({rel}) says "
-              f"{'/'.join(found) or 'no VERDICT'} — resolve its findings and review again")
+              f"{'/'.join(last.verdicts) or 'no VERDICT'} — resolve its findings and review again")
         return NOT_MET
-    extra = (" — a self-pass: the author re-read its own work; tell the user" if mode == "self-pass" else "")
-    print(f"review gate ok: {reviewer} {target} {'/'.join(dict.fromkeys(found))} ({mode}, {rel}){extra}")
+    drift = last.drift(ws)
+    if drift:
+        print(f"review gate NOT met: {last.doc} changed since the latest {reviewer} report for {target} ({rel}):")
+        for kind, sec in drift:
+            print(f"  {kind:<8} {sec}")
+        print(f"re-check what changed (core/reviewers.md \"Re-checks\"; ses review changed <ws> {last.doc}) "
+              f"and record it with --scope")
+        return NOT_MET
+    extra = (" — a self-pass: the author re-read its own work; tell the user" if last.mode == "self-pass" else "")
+    print(f"review gate ok: {reviewer} {target} {'/'.join(dict.fromkeys(last.verdicts))} ({last.mode}, {rel}){extra}")
+    if drift is None and reviewer in NEEDS_DOC:
+        print("note: this report predates 0.17.0 and holds no fingerprint of its document — "
+              "an edit made since it is not detected")
+    return 0
+
+
+def cmd_changed(argv: list[str]) -> int:
+    if len(argv) != 2:
+        raise StatusError("usage: changed <ws> <doc>")
+    ws, _st = workspace(argv[0])
+    doc = Path(argv[1])
+    if not doc.is_absolute() and not doc.is_file() and (ws / doc).is_file():
+        doc = ws / doc
+    if not doc.is_file():
+        raise StatusError(f"{argv[1]}: no such file")
+    target = doc.resolve()
+    d = ws / "reviews"
+    every = [Report(p) for p in sorted(d.glob("doc-fact-checker-*.md"))] if d.is_dir() else []
+    candidates = [r for r in every if r.doc and r.doc_sha and doc_path(ws, r.doc).resolve() == target]
+    name = doc_ref(ws, doc)
+    if not candidates:
+        legacy = [str(r.path.relative_to(ws)) for r in every if not r.doc_sha]
+        if legacy:
+            print(f"{name}: no fingerprinted fact-check yet, only reports from before 0.17.0 "
+                  f"({', '.join(legacy)}), which record no sections. If one of them checked {name}, scope "
+                  "this re-check by hand to the sections edited since (the change list, the grill log); "
+                  "recording it fingerprints the document, and later re-checks are listed here. "
+                  "Otherwise this is its first check: check it whole")
+        else:
+            print(f"{name}: no fingerprinted fact-check yet — the next check is its first: check it whole")
+        return 0
+    base = max(candidates, key=lambda r: (r.date, r.path.name))
+    rel = base.path.relative_to(ws)
+    sha, per = fingerprint(doc)
+    drift = [] if sha == base.doc_sha else (diff_sections(base.sections, per)
+                                              or [("changed", "(section order or headings)")])
+    verdict = "/".join(dict.fromkeys(base.verdicts)) or "no VERDICT"
+    open_findings = [] if base.passed else base.findings()
+    if not drift and not open_findings:
+        print(f"{name}: unchanged since {rel} ({verdict}, {base.date}) — nothing to re-check")
+        return 0
+    print(f"{name} since {rel} ({verdict}, {base.date}):")
+    for kind, sec in drift:
+        print(f"  {kind:<8} {sec}")
+    if not drift:
+        print("  (no section changed)")
+    if open_findings:
+        print(f"findings of {rel}, each in scope until a re-check clears it:")
+        for line in open_findings:
+            print(f"  {line}")
+    print("re-check scope: the sections above, the sections those findings name, and claims elsewhere "
+          "that rely on what changed (core/reviewers.md \"Re-checks\")")
     return 0
 
 
@@ -161,9 +376,10 @@ def cmd_list(argv: list[str]) -> int:
         print("no reviewer reports recorded")
         return 0
     for reviewer, target in keys:
-        path, found, mode = latest(ws, reviewer, target)
-        print(f"{reviewer:<17} {target:<16} {'/'.join(dict.fromkeys(found)) or '?':<9} {mode:<12} "
-              f"{path.relative_to(ws)}")
+        last = latest(ws, reviewer, target)
+        stale = "  doc changed since" if last.drift(ws) else ""
+        print(f"{reviewer:<17} {target:<16} {'/'.join(dict.fromkeys(last.verdicts)) or '?':<9} {last.mode:<12} "
+              f"{last.path.relative_to(ws)}{stale}")
     return 0
 
 
@@ -172,12 +388,9 @@ def main(argv: list[str]) -> int:
         print(__doc__)
         return 0 if argv else 2
     cmd, rest = argv[0], argv[1:]
-    if cmd == "record":
-        return cmd_record(rest)
-    if cmd == "require":
-        return cmd_require(rest)
-    if cmd == "list":
-        return cmd_list(rest)
+    handlers = {"record": cmd_record, "require": cmd_require, "changed": cmd_changed, "list": cmd_list}
+    if cmd in handlers:
+        return handlers[cmd](rest)
     print(__doc__)
     return 2
 

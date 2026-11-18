@@ -147,20 +147,24 @@ Take the `ask-user` list and interview the user until it is EMPTY:
 ## 3. Close the stage
 
 1. Self-check with `<root>/checklists/grill.md`.
-2. If the grill edited the TDD (`gap-fixed`, user answers), fact-check the
-   edits: run the procedure in
-   `<root>/com.github.copilot/agents/doc-fact-checker.agent.md` on tdd.md,
-   scoped to the edited sections — delegated per `<root>/core/reviewers.md`.
-   A fix that adds a claim about existing behaviour is exactly what the
-   tech-design fact-check never saw. Keep each report
-   (`ses review record <ws> doc-fact-checker tdd-grill --mode <mode> --scope "§…" <report>`)
-   and resolve all findings until `ses review require <ws> doc-fact-checker tdd-grill`
-   passes.
-3. Every TDD edit updates the TDD's handoff summary in the same edit — its
+2. Every TDD edit updates the TDD's handoff summary in the same edit — its
    Verification line names every `G#` row, which
    `ses handoff check <ws>/tdd.md` enforces like A#; re-run it before
    closing. Every edit is written to `<root>/standards/writing.md` like the
-   rest of the TDD; `ses prose-lint <ws>/tdd.md` must pass.
+   rest of the TDD; `ses prose-lint <ws>/tdd.md` must pass — fix it before
+   the fact-check, since a rewrite can change a meaning.
+3. If the grill edited the TDD (`gap-fixed`, user answers), fact-check the
+   edits: run the procedure in
+   `<root>/com.github.copilot/agents/doc-fact-checker.agent.md` on tdd.md,
+   scoped to the edited sections — delegated per `<root>/core/reviewers.md`.
+   `ses review changed <ws> <ws>/tdd.md` lists them; when the TDD's only
+   fact-check predates 0.17.0, take them from the grill log's TDD-changing
+   rows. A fix that adds a claim about existing behaviour is exactly what
+   the tech-design fact-check never saw. Keep each report the moment it
+   returns
+   (`ses review record <ws> doc-fact-checker tdd-grill --mode <mode> --doc <ws>/tdd.md --scope "§…" <report>`),
+   resolve all findings and re-check what changed until
+   `ses review require <ws> doc-fact-checker tdd-grill` passes.
 4. An approved TDD the grill edited is re-approved, never silently changed —
    whatever the size of the edits. Present ONE change list built from the
    grill log's TDD- and FDD-changing rows (`#n · FDD|TDD § · before → after`,
@@ -171,14 +175,16 @@ Take the `ask-user` list and interview the user until it is EMPTY:
    `ses status set <ws> tech-design=approved --note "re-approved after grill, <n> edits"`;
    an FDD amended in the same list gets its header note and
    `ses status field <ws> fdd "approved <date> by <who> (amended after grill)"`.
-   An edit the user rejects is reverted and its row goes back to `ask-user`.
-   No TDD edits, or an unapproved TDD, needs no re-approval.
+   An edit the user rejects is reverted and its row goes back to `ask-user`;
+   the revert changes the TDD, so re-check the reverted sections (step 3)
+   before recording the re-approval — `ses review require <ws> doc-fact-checker tdd-grill`
+   must pass. No TDD edits, or an unapproved TDD, needs no re-approval.
 5. Seal the evidence the grill's probes produced — the TDD and grill log
    now cite it: `ses checkpoint seal <ws>`.
 6. Record (full pipeline):
    `ses status set <ws> grill=done --next "Run /impl-plan."` — or, when the
    TDD was grilled unapproved, `--next "Get the TDD approved (/tech-design
-   §2 step 5), then run /impl-plan."`, since /impl-plan gates on that
+   §2 steps 5-6), then run /impl-plan."`, since /impl-plan gates on that
    approval. If the user explicitly skipped the grill:
    `grill="waived by <who> <date>: <reason>"`. A change request closes as
    "Use on change requests" says.
@@ -204,7 +210,7 @@ categories, verdicts and both phases are unchanged; these parts differ:
 - **Closing** (§3): skip the tdd.md steps (handoff check, prose-lint,
   `tech-design` re-approval). If an edit added a claim about existing
   behaviour, fact-check the edited analysis.md sections (doc-fact-checker,
-  scoped). If `mini-contract` was already approved and the grill changed
+  scoped; record it as target `analysis` with `--doc <ws>/analysis.md`). If `mini-contract` was already approved and the grill changed
   it, present the change list and re-approve once:
   `ses status set <ws> mini-contract=approved --note "re-approved after grill, <n> edits"`.
   A change-request pipeline has no grill stage: write the grill log's Close

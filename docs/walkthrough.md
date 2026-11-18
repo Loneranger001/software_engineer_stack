@@ -96,7 +96,7 @@ doc-fact-checker pass runs before you ever see it. Then:
 copilot>  TDD ready: [summary, key decisions, 2 open assumptions to ratify]
          Approve?
 you>     change §4.2 to keep the old file name; otherwise fine
-copilot>  [updates, re-presents]
+copilot>  [updates §4.2, fact-checks §4.2 only, re-presents]
 you>     approve
 ```
 
