@@ -3,7 +3,7 @@
 - Status: draft | user-approved ({date})
 - Mode: forward (proposed change) | as-built (existing behaviour) | change (a change already built)
 - Inputs: {scope-contract.md v{n} + research-notes.md | brief: {path} | code: {repo}@{sha} | change: {repo} {base-sha}..{head-sha}}
-- Audience: {business | technical} — {who: business owner, functional analysts, UAT testers, developers}
+- Audience: {who reads it: business owner, functional analysts, UAT testers, developers}
 - Author: Claude, reviewed by {user}
 
 <!-- FUNCTIONAL LEVEL ONLY (skills/func-design/SKILL.md, "Abstraction rules"):
@@ -21,9 +21,10 @@
      <file>). Say what the system does, never how the design was made: no
      research, task, scope contract, or stage names. Say the thing, then
      give its ID in brackets or in a column.
-     Stakeholders get a rendered view (ses fdd-view): the business audience
-     drops the handoff summary, every technical:start/end region, and
-     Appendix A — keep the markers around developer-only detail. -->
+     This file is the one version people receive, converted as written.
+     A business view (ses fdd-view) is rendered only on request: it drops
+     the handoff summary, every technical:start/end region, and Appendix A —
+     keep the markers around developer-only detail. -->
 
 <!-- handoff:start -->
 ## Handoff summary

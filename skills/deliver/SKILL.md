@@ -91,10 +91,10 @@ The documents must match what was actually built:
    into `<ws>/deliverables/`. Ask once which formats are wanted unless
    `ses status get <ws> formats` already answers it, and record the answer
    (`ses status field <ws> formats "<docx,pdf,...>"`); verify each produced
-   file is non-empty. An `fdd.md` is converted through its audience view
-   (`ses fdd-view <ws>/fdd.md --audience <fdd-audience>`, the audience from
-   `ses status get <ws> fdd-audience`),
-   never directly.
+   file is non-empty. An `fdd.md` is converted as written, like `tdd.md`.
+   A cut-down FDD view is rendered and converted too only for each view
+   `ses status get <ws> fdd-views` names — the user asked for it
+   (`ses fdd-view <ws>/fdd.md --audience <view>`); none otherwise.
 3. Build the unit-test workbook — always, after §2's coverage gate:
    `ses ut-workbook <ws>`, plus `--ods` when `formats` names `ods` →
    `deliverables/<task-id>-unit-test-results.xlsx`. It renders the hashed
