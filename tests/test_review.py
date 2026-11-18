@@ -191,8 +191,59 @@ class ReviewTest(unittest.TestCase):
         self.assertIn("predates 0.17.0", r.stdout)
         out = run("changed", self.ws, "tdd.md").stdout
         self.assertIn("only reports from before 0.17.0 (reviews/doc-fact-checker-tdd-1.md)", out)
-        self.assertIn("scope this re-check by hand to the sections edited since", out)
+        self.assertIn("Scope this re-check by hand to the sections edited since", out)
 
+
+    def test_changed_counts_sections_and_says_when_to_check_whole(self):
+        self.record_tdd()
+        self.edit("Keeps the old file name.", "Uses a new file name.")
+        out = run("changed", self.ws, "tdd.md").stdout
+        self.assertIn("1 of 5 sections changed", out)
+        self.assertIn("re-check scope:", out)
+        for old, new in (("The job loads orders.", "The job loads all orders."), ("Adds a parameter.", "Adds two."),
+                         ("| A1 | unit | x |", "| A1 | integration | x |")):
+            self.edit(old, new)
+        out = run("changed", self.ws, "tdd.md").stdout
+        self.assertIn("4 of 5 sections changed", out)
+        self.assertIn("more than half the sections changed: re-check the whole document", out)
+
+    def test_current_gates_a_stage_on_the_documents_latest_check(self):
+        r = run("current", self.ws, "tdd.md")
+        self.assertEqual(r.returncode, 3)
+        self.assertIn("never been fact-checked", r.stdout)
+        self.record_tdd("tdd", verdict="FINDINGS")
+        r = run("current", self.ws, "tdd.md")
+        self.assertEqual(r.returncode, 3)
+        self.assertIn("says FINDINGS", r.stdout)
+        self.record_tdd("tdd")
+        self.assertEqual(run("current", self.ws, "tdd.md").returncode, 0)
+        self.edit("Keeps the old file name.", "Uses a new file name.")
+        r = run("current", self.ws, self.tdd)
+        self.assertEqual(r.returncode, 3)
+        self.assertIn("changed since reviews/doc-fact-checker-tdd-2.md (1 of 5 sections)", r.stdout)
+        self.assertIn("4. Components > 4.2 File naming", r.stdout)
+        # a later check of another target (the grill's) makes it current again
+        self.record_tdd("tdd-grill", extra=("--scope", "§4.2"))
+        r = run("current", self.ws, "tdd.md")
+        self.assertEqual(r.returncode, 0, r.stdout)
+        self.assertIn("doc-fact-checker-tdd-grill-1.md", r.stdout)
+        # the summary and the header are not the body
+        self.edit("- Status: draft", "- Status: user-approved (2026-11-18)")
+        self.assertEqual(run("current", self.ws, "tdd.md").returncode, 0)
+
+    def test_current_with_reports_from_before_fingerprints(self):
+        (self.ws / "reviews").mkdir()
+        legacy = "# doc-fact-checker — {t} — report 1\n\nMODE: subagent\nDATE: 2026-11-01T10:00Z\n\nVERDICT: {v}\n"
+        (self.ws / "reviews" / "doc-fact-checker-fdd-1.md").write_text(legacy.format(t="fdd", v="PASS"))
+        self.assertEqual(run("current", self.ws, "tdd.md").returncode, 3, "an FDD report says nothing of the TDD")
+        (self.ws / "reviews" / "doc-fact-checker-tdd-1.md").write_text(legacy.format(t="tdd", v="FINDINGS"))
+        self.assertEqual(run("current", self.ws, "tdd.md").returncode, 3)
+        (self.ws / "reviews" / "doc-fact-checker-tdd-grill-1.md").write_text(
+            legacy.format(t="tdd-grill", v="PASS").replace("10:00Z", "11:00Z"))
+        r = run("current", self.ws, "tdd.md")
+        self.assertEqual(r.returncode, 0, r.stdout)
+        self.assertIn("predates 0.17.0", r.stdout)
+        self.assertIn("doc-fact-checker-tdd-grill-1.md", run("changed", self.ws, "tdd.md").stdout)
 
 if __name__ == "__main__":
     unittest.main()

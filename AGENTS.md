@@ -61,8 +61,9 @@ packaging is parked in `parked/`). Full docs: README.md.
    Every report is kept with how it ran (`ses review record`) and gates read
    it back (`ses review require`); a self-pass is named to the user. A
    document is fact-checked whole once; each later check covers only what
-   `ses review changed` lists, and `require` fails on a document edited
-   since its last check.
+   `ses review changed` lists, batched to one per gate; `require` fails on
+   a document edited since its last check, and `/grill` and `/impl-plan`
+   start only when `ses review current` passes on the TDD.
 6. Task workspaces never go into git: `ses new-task` excludes `work/`
    locally when it sits inside a repo, commits stage files by name, and
    `ses checkpoint` refuses or fails on workspace files.

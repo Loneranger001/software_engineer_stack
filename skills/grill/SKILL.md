@@ -29,10 +29,12 @@ proving which scenarios were confronted.
    before Phase 1; if the user declines, note it in the grill log header.
 3. Locate the workspace and gate, by pipeline (`ses status get <ws> pipeline`;
    `<ws>` = `<workspace-root>/work/<id>`):
-   - **full**: `ses status require <ws> tech-design=approved`.
-     Grilling an unapproved draft is fine if the user asks — skip the
-     `require` and record it in the grill log's header ("grilled an
-     unapproved TDD at user request").
+   - **full**: `ses status require <ws> tech-design=approved`, then
+     `ses review current <ws> <ws>/tdd.md` — STATUS still reads approved
+     during an amendment, and the grill attacks only a TDD whose fact-check
+     is done. Grilling an unapproved draft is fine if the user asks — skip
+     both and record it in the grill log's header ("grilled an unapproved
+     TDD at user request").
    - **change-request** (see "Use on change requests"):
      `ses status require <ws> analyze=done`; the target is `analysis.md`.
 4. Read tdd.md (change request: analysis.md — see "Use on change
@@ -134,7 +136,7 @@ Take the `ask-user` list and interview the user until it is EMPTY:
   of an approved FDD amends the FDD first; the TDD follows it, never leads.
   The FDD amendment is checked as /func-design "Changes after approval"
   says (scoped fact-check, both lints, handoff check), and it is approved
-  together with the TDD edits in §3 step 4 — one change list, one approval —
+  together with the TDD edits in §3 step 3 — one change list, one approval —
   unless the user asks to approve the FDD on its own first.
 - The user may DEFER a question ("accept the risk", "later CR") — record the
   user's words verbatim in the grill log and as a PARKED.md row, numbered P# (found during
@@ -153,32 +155,33 @@ Take the `ask-user` list and interview the user until it is EMPTY:
    closing. Every edit is written to `<root>/standards/writing.md` like the
    rest of the TDD; `ses prose-lint <ws>/tdd.md` must pass — fix it before
    the fact-check, since a rewrite can change a meaning.
-3. If the grill edited the TDD (`gap-fixed`, user answers), fact-check the
-   edits: run the procedure in
+3. An approved TDD the grill edited is re-approved, never silently changed —
+   whatever the size of the edits. Present ONE change list built from the
+   grill log's TDD- and FDD-changing rows (`#n · FDD|TDD § · before → after`,
+   one line each, the FDD rows first, since the TDD follows them), and say
+   that the edits are fact-checked once the user has decided, in step 4. One
+   approval covers both documents. An edit the user rejects is reverted and
+   its row goes back to `ask-user` — it is never fact-checked. No TDD
+   edits, or an unapproved TDD, needs no re-approval: go to step 4.
+4. If the grill edited the TDD (`gap-fixed`, user answers), fact-check the
+   edits that stand, once, after the user's decisions: run the procedure in
    `<root>/com.github.copilot/agents/doc-fact-checker.agent.md` on tdd.md,
-   scoped to the edited sections — delegated per `<root>/core/reviewers.md`.
+   scoped to the edited sections — delegated per `<root>/core/reviewers.md`
+   ("Re-checks": one per gate).
    `ses review changed <ws> <ws>/tdd.md` lists them; when the TDD's only
    fact-check predates 0.17.0, take them from the grill log's TDD-changing
    rows. A fix that adds a claim about existing behaviour is exactly what
    the tech-design fact-check never saw. Keep each report the moment it
    returns
    (`ses review record <ws> doc-fact-checker tdd-grill --mode <mode> --doc <ws>/tdd.md --scope "§…" <report>`),
-   resolve all findings and re-check what changed until
-   `ses review require <ws> doc-fact-checker tdd-grill` passes.
-4. An approved TDD the grill edited is re-approved, never silently changed —
-   whatever the size of the edits. Present ONE change list built from the
-   grill log's TDD- and FDD-changing rows (`#n · FDD|TDD § · before → after`,
-   one line each, the FDD rows first, since the TDD follows them) with each
-   fact-check verdict and how it ran (name a self-pass); one approval covers
-   both documents. Record it as a
-   TDD header note (`re-approved after /grill <date>: <n> edits`) and with
+   resolve all findings — a fix goes back to the user as its own change —
+   and re-check what changed until
+   `ses review require <ws> doc-fact-checker tdd-grill` passes. Then record
+   the re-approval, telling the user how the fact-check ran (name a
+   self-pass): a TDD header note (`re-approved after /grill <date>: <n> edits`) and
    `ses status set <ws> tech-design=approved --note "re-approved after grill, <n> edits"`;
    an FDD amended in the same list gets its header note and
    `ses status field <ws> fdd "approved <date> by <who> (amended after grill)"`.
-   An edit the user rejects is reverted and its row goes back to `ask-user`;
-   the revert changes the TDD, so re-check the reverted sections (step 3)
-   before recording the re-approval — `ses review require <ws> doc-fact-checker tdd-grill`
-   must pass. No TDD edits, or an unapproved TDD, needs no re-approval.
 5. Seal the evidence the grill's probes produced — the TDD and grill log
    now cite it: `ses checkpoint seal <ws>`.
 6. Record (full pipeline):

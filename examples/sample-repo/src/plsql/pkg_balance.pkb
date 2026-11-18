@@ -6,17 +6,21 @@ CREATE OR REPLACE PACKAGE BODY pkg_balance AS
     -- restartable: replace any existing snapshot for the date
     DELETE FROM balance_snapshot WHERE snapshot_date = TRUNC(p_snapshot_date);
 
+    -- NEXTVAL is not allowed in a SELECT with GROUP BY (ORA-02287),
+    -- so the per-customer totals are grouped in an inline view
     INSERT INTO balance_snapshot (snapshot_id, snapshot_date, customer_id, balance_amt)
     SELECT seq_balance_snapshot.NEXTVAL,
            TRUNC(p_snapshot_date),
-           c.customer_id,
-           NVL(SUM(t.amount), 0)
-      FROM customers c
-      LEFT JOIN transactions t
-        ON t.customer_id = c.customer_id
-       AND t.txn_date < TRUNC(p_snapshot_date) + 1
-     WHERE c.status = 'ACTIVE'
-     GROUP BY c.customer_id;
+           g.customer_id,
+           g.balance_amt
+      FROM (SELECT c.customer_id,
+                   NVL(SUM(t.amount), 0) AS balance_amt
+              FROM customers c
+              LEFT JOIN transactions t
+                ON t.customer_id = c.customer_id
+               AND t.txn_date < TRUNC(p_snapshot_date) + 1
+             WHERE c.status = 'ACTIVE'
+             GROUP BY c.customer_id) g;
 
     l_rows := SQL%ROWCOUNT;
     IF l_rows = 0 THEN

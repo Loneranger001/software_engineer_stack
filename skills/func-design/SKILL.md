@@ -262,12 +262,18 @@ common forms:
    self-pass), plus open ASSUMPTIONS.md entries for
    ratification (decision-protocol §4). Approval with a Q# still open needs
    the user to defer it explicitly, recorded in its §13 status. Iterate until
-   approved — each revision updates the summary in the same edit, re-runs
-   the handoff check and both lints, and gets a re-check of the sections it
-   changed, as in step 2. Record approval + date in the FDD header.
-5. `ses review require <ws> doc-fact-checker fdd` must pass again — it fails
-   when the FDD changed after its last fact-check, so no revision is
-   approved unchecked. Record:
+   approved — each revision updates the summary in the same edit and
+   re-runs the handoff check and both lints. Revisions are not fact-checked
+   one at a time: when you present them, name the sections not yet
+   re-checked; step 5 re-checks them all at once
+   (`<root>/core/reviewers.md` "Re-checks").
+5. Once the user approves, re-check every section revised since the last
+   report, as in step 2 — `ses review changed <ws> <ws>/fdd.md` lists them;
+   no revision, no re-check. A finding goes back to the user as a fix to
+   approve, on its own. Then `ses review require <ws> doc-fact-checker fdd`
+   must pass — it fails when the FDD changed after its last fact-check, so
+   no revision is approved unchecked. Record approval + date in the FDD
+   header, then record:
    - Attached: `ses status field <ws> fdd "approved <date> by <who>"`.
      Forward mode while `tech-design` is pending:
      `ses status next <ws> "Run /tech-design — the TDD realises the approved FDD."`
@@ -301,9 +307,10 @@ common forms:
 Never edit an approved FDD silently — a change needs re-approval and a note
 in the header. An amendment re-runs the §3 gates on what it changed:
 `ses fdd-lint`, `ses prose-lint` (it follows **Writing** like the first
-draft), a fact-check re-check of the changed sections (`ses review changed`,
-`<root>/core/reviewers.md` "Re-checks"), and `ses handoff check` with the
-summary updated in the same edit; `ses review require <ws> doc-fact-checker fdd`
+draft) and `ses handoff check` with the summary updated in the same edit,
+on each edit; then one fact-check re-check of every section the amendment
+changed (`ses review changed`, `<root>/core/reviewers.md` "Re-checks"), after
+its last edit, not one per edit. `ses review require <ws> doc-fact-checker fdd`
 must pass before the re-approval is recorded. A scope-contract change
 reaches the FDD through its S# → FR# traceability: amend and re-check only
 the requirements, rules and steps of the added or changed S# items. Re-approval is recorded in the header

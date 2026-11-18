@@ -40,7 +40,9 @@ below).
    adds only what the changed items need (/intake "Scope changes after
    approval").
    If the task has an approved functional design (`<ws>/fdd.md`; approval in
-   `ses status get <ws> fdd`), read its handoff summary
+   `ses status get <ws> fdd`), `ses review current <ws> <ws>/fdd.md` must
+   pass — an FDD amendment whose fact-check is not done stops here — then
+   read its handoff summary
    (`ses handoff show <ws>/fdd.md`): the TDD realises it — every FR# joins the
    S# items in §2 traceability, every functional test scenario (TS#) is
    named in §7 — in its own row, or in the first cell of the row whose test
@@ -141,12 +143,17 @@ summary is for agents and is not held to the standard.
    ASSUMPTIONS.md entries for ratification (decision-protocol §4); promote
    design-shaping ones into the TDD. Iterate until approved — each revision
    (a scope-contract change included, per **Changes after approval**)
-   updates the summary in the same edit, re-runs the prose lint and the
-   handoff check, and gets a re-check of the sections it changed, as in
-   step 3. Record approval + date in the TDD header.
-6. `ses review require <ws> doc-fact-checker tdd` must pass again — it
-   fails when the TDD changed after its last fact-check, so no revision is
-   approved unchecked. Seal the evidence the TDD cites
+   updates the summary in the same edit and re-runs the prose lint and the
+   handoff check. Revisions are not fact-checked one at a time: when you
+   present them, name the sections not yet re-checked; step 6 re-checks
+   them all at once (`<root>/core/reviewers.md` "Re-checks").
+6. Once the user approves, re-check every section revised since the last
+   report, as in step 3 — `ses review changed <ws> <ws>/tdd.md` lists them;
+   no revision, no re-check. A finding goes back to the user as a fix to
+   approve, on its own. Then `ses review require <ws> doc-fact-checker tdd`
+   must pass — it fails when the TDD changed after its last fact-check, so
+   no revision is approved unchecked. Record approval + date in the TDD
+   header. Seal the evidence the TDD cites
    (`ses checkpoint seal <ws>` — the research
    and design probes under `evidence/`): from now on `ses checkpoint verify`
    reports any of it MISSING or ALTERED. Then record:
@@ -159,9 +166,11 @@ summary is for agents and is not held to the standard.
 
 Never edit an approved TDD silently: a change needs re-approval and a note
 in the header. An amendment re-runs the §2 gates on what it changed: the
-prose lint, a fact-check re-check of the changed sections
-(`ses review changed`, `<root>/core/reviewers.md` "Re-checks"), and the
-handoff summary updated in the same edit with `ses handoff check`. Then
+prose lint and the handoff summary, updated in the same edit, with
+`ses handoff check` on each edit; then one fact-check re-check of every
+section the amendment changed (`ses review changed`,
+`<root>/core/reviewers.md` "Re-checks"), after its last edit — the user's
+follow-up changes included — not one per edit. Then
 `ses review require <ws> doc-fact-checker tdd` must pass, and the
 re-approval is recorded:
 `ses status set <ws> tech-design=approved --note "amended <date>: <what>"`.

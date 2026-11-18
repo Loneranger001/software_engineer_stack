@@ -42,8 +42,14 @@ Usage:
     review.py changed <ws> <doc>
         What the next fact-check of <doc> must cover: the sections changed,
         added or removed since its latest fingerprinted doc-fact-checker
-        report (any target — tdd and tdd-grill both check tdd.md), and that
-        report's findings when it did not pass.
+        report (any target — tdd and tdd-grill both check tdd.md), how many
+        of the document's sections that is, and that report's findings when
+        it did not pass. More than half changed: check the whole document.
+    review.py current <ws> <doc>
+        The gate a later stage runs before building on <doc>: exit 3 unless
+        its latest fact-check, of any target, passed and the document is
+        unchanged since. A document with only pre-0.17.0 reports passes on
+        the latest of them whose target names it, with a note.
     review.py list    <ws>
         The latest report per reviewer/target: verdict, mode, file — and
         "doc changed" when its document moved since.
@@ -316,52 +322,112 @@ def cmd_require(argv: list[str]) -> int:
     return 0
 
 
+class DocState:
+    """Where a document stands with the fact-checker: its latest fingerprinted
+    report of any target, the sections changed since, and that report's open
+    findings. With no fingerprinted report, the reports from before 0.17.0
+    whose target names the document (tdd and tdd-grill for tdd.md)."""
+
+    def __init__(self, ws: Path, doc_arg: str):
+        doc = Path(doc_arg)
+        if not doc.is_absolute() and not doc.is_file() and (ws / doc).is_file():
+            doc = ws / doc
+        if not doc.is_file():
+            raise StatusError(f"{doc_arg}: no such file")
+        self.ws, self.doc, self.name = ws, doc, doc_ref(ws, doc)
+        d = ws / "reviews"
+        every = [Report(p) for p in sorted(d.glob("doc-fact-checker-*.md"))] if d.is_dir() else []
+        target, stem = doc.resolve(), doc.stem
+        mine = [r for r in every if r.doc and r.doc_sha and doc_path(ws, r.doc).resolve() == target]
+        self.base = max(mine, key=lambda r: (r.date, r.path.name)) if mine else None
+        tgt = re.compile(rf"^doc-fact-checker-({re.escape(stem)}(?:-[a-z0-9._-]+)?)-\d+\.md$")
+        self.legacy = [] if mine else sorted((r for r in every if not r.doc_sha and tgt.match(r.path.name)),
+                                             key=lambda r: (r.date, r.path.name))
+        sha, per = fingerprint(doc)
+        self.total = len(per)
+        self.drift: list[tuple[str, str]] = []
+        self.open: list[str] = []
+        if self.base:
+            if sha != self.base.doc_sha:
+                self.drift = diff_sections(self.base.sections, per) or [("changed", "(section order or headings)")]
+            self.open = [] if self.base.passed else self.base.findings()
+
+    @property
+    def n_changed(self) -> int:
+        return sum(1 for kind, _sec in self.drift if kind in ("changed", "added"))
+
+
 def cmd_changed(argv: list[str]) -> int:
     if len(argv) != 2:
         raise StatusError("usage: changed <ws> <doc>")
     ws, _st = workspace(argv[0])
-    doc = Path(argv[1])
-    if not doc.is_absolute() and not doc.is_file() and (ws / doc).is_file():
-        doc = ws / doc
-    if not doc.is_file():
-        raise StatusError(f"{argv[1]}: no such file")
-    target = doc.resolve()
-    d = ws / "reviews"
-    every = [Report(p) for p in sorted(d.glob("doc-fact-checker-*.md"))] if d.is_dir() else []
-    candidates = [r for r in every if r.doc and r.doc_sha and doc_path(ws, r.doc).resolve() == target]
-    name = doc_ref(ws, doc)
-    if not candidates:
-        legacy = [str(r.path.relative_to(ws)) for r in every if not r.doc_sha]
-        if legacy:
-            print(f"{name}: no fingerprinted fact-check yet, only reports from before 0.17.0 "
-                  f"({', '.join(legacy)}), which record no sections. If one of them checked {name}, scope "
-                  "this re-check by hand to the sections edited since (the change list, the grill log); "
-                  "recording it fingerprints the document, and later re-checks are listed here. "
-                  "Otherwise this is its first check: check it whole")
+    state = DocState(ws, argv[1])
+    name, base = state.name, state.base
+    if base is None:
+        if state.legacy:
+            legacy = ", ".join(str(r.path.relative_to(ws)) for r in state.legacy)
+            print(f"{name}: no fingerprinted fact-check yet, only reports from before 0.17.0 ({legacy}), "
+                  "which record no sections. Scope this re-check by hand to the sections edited since "
+                  "(the change list, the grill log); recording it fingerprints the document, and later "
+                  "re-checks are listed here")
         else:
             print(f"{name}: no fingerprinted fact-check yet — the next check is its first: check it whole")
         return 0
-    base = max(candidates, key=lambda r: (r.date, r.path.name))
     rel = base.path.relative_to(ws)
-    sha, per = fingerprint(doc)
-    drift = [] if sha == base.doc_sha else (diff_sections(base.sections, per)
-                                              or [("changed", "(section order or headings)")])
     verdict = "/".join(dict.fromkeys(base.verdicts)) or "no VERDICT"
-    open_findings = [] if base.passed else base.findings()
-    if not drift and not open_findings:
+    if not state.drift and not state.open:
         print(f"{name}: unchanged since {rel} ({verdict}, {base.date}) — nothing to re-check")
         return 0
-    print(f"{name} since {rel} ({verdict}, {base.date}):")
-    for kind, sec in drift:
+    print(f"{name} since {rel} ({verdict}, {base.date}): {state.n_changed} of {state.total} sections changed")
+    for kind, sec in state.drift:
         print(f"  {kind:<8} {sec}")
-    if not drift:
+    if not state.drift:
         print("  (no section changed)")
-    if open_findings:
+    if state.open:
         print(f"findings of {rel}, each in scope until a re-check clears it:")
-        for line in open_findings:
+        for line in state.open:
             print(f"  {line}")
-    print("re-check scope: the sections above, the sections those findings name, and claims elsewhere "
-          "that rely on what changed (core/reviewers.md \"Re-checks\")")
+    if state.n_changed * 2 > state.total:
+        print("more than half the sections changed: re-check the whole document (core/reviewers.md \"Re-checks\")")
+    else:
+        print("re-check scope: the sections above, the sections those findings name, and claims elsewhere "
+              "that rely on what changed (core/reviewers.md \"Re-checks\")")
+    return 0
+
+
+def cmd_current(argv: list[str]) -> int:
+    if len(argv) != 2:
+        raise StatusError("usage: current <ws> <doc>")
+    ws, _st = workspace(argv[0])
+    state = DocState(ws, argv[1])
+    name, base = state.name, state.base
+    if base is None:
+        last = state.legacy[-1] if state.legacy else None
+        if last is None:
+            print(f"fact-check NOT current: {name} has never been fact-checked (core/reviewers.md)")
+            return NOT_MET
+        rel = last.path.relative_to(ws)
+        if not last.passed:
+            print(f"fact-check NOT current: the latest report on {name} ({rel}) says "
+                  f"{'/'.join(last.verdicts) or 'no VERDICT'} — resolve its findings and re-check")
+            return NOT_MET
+        print(f"fact-check ok: {name} {'/'.join(dict.fromkeys(last.verdicts))} ({last.mode}, {rel})")
+        print("note: that report predates 0.17.0 and holds no fingerprint — an edit made since it is not detected")
+        return 0
+    rel = base.path.relative_to(ws)
+    if not base.passed:
+        print(f"fact-check NOT current: the latest report on {name} ({rel}) says "
+              f"{'/'.join(base.verdicts) or 'no VERDICT'} — resolve its findings and re-check what "
+              f"ses review changed <ws> {name} lists")
+        return NOT_MET
+    if state.drift:
+        print(f"fact-check NOT current: {name} changed since {rel} ({state.n_changed} of {state.total} sections):")
+        for kind, sec in state.drift:
+            print(f"  {kind:<8} {sec}")
+        print(f"re-check what changed (ses review changed <ws> {name}) before this stage builds on it")
+        return NOT_MET
+    extra = " — a self-pass: tell the user" if base.mode == "self-pass" else ""
+    print(f"fact-check ok: {name} {'/'.join(dict.fromkeys(base.verdicts))} ({base.mode}, {rel}){extra}")
     return 0
 
 
@@ -388,7 +454,8 @@ def main(argv: list[str]) -> int:
         print(__doc__)
         return 0 if argv else 2
     cmd, rest = argv[0], argv[1:]
-    handlers = {"record": cmd_record, "require": cmd_require, "changed": cmd_changed, "list": cmd_list}
+    handlers = {"record": cmd_record, "require": cmd_require, "changed": cmd_changed,
+                "current": cmd_current, "list": cmd_list}
     if cmd in handlers:
         return handlers[cmd](rest)
     print(__doc__)

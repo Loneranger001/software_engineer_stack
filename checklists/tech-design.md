@@ -4,6 +4,7 @@ Run before presenting the TDD for approval.
 
 - [ ] Traceability table maps EVERY in-scope item to a design section (no orphans either way)
 - [ ] Nothing in the design implements an out-of-scope/non-goal item
+- [ ] An approved FDD passed `ses review current <ws> <ws>/fdd.md` before the TDD built on it
 - [ ] If an approved FDD exists: every FR# is traced in §2 and every TS# and contract A# is named in a §7 row (`ses handoff check` enforces it), and no section contradicts its business rules (BR#) or exceptions (EX#) — a needed departure was re-approved as an FDD amendment
 - [ ] Every claim about existing behaviour carries a source reference (`<repo>:<path>:<line>`, query, doc) — never research-notes.md or another workspace file
 - [ ] §1 Overview lists every business term relied on: global ones with their `Meaning` line copied verbatim from `<workspace-root>/work/domain-glossary.md` (none re-defined), repo-specific ones defined for their repo
@@ -15,7 +16,7 @@ Run before presenting the TDD for approval.
 - [ ] Verification-approach table covers every acceptance criterion (an untestable criterion blocks approval); operational impact stated line by line, "none" explicit
 - [ ] Non-functional section addresses performance, security, operability — or states why not applicable
 - [ ] At least one alternative was considered and its rejection justified
-- [ ] doc-fact-checker ran on the whole TDD once, each report is kept the moment it returned (`ses review record --doc`), every later check re-checked only what `ses review changed` listed, its findings were resolved, and `ses review require <ws> doc-fact-checker tdd` passes after the last revision; a self-pass is named to the user
+- [ ] doc-fact-checker ran on the whole TDD once, each report is kept the moment it returned (`ses review record --doc`), every later check re-checked only what `ses review changed` listed — once per gate, with revisions batched into one re-check before approval was recorded — its findings were resolved, and `ses review require <ws> doc-fact-checker tdd` passes after the last revision; a self-pass is named to the user
 - [ ] Open questions from research are resolved or explicitly carried as risks
 - [ ] ASSUMPTIONS.md reviewed — open entries presented for ratification; design-shaping ones promoted into the TDD (decision-protocol §4)
 - [ ] `tech-design=approved` is set (`ses status`) only after the user's explicit approval

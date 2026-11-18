@@ -117,8 +117,8 @@ skill documents what the code DOES, not what anyone believes it does.
 ## 4. Deliver
 
 1. `ses review require <ws> doc-fact-checker <doc-type>` must still pass —
-   an edit since the fact-check (the user's feedback included) gets its
-   re-check of the changed sections first, as in §3. Ask which output
+   edits since the fact-check (the user's feedback included) get one
+   re-check of all the sections they changed first, as in §3. Ask which output
    formats are needed (unless `ses status get <ws> formats`
    already answers it) and record them: `ses status field <ws> formats
    "<docx,pdf,...>"`. Convert via
