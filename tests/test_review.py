@@ -188,9 +188,9 @@ class ReviewTest(unittest.TestCase):
             "# doc-fact-checker — tdd — report 1\n\nMODE: subagent\nDATE: 2026-11-01T10:00Z\n\nVERDICT: PASS\n")
         r = run("require", self.ws, "doc-fact-checker", "tdd")
         self.assertEqual(r.returncode, 0, r.stdout)
-        self.assertIn("predates 0.17.0", r.stdout)
+        self.assertIn("predates 0.18.0", r.stdout)
         out = run("changed", self.ws, "tdd.md").stdout
-        self.assertIn("only reports from before 0.17.0 (reviews/doc-fact-checker-tdd-1.md)", out)
+        self.assertIn("only reports from before 0.18.0 (reviews/doc-fact-checker-tdd-1.md)", out)
         self.assertIn("Scope this re-check by hand to the sections edited since", out)
 
 
@@ -242,7 +242,7 @@ class ReviewTest(unittest.TestCase):
             legacy.format(t="tdd-grill", v="PASS").replace("10:00Z", "11:00Z"))
         r = run("current", self.ws, "tdd.md")
         self.assertEqual(r.returncode, 0, r.stdout)
-        self.assertIn("predates 0.17.0", r.stdout)
+        self.assertIn("predates 0.18.0", r.stdout)
         self.assertIn("doc-fact-checker-tdd-grill-1.md", run("changed", self.ws, "tdd.md").stdout)
 
 if __name__ == "__main__":

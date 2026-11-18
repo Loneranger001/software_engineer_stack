@@ -33,6 +33,9 @@ to run after each step.}
 |---|---|---|---|
 | A1 | {T1} | evidence/{…} | PASS |
 
+Unit-test results: `deliverables/{TASK_ID}-unit-test-results.xlsx` (SHA-256 {…}) —
+one row per test case, each linked to the data it captured.
+
 ## Known limitations / follow-ups
 
 <!-- Include the PARKED.md items handed over for future triage, each written

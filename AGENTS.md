@@ -36,6 +36,7 @@ packaging is parked in `parked/`). Full docs: README.md.
 | `/retro` | Capture lessons and propose framework improvements. | `skills/retro/SKILL.md` |
 | `/tech-design` | Technical design document with full traceability. | `skills/tech-design/SKILL.md` |
 | `/understand` | Code-verified working understanding of an existing interface. | `skills/understand/SKILL.md` |
+| `/unit-test-results` | Unit-test results workbook (XLSX/ODS) rendered from the task's evidence. | `skills/unit-test-results/SKILL.md` |
 | `/verify-code` | Run PL/SQL, SQL, KSH, or Python against live dev environments. | `skills/verify-code/SKILL.md` |
 
 4. Task state lives in `work/<task-id>/`: the stage documents (the scope

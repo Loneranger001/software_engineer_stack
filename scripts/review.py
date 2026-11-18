@@ -48,7 +48,7 @@ Usage:
     review.py current <ws> <doc>
         The gate a later stage runs before building on <doc>: exit 3 unless
         its latest fact-check, of any target, passed and the document is
-        unchanged since. A document with only pre-0.17.0 reports passes on
+        unchanged since. A document with only pre-0.18.0 reports passes on
         the latest of them whose target names it, with a note.
     review.py list    <ws>
         The latest report per reviewer/target: verdict, mode, file — and
@@ -317,7 +317,7 @@ def cmd_require(argv: list[str]) -> int:
     extra = (" — a self-pass: the author re-read its own work; tell the user" if last.mode == "self-pass" else "")
     print(f"review gate ok: {reviewer} {target} {'/'.join(dict.fromkeys(last.verdicts))} ({last.mode}, {rel}){extra}")
     if drift is None and reviewer in NEEDS_DOC:
-        print("note: this report predates 0.17.0 and holds no fingerprint of its document — "
+        print("note: this report predates 0.18.0 and holds no fingerprint of its document — "
               "an edit made since it is not detected")
     return 0
 
@@ -325,7 +325,7 @@ def cmd_require(argv: list[str]) -> int:
 class DocState:
     """Where a document stands with the fact-checker: its latest fingerprinted
     report of any target, the sections changed since, and that report's open
-    findings. With no fingerprinted report, the reports from before 0.17.0
+    findings. With no fingerprinted report, the reports from before 0.18.0
     whose target names the document (tdd and tdd-grill for tdd.md)."""
 
     def __init__(self, ws: Path, doc_arg: str):
@@ -366,7 +366,7 @@ def cmd_changed(argv: list[str]) -> int:
     if base is None:
         if state.legacy:
             legacy = ", ".join(str(r.path.relative_to(ws)) for r in state.legacy)
-            print(f"{name}: no fingerprinted fact-check yet, only reports from before 0.17.0 ({legacy}), "
+            print(f"{name}: no fingerprinted fact-check yet, only reports from before 0.18.0 ({legacy}), "
                   "which record no sections. Scope this re-check by hand to the sections edited since "
                   "(the change list, the grill log); recording it fingerprints the document, and later "
                   "re-checks are listed here")
@@ -412,7 +412,7 @@ def cmd_current(argv: list[str]) -> int:
                   f"{'/'.join(last.verdicts) or 'no VERDICT'} — resolve its findings and re-check")
             return NOT_MET
         print(f"fact-check ok: {name} {'/'.join(dict.fromkeys(last.verdicts))} ({last.mode}, {rel})")
-        print("note: that report predates 0.17.0 and holds no fingerprint — an edit made since it is not detected")
+        print("note: that report predates 0.18.0 and holds no fingerprint — an edit made since it is not detected")
         return 0
     rel = base.path.relative_to(ws)
     if not base.passed:

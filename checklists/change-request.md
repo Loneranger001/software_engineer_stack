@@ -18,4 +18,5 @@ Run before delivering a fast-path change.
 - [ ] `ses status` recorded analyze → mini-contract → change → verify, in order (deliver is set after the push)
 - [ ] `ses checkpoint verify --delivery` passes — evidence hashes match, the branch holds evidenced task commits, no other repo holds a task commit, and no workspace file is on the branch
 - [ ] Release note at `release-notes.md`, written to `<root>/standards/writing.md`; `ses prose-lint` passes
+- [ ] Each A# has its Test cases row and captured data; `ses ut-workbook --check` passed before the commits, and the workbook is built into deliverables/
 - [ ] Commits came after verification, follow the repo's commit-msg hook, and end with their Evidence-SHA256 lines

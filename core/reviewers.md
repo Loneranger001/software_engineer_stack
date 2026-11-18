@@ -62,7 +62,7 @@ review each round and finds nothing the scoped check would miss.
 **Batch re-checks: one per gate, never one per edit.** A run costs about
 the same whatever its scope: the reviewer starts fresh, reads the
 procedure, the document and the code its claims cite, and reasons over
-them (0.17.1, see `<root>/knowledge/decisions.md`). So the number of runs
+them (0.18.0, see `<root>/knowledge/decisions.md`). So the number of runs
 drives the cost. Let edits pile up — the fixes for one report, all the
 revisions the user asks for at approval, every edit of an amendment — and
 re-check once, where a gate needs it: before an approval or re-approval is
@@ -109,7 +109,7 @@ the document is unchanged since. /grill and /impl-plan run it on tdd.md,
 amendment is in progress, and only this gate sees that its check is not
 done.
 
-A task begun before 0.17.0 has reports without a fingerprint, and `changed`
+A task begun before 0.18.0 has reports without a fingerprint, and `changed`
 says so. Scope its first re-check by hand to the sections edited since (the
 change list, the grill log). Recording that report fingerprints the
 document, and from then on `changed` lists the scope.

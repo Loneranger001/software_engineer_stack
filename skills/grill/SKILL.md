@@ -169,7 +169,7 @@ Take the `ask-user` list and interview the user until it is EMPTY:
    scoped to the edited sections — delegated per `<root>/core/reviewers.md`
    ("Re-checks": one per gate).
    `ses review changed <ws> <ws>/tdd.md` lists them; when the TDD's only
-   fact-check predates 0.17.0, take them from the grill log's TDD-changing
+   fact-check predates 0.18.0, take them from the grill log's TDD-changing
    rows. A fix that adds a claim about existing behaviour is exactly what
    the tech-design fact-check never saw. Keep each report the moment it
    returns

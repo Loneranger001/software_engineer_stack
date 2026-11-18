@@ -196,6 +196,16 @@ independent expectation is NO-ORACLE. Every TDD §7 row (A#, TS#, G#) must reach
 its T#: `ses coverage <ws>` walks row → T# → recorded result and is the
 judge — a T# that could not run is NOT-RUN, never left out.
 
+Each T# also gets its Test cases row and its captured data, for the
+unit-test workbook (`<root>/skills/unit-test-results/SKILL.md` §1): the data
+it read and produced captured into `evidence/raw/tests-<date>-T<n>-<what>`
+(`ses capture … --ext csv`, or SQL*Plus output with its headings), its
+description, test data, expected and actual result written as values, and
+the fields that prove it named in Check — the workbook shows the rows in
+cells and colours each checked value. Before the commit below,
+`ses ut-workbook <ws> --check` must exit 0 — afterwards the evidence is
+hashed and a gap can only be closed by a re-run.
+
 - A failure loops back: fix it in the step whose files it touches,
   re-verify (log names starting `step<N>-fix-`), and commit it as
   `step <N>: fix <what>` (subject from `ses checkpoint subject`) with its own evidence and trailer. Then
@@ -205,7 +215,7 @@ judge — a T# that could not run is NOT-RUN, never left out.
   on `<work-repo>`'s task branch (else the first changed repo's),
   `git commit --allow-empty -m "<subject>" -m "<trailer>"`, the subject from
   `ses checkpoint subject <ws> <repo-name> tests "test plan <date>"` and the trailer from `ses checkpoint trailer <ws>
-  evidence/tests-<date>.txt <its raw logs>` — then run `ses coverage <ws>`
+  evidence/tests-<date>.txt <its raw logs and captured files>` — then run `ses coverage <ws>`
   (a result counts only once its evidence hash is committed).
 
 ## 4. Review gate
