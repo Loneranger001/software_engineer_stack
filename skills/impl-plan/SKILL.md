@@ -82,6 +82,10 @@ explanation (**Style** below).
   user agreement.
 - Regression rows re-check each existing behaviour in TDD §6.
 - DB changes: before/after queries for the evidence bundle.
+- Each T# names its Test data (the seed, fixture or input rows) and a
+  concrete Expected value — never just "pass". They become the unit-test
+  workbook's columns (`<root>/skills/unit-test-results/SKILL.md`), and a test
+  whose data nobody planned is captured as an afterthought or not at all.
 
 ## 3. Deployment and rollback
 

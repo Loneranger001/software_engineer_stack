@@ -19,6 +19,9 @@ flowchart LR
     CR[/change-request/] -.fast path, delivers itself.-> R
     DOC[/document/] -.standalone, delivers itself.-> OUT([deliverables])
     UND[/understand/] -.standalone; feeds.-> DOC
+    E -.captures test data.-> UT[/unit-test-results/]
+    UT -.workbook.-> F
+    CR -.builds.-> UT
 ```
 
 | Command | What it does | Gate |
@@ -35,6 +38,7 @@ flowchart LR
 | `/understand <interface>` | Build a code-verified working understanding of any existing interface or integration: trace it end-to-end, map dependencies both directions, explain it in layers, answer follow-ups from the code | — |
 | `/document <type> <target>` | Produce a how-to, KB article, or understanding document for an existing interface | Fact-checker passes |
 | `/verify-code <files>` | Run per-language verification (live DB/host where available, static fallback) | — |
+| `/unit-test-results [task-id]` | The consolidated unit-test results workbook (XLSX, or ODS): a Summary sheet — one row per test case with test data, expected result, actual result, data check and outcome — linked to a `TC<n>` sheet per test holding its actual rows in cells, the fields to check highlighted and each checked value coloured as expected or differing. Rendered from the task's hashed evidence by `ses ut-workbook`, never typed in, so its outcomes are `ses coverage`'s. Captured at `/implement` §3 (checked with `--check` before the test-plan commit), built at `/deliver` §3 and `/change-request` §5 | Every test case has its data, expected and actual result |
 | `/retro` | Capture lessons from a finished task into the framework's knowledge base | User approves framework edits |
 | `/meeting-minutes` | Structured minutes from meeting notes or a transcript | — |
 
@@ -44,14 +48,14 @@ The framework is a **GitHub Copilot plugin**: one install serves both the Copilo
 
 ### One-time setup
 
-1. **Prerequisites:** `python3` (3.9+), `git`, a POSIX shell (macOS or Linux), and the GitHub Copilot CLI or VS Code with GitHub Copilot. Optional: `pandoc` to convert documents to Word/PDF/Confluence, plus a PDF engine for PDF (`pip install weasyprint` is the lightest) and mermaid-cli (`npm install -g @mermaid-js/mermaid-cli`) so the designs' diagrams reach readers as diagrams, not source code; `sqlplus` or SQLcl for live SQL and PL/SQL verification.
+1. **Prerequisites:** `python3` (3.9+), `git`, a POSIX shell (macOS or Linux), and the GitHub Copilot CLI or VS Code with GitHub Copilot. Optional: `pandoc` to convert documents to Word/PDF/Confluence, plus a PDF engine for PDF (`pip install weasyprint` is the lightest) and mermaid-cli (`npm install -g @mermaid-js/mermaid-cli`) so the designs' diagrams reach readers as diagrams, not source code; LibreOffice (`soffice`) only to hand the unit-test workbook over as ODS rather than XLSX; `sqlplus` or SQLcl for live SQL and PL/SQL verification.
 2. **Install the plugin:**
    ```sh
    copilot plugin marketplace add Loneranger001/software_engineer_stack
    copilot plugin install software-engineer-stack@se-stack
    ```
    **VS Code:** turn on the `chat.plugins.enabled` setting. Plugins installed with the CLI live in `~/.copilot/installed-plugins/` and then appear under Extensions → **Agent Plugins - Installed**. Or run the same two commands as `/plugin marketplace add …` and `/plugin install …` in a Copilot chat.
-3. **Check it:** `copilot skill list` shows the 14 plugin skills, and `/agent` in a session lists the three reviewers (`scope-auditor`, `code-reviewer`, `doc-fact-checker`).
+3. **Check it:** `copilot skill list` shows the 15 plugin skills, and `/agent` in a session lists the three reviewers (`scope-auditor`, `code-reviewer`, `doc-fact-checker`).
 4. **Optional — `ses` in your own terminal.** Skills don't need it: Copilot doesn't put plugin executables on PATH, so each skill runs `bin/ses` from its own plugin folder. It's handy for inspecting a task by hand:
    ```sh
    ln -s ~/.copilot/installed-plugins/se-stack/software-engineer-stack/bin/ses ~/.local/bin/ses
@@ -96,7 +100,7 @@ work/PROJ-123/                 (never committed — see "Keeping work/ out of gi
 ├── reviews/                   # every reviewer report, numbered, with how it ran (ses review record)
 ├── wt/<repo>/                 # /implement, /change-request — the task branch in its own git worktree (ses worktree)
 ├── release-notes.md           # /deliver (a change request: /change-request §5)
-├── deliverables/              # converted docx / pdf / Confluence outputs
+├── deliverables/              # converted docx / pdf / Confluence outputs, the unit-test workbook (.xlsx/.ods)
 ├── ASSUMPTIONS.md             # proceed-and-log decisions awaiting gate ratification
 └── PARKED.md                  # out-of-scope findings logged, never acted on
 ```
@@ -245,8 +249,10 @@ knowledge/    lessons.md (shipped lessons; yours go to ~/.ses/lessons.md), decis
 docs/         QA.md (design Q&A + testing guide), walkthrough.md (narrated example task)
 scripts/      what `ses` runs: status.py (gates), new-task.sh, list-repos.sh, workspace-root.sh,
               repo-rules.sh, handoff.py, checkpoint.py, worktree.py, coverage.py, review.py, impl_check.py, xsearch.py,
-              review-diff.sh, lessons.sh, capture.sh, fdd_lint.py, fdd_view.py, prose_lint.py, md2docx.sh,
-              md2pdf.sh, md2confluence.sh; doctables.py (stage-document tables, imported by the others);
+              review-diff.sh, lessons.sh, capture.sh, fdd_lint.py, fdd_view.py, prose_lint.py, ut_workbook.py,
+              md2docx.sh, md2pdf.sh, md2confluence.sh; doctables.py (stage-document tables, imported by the
+              others), ut_data.py (captured rows and the Check) and xlsx.py (a stdlib-only XLSX writer),
+              both imported by ut_workbook.py;
               check_knowledge.py (maintenance)
 tests/        unittest suite for ses, the scripts, and the skill wiring (run by CI and the pre-commit hook)
 examples/     sample work repo + a worked example task workspace
@@ -281,3 +287,26 @@ An FDD is converted from its audience view (`ses fdd-view work/PROJ-123/fdd.md -
 Mermaid diagrams are rendered to images with mermaid-cli (`mmdc`) when it is installed; without it, every conversion warns how many diagrams will reach the reader as source code. For Confluence, attach the images from `deliverables/<name>-diagrams/` to the page.
 
 The scripts require [pandoc](https://pandoc.org) (and a PDF engine — weasyprint, wkhtmltopdf, tectonic or LaTeX — for PDF); they print install instructions if one is missing.
+
+## Unit-test results workbook
+
+`/deliver` (and `/change-request` §5) also hands over one consolidated spreadsheet of the test results:
+
+```sh
+ses ut-workbook work/PROJ-123 --check   # at /implement §3, before the test-plan commit: is every test case's record complete?
+ses ut-workbook work/PROJ-123           # → deliverables/PROJ-123-unit-test-results.xlsx
+ses ut-workbook work/PROJ-123 --ods     # … and .ods beside it, through LibreOffice
+```
+
+The **Summary** sheet has one row per test case (each T# of the test plan; each A# in a change request): test data, expected result, actual result, data check, outcome, mode and where the expected value came from. Each row links to its own **TC<n>** sheet, which holds the test's record and **its data in cells**. Each table the test captured is laid out as rows and columns: a CSV, or SQL*Plus/SQLcl output in its default layout. The fields its **Check** names are highlighted and each checked value is coloured: green as expected, red differs, amber to check by eye. A Differences table opens the sheet. Only what cells cannot hold, a binary file or rows past the first 2000, is a link to the file. The **Evidence** sheet holds the hashes.
+
+The Check sits in the evidence file's **Test cases** row, next to the test data and expected and actual results:
+
+```
+| Test | … | Check               | Captured                                                                                            |
+| T2   | … | UNIT_COST, STATUS=P | Cost rows: evidence/raw/tests-…-T2-actual.log, Expected costs: evidence/raw/tests-…-T2-expected.csv |
+```
+
+`STATUS=P` means every row must hold P. `UNIT_COST` is compared with the expected table, a fixture matched to the actual rows on its other columns (here ITEM and LOC); without an expected table, the field is highlighted to check by eye. Numbers compare as numbers, so Oracle's `.5` equals `0.5`.
+
+Nothing in it is typed in. Each test's data is captured when it runs (`ses capture`, so redaction still applies) and described in the Test cases row. The workbook renders that, with the outcomes `ses coverage` reads. A test that is UNRECORDED, PARTIAL or NO-ORACLE for the gate shows the same in the workbook. Captured data that contradicts a recorded PASS is a gap `--check` reports before the commit. The same evidence always rebuilds the same bytes, so the hash proves the copy a reviewer holds. The writer is plain Python (no openpyxl, no Excel); ODS goes through LibreOffice because a second native writer would only duplicate this one.

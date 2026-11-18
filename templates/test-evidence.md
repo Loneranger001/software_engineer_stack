@@ -47,6 +47,31 @@ Raw logs: `evidence/raw/{name}.log` (full output, opened only to diagnose)
 - Outcome: PASS | FAIL | PARTIAL | NOT-RUN
 - Follow-up (if not PASS): {…}
 
+## Test cases
+
+<!-- One row per T# (or A#) in the Result table — what the unit-test
+     workbook shows for it (`ses ut-workbook`: its Summary row and TC sheet).
+     Write it now: once a commit hashes this file, a gap can only be filled by
+     a re-run under a new name. `ses ut-workbook <ws> --check` lists gaps.
+     Test data: the input — seed or fixture file, rows, parameters.
+     Expected result / Actual result: concrete values, never just "pass";
+     the expected value as its `Expected from` source gives it.
+     Check: the fields of the captured rows to check, separated by , or ; —
+     COL=VALUE (every row must hold it), or COL alone (compared with the
+     expected table if one is captured, else highlighted to check by eye).
+     The TC sheet colours each checked value green or red.
+     Captured: the evidence/ files holding the data the test read and
+     produced, each optionally labelled — `<label>: evidence/raw/<file>`.
+     Rows go in as a CSV (`ses capture … --ext csv`) or as SQL*Plus/SQLcl
+     output with its headings; either is laid out in cells. A label saying
+     "expected" marks the expected table (the complete expected result, e.g.
+     a repo fixture captured through `cat`); one saying before, input, seed,
+     setup or fixture marks the input, shown but not checked. A step's own
+     check with no T# has no row here. -->
+| Test | Description | Test data | Expected result | Actual result | Check | Captured |
+|---|---|---|---|---|---|---|
+| {T1 \| A1} | {a 0.01 difference is flagged} | {fixture test/seed_bal.sql: 3 accounts} | {ACC-2 FLAGGED, diff 0.01; others OK} | {ACC-2 FLAGGED, diff .01} | {STATUS, DIFF} | {Accounts before the run: evidence/raw/tests-2026-11-16-T1-data.csv, Reconciliation rows: evidence/raw/tests-2026-11-16-T1-actual.csv, Expected rows: evidence/raw/tests-2026-11-16-T1-expected.csv} |
+
 ## Before / after (data changes only)
 
 | Query | Before | After |
