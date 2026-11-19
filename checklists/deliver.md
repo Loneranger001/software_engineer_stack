@@ -6,7 +6,7 @@ Run before declaring the task delivered.
 - [ ] scope-auditor ran on the final diff + artifacts, its report is kept, and `ses review require <ws> scope-auditor delivery` passes (violations resolved or user-waived in writing); how it ran was told to the user
 - [ ] Release notes produced from template, including deployment and rollback sections usable stand-alone
 - [ ] `ses prose-lint` passes on the release notes — written to `<root>/standards/writing.md`, about the system rather than the task
-- [ ] `ses prose-lint` passes on fdd.md and tdd.md after the consistency sweep; an FDD goes out as its `ses fdd-view` rendering, never fdd.md itself
+- [ ] `ses prose-lint` passes on fdd.md and tdd.md after the consistency sweep; fdd.md goes out as written, plus only the views the user asked for (`fdd-views`)
 - [ ] `ses coverage` exits 0: every TDD §7 row (A#, TS#, G#) → T# → recorded PASS, or waived by the user row by row (`waiver.<ID>`) — waived rows named in the release notes as not verified
 - [ ] All task documents are internally consistent (TDD ↔ impl-doc ↔ actual diff; stale sections updated)
 - [ ] Requested output formats produced (docx/pdf/Confluence) and files open/render correctly

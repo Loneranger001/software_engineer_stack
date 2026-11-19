@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""fdd_view.py — render a functional design for its audience before conversion.
+"""fdd_view.py — render an optional cut-down view of a functional design.
 
-fdd.md is the working document: it carries template guidance, the handoff
-summary, and the developer-facing parts the fact-checker needs (component
-input tables, Appendix A source references). Stakeholders get a view of it,
-written next to it and converted with md2docx.sh / md2pdf.sh /
-md2confluence.sh, so the working document itself never loses those parts.
+fdd.md is the one version of an FDD: people read, approve and receive it,
+converted as written with its template guidance, handoff summary, and
+developer-facing parts (component input tables, Appendix A source
+references). /func-design renders a view only when the user asks for one
+(the task's `fdd-views` field). A view is written next to fdd.md, converted
+with md2docx.sh / md2pdf.sh / md2confluence.sh, and never edited — fix
+fdd.md and render it again.
 
 Usage:
     fdd_view.py <fdd.md> [--audience business|technical] [-o <out.md>]

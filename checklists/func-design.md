@@ -8,7 +8,7 @@ Run before presenting the FDD for approval.
 - [ ] Attached forward mode: every in-scope S# is the source of at least one FR#, every A# appears in §14, and no FR# lacks an S# (nothing designed outside the contract)
 - [ ] Change mode: base and head SHAs pinned in the workspace; every changed file in the review-diff plan is reflected in the FDD; new/changed steps marked; departures from the contract/TDD raised as Q#, not smoothed over
 - [ ] Forward and change modes: "Before and after this change" filled with concrete rows a stakeholder can picture
-- [ ] Developer-only detail (component Inputs tables, Appendix A) sits inside `technical:start/end` markers, and the rendered audience view reads cleanly without it
+- [ ] Developer-only detail (component Inputs tables, Appendix A) sits inside `technical:start/end` markers, and the text outside them reads cleanly without it
 - [ ] Each business rule stated once in §6 and referenced by ID; multi-condition rules have a decision table
 - [ ] Every failure path found in the code (as-built) or required (forward) has an EX# with who is informed and the business recovery
 - [ ] Every existing table, column, and code value named was confirmed against the schema; proposed ones are marked `new` and collide with no existing name
@@ -23,5 +23,5 @@ Run before presenting the FDD for approval.
 - [ ] Handoff summary written last and `ses handoff check` passes
 - [ ] Written to `<root>/standards/writing.md` throughout: §1 says what changes and what to decide; plain words and short sentences; about the system, never about how the document was made; no coined noun stacks or slashes; IDs in brackets or columns, never in place of the words
 - [ ] `ses prose-lint` passes on fdd.md — each finding fixed by rewriting the sentence, not by dodging the pattern
-- [ ] Stakeholders get the `ses fdd-view` rendering for the recorded audience, never `fdd.md` itself
+- [ ] fdd.md is the only version presented and delivered — converted as written; a `ses fdd-view` view only when the user asked for one (recorded in `fdd-views`)
 - [ ] Approval recorded only after the user's explicit approval (`fdd` field when attached, `approval=approved` when standalone), with the date in the FDD header

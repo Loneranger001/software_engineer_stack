@@ -1,7 +1,7 @@
 ---
 name: func-design
-description: Produce a functional design document (FDD) - what the system does, when, and under which business rules, with each component's logic as numbered plain-language steps and data named at table/column level, but no code, SQL, pseudocode, or DDL. Works forward (a proposed change, from an approved scope contract or a brief), as-built (existing functionality), or for a change already implemented (before vs after, from the delivered diff); fact-checked against the code, linted for code-level content and plain English, user-approved, and rendered for a business or technical audience. Use when a functional design, functional specification, FDD, or business-readable description of a package, job, interface, or change is needed - including after the change was built - to discuss with non-technical stakeholders.
-argument-hint: "<task-id> | brief <path> | as-built <component> | change <repo> <base>..<head>   [audience=business|technical]"
+description: Produce a functional design document (FDD) - what the system does, when, and under which business rules, with each component's logic as numbered plain-language steps and data named at table/column level, but no code, SQL, pseudocode, or DDL. Works forward (a proposed change, from an approved scope contract or a brief), as-built (existing functionality), or for a change already implemented (before vs after, from the delivered diff); fact-checked against the code, linted for code-level content and plain English, user-approved, and delivered as that one document, converted as written (a cut-down business or technical view only when asked for). Use when a functional design, functional specification, FDD, or business-readable description of a package, job, interface, or change is needed - including after the change was built - to discuss with non-technical stakeholders.
+argument-hint: "<task-id> | brief <path> | as-built <component> | change <repo> <base>..<head>   [view=business|technical]"
 ---
 
 # /func-design — functional design document
@@ -13,12 +13,14 @@ argument-hint: "<task-id> | brief <path> | as-built <component> | change <repo> 
 > every `ses` below. If neither runs, stop and ask the user (README →
 > Install); never guess another path.
 
-Produce `<ws>/fdd.md`, get it user-approved, and render it for its audience.
-The FDD tells stakeholders WHAT the solution does, in their language; the TDD
-says HOW. It is one document for people and agents: complete and traceable,
-and written in plain words that a person can follow (**Writing** below). It
-is optional in every lifecycle — nothing gates on it. The defining rule is
-the abstraction level — see **Abstraction rules** below.
+Produce `<ws>/fdd.md` and get it user-approved. It is the only version of
+the FDD: people read, approve and receive it, converted as written, with its
+handoff summary and template guidance left in place. The FDD tells
+stakeholders WHAT the solution does, in their language; the TDD says HOW. It
+is one document for people and agents: complete and traceable, and written in
+plain words that a person can follow (**Writing** below). It is optional
+in every lifecycle — nothing gates on it. The defining rule is the
+abstraction level — see **Abstraction rules** below.
 
 ## Invocation
 
@@ -29,8 +31,10 @@ the abstraction level — see **Abstraction rules** below.
 | `/func-design as-built ORDER_EDI_SQL` | as-built — existing functionality | standalone |
 | `/func-design change repo-a main..feature/PROJ-123` | change — what a built change did | standalone |
 
-Append `audience=technical` to keep developer detail in the rendered
-document; the default `audience=business` is for non-technical stakeholders.
+No other version is produced unless the user asks for one. Append
+`view=business` or `view=technical` (or `view=business,technical`) to also
+get a cut-down view rendered from fdd.md at delivery (§4 step 3); the user
+can ask for one later too. Without it, no view is made.
 With no arguments, show this table and ask which case applies.
 
 One template for all modes (`<root>/templates/fdd.md`):
@@ -83,8 +87,9 @@ One template for all modes (`<root>/templates/fdd.md`):
      `git -C <repo> rev-parse <base> <head>` → `ses status field <ws> change-base <sha>`
      and `ses status field <ws> change-head <sha>` (one pair per repo for a
      multi-repo change: `change-base.<repo>`, `change-head.<repo>`).
-3. Audience: from the invocation, else `business`. Record it:
-   `ses status field <ws> fdd-audience <business|technical>`. Agree the scope
+3. Views: only when the invocation or the user asks for one, record it:
+   `ses status field <ws> fdd-views "<business|technical|business,technical>"`.
+   Never record or render a view by default. Agree the scope
    in two sentences — which function, change, or components; which aspects;
    who will read it — and record it (`ses status field <ws> doc-scope "..."`).
    Attached forward mode inherits the contract's scope instead.
@@ -135,9 +140,10 @@ As-built and change modes read the code to learn the logic; translating it to
 this level is the job — summarise, don't transcribe. A 400-line procedure is
 5–10 steps.
 
-Developer-only detail that the fact-checker needs but stakeholders don't —
-component input tables, Appendix A — sits between `<!-- technical:start -->`
-and `<!-- technical:end -->`; the business view drops it (§4).
+Developer-only detail — component input tables, Appendix A — sits between
+`<!-- technical:start -->` and `<!-- technical:end -->`. fdd.md keeps it and
+is delivered with it; the markers matter only when a business view is
+requested, which drops it (§4 step 3).
 
 `ses fdd-lint <ws>/fdd.md` flags code-level content
 mechanically (non-mermaid code blocks, SQL/PL/SQL/shell/Python constructs,
@@ -223,11 +229,12 @@ common forms:
    `table.column` — every rule stated once in §6, every failure path once in
    §9 with its business recovery. Keep each component's Inputs table, and
    Appendix A, inside the technical markers.
-5. Write for the recorded audience, per **Writing**: complete and exact, in
-   plain words and short sentences. §1 comes first and carries the point:
-   a reader who stops there knows what changes and what to decide. For
-   `business`, a sentence that needs the technical regions to make sense is
-   rewritten. No section is dropped: "None" is stated, with the reason where
+5. Write for the readers in the header's Audience line, per **Writing**:
+   complete and exact, in plain words and short sentences. §1 comes first
+   and carries the point: a reader who stops there knows what changes and
+   what to decide. A sentence outside the technical regions must read
+   without them, so a business view still makes sense if one is requested.
+   No section is dropped: "None" is stated, with the reason where
    it is not obvious.
 6. Run `ses fdd-lint [--allow <kinds>] <ws>/fdd.md`
    (kinds from `ses status get <ws> fdd-lint-allow`, if recorded) and fix
@@ -256,8 +263,8 @@ common forms:
 3. Write the **handoff summary** block now — after the fact-check fixes —
    then run `ses handoff check <ws>/fdd.md`, `ses fdd-lint` and
    `ses prose-lint` again; all must pass.
-4. Render the audience view (§4 step 1) and present the FDD from it, then
-   the summary: requirements and traceability, before vs after, business
+4. Present fdd.md itself — no view is rendered for approval — then the
+   summary: requirements and traceability, before vs after, business
    rules, exceptions, open Q# items, how the fact-check ran (name a
    self-pass), plus open ASSUMPTIONS.md entries for
    ratification (decision-protocol §4). Approval with a Q# still open needs
@@ -285,22 +292,25 @@ common forms:
 
 ## 4. Deliver
 
-1. Render the view for the recorded audience:
-   `ses fdd-view <ws>/fdd.md --audience <fdd-audience>` (from
-   `ses status get <ws> fdd-audience`) → `<ws>/fdd.<audience>.md`. Both
-   audiences drop template guidance and the handoff summary; `business` also
-   drops the technical regions and Appendix A, which `technical` keeps.
-   Never hand stakeholders `fdd.md` itself.
+1. fdd.md is the deliverable, as written: its handoff summary, template
+   guidance and technical regions stay in it. Nothing else is produced
+   unless the user asked for a view (step 3).
 2. Ask which output formats are needed unless `ses status get <ws> formats`
    answers it, and record them (`ses status field <ws> formats "<docx,pdf,...>"`).
-   Convert the view (not fdd.md) via
-   `ses md2docx | ses md2pdf | ses md2confluence`
-   into `<ws>/deliverables/`; verify each file is non-empty. Attached
+   Convert fdd.md via `ses md2docx | ses md2pdf | ses md2confluence` into
+   `<ws>/deliverables/`; verify each file is non-empty. Template guidance is
+   HTML comments, which the converted documents do not show. Attached
    forward mode can leave conversion to the task's /deliver package — it
-   converts the same view.
-3. Present the FDD and where it is; list deferred Q# items so the user can
+   converts fdd.md the same way.
+3. Only for each view `ses status get <ws> fdd-views` names — none unless
+   the user asked: `ses fdd-view <ws>/fdd.md --audience <view>` →
+   `<ws>/fdd.<view>.md`, converted to the same formats. Both views drop
+   template guidance and the handoff summary; `business` also drops the
+   technical regions, Appendix A and the header lines that name workspace
+   files. A view is never edited: fix fdd.md and render it again.
+4. Present the FDD and where it is; list deferred Q# items so the user can
    close them.
-4. Standalone: `ses status set <ws> deliver=done`.
+5. Standalone: `ses status set <ws> deliver=done`.
 
 ## Changes after approval
 
