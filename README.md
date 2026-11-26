@@ -28,7 +28,7 @@ flowchart LR
 |---|---|---|
 | `/intake <brief>` | Parse a solution design / requirement brief into a requirements summary and a **scope contract** | User approves scope contract |
 | `/research` | Investigate the codebase and external sources; every finding carries a source reference | Checklist |
-| `/func-design <task-id> \| brief <path> \| as-built <component> \| change <repo> <base>..<head>` | Optional functional design document for stakeholders: what the system does, when, and under which business rules — component logic as plain-language steps, tables/columns only where they carry meaning, no code (linted by `fdd_lint.py`). Forward (a proposed change; `/tech-design` then realises it), as-built (existing functionality), or change (a change already built, before vs after from its diff). Written in plain English (`standards/writing.md`, checked by `prose_lint.py`) and rendered for `audience=business` (default) or `technical` by `fdd_view.py` | User approves FDD |
+| `/func-design <task-id> \| brief <path> \| as-built <component> \| change <repo> <base>..<head>` | Optional functional design document for stakeholders: what the system does, when, and under which business rules — component logic as plain-language steps, tables/columns only where they carry meaning, no code (linted by `fdd_lint.py`). Forward (a proposed change; `/tech-design` then realises it), as-built (existing functionality), or change (a change already built, before vs after from its diff). Written in plain English (`standards/writing.md`, checked by `prose_lint.py`) and delivered as that one document, converted as written; a cut-down business or technical view (`fdd_view.py`) only when asked for with `view=` | User approves FDD |
 | `/tech-design` | Produce a technical design document traceable to requirements and research, written in plain English | User approves TDD |
 | `/grill` | Adversarial interrogation of the TDD: concrete edge-case scenarios per category (data, lifecycle, interface, temporal, environment, security/ops, deploy/rollback); gaps fixed from evidence, the rest grilled out of you until answered or explicitly deferred | Zero open questions |
 | `/impl-plan` | Produce a terse, agent-only implementation document: ordered steps citing the TDD, test plan, rollback plan | User approves impl doc |
@@ -91,7 +91,7 @@ work/PROJ-123/                 (never committed — see "Keeping work/ out of gi
 ├── brief.md                   # the requirement brief as received
 ├── scope-contract.md          # /intake — approved scope, the single source of scope truth
 ├── research-notes.md          # /research
-├── fdd.md                     # /func-design (optional), plus fdd.<audience>.md views
+├── fdd.md                     # /func-design (optional); fdd.<view>.md only when a view is asked for
 ├── tdd.md                     # /tech-design
 ├── grill-log.md               # /grill — every scenario confronted and its verdict
 ├── impl-doc.md                # /impl-plan
@@ -149,7 +149,7 @@ States are `pending | in-progress | done | approved | waived` (a waiver carries 
 
 **Handoff summaries — the context management.** The scope contract, research notes, FDD (when there is one) and TDD each open with a bounded summary (≤ 40 lines, one line per ID) between `<!-- handoff:start -->` / `<!-- handoff:end -->`, written last at that stage's gate. Later stages read the summary (`ses handoff show <doc>`) and open full sections only when they need the detail — except where judging the whole document is the job: `/tech-design` on the contract, `/grill` and `/impl-plan` on the TDD, the scope auditor on everything. `ses handoff check <ws>` fails a summary that is missing an ID the body defines (S#, N#, A#, Q#, FR#, …), runs over length, or names an older contract version than `scope-contract.md`. This works the same in every harness and survives any harness's compaction, because it is on disk. The impl doc has no summary: it is written terse, for agents only — tables and fragments citing TDD sections — and `/implement` reads it whole.
 
-**One design document, written for people.** `fdd.md` and `tdd.md` are what people approve and what later stages work from, so there is no separate review copy to keep in step. They stay complete and traceable — IDs, `table.column` names, source references, the handoff summary — and every sentence follows the plain-English standard in `standards/writing.md` (the ASD-STE100 writing rules, without its dictionary): plain words, one idea per sentence, active voice, the point first, about the system rather than how the document was made. `ses prose-lint` checks the mechanical part at each design gate, after `/grill` edits the TDD, and at `/deliver`; the handoff summary and source appendices are exempt.
+**One design document, written for people.** `fdd.md` and `tdd.md` are what people approve and what later stages work from, so there is no separate review copy to keep in step. They stay complete and traceable — IDs, `table.column` names, source references, the handoff summary — and every sentence follows the plain-English standard in `standards/writing.md` (the ASD-STE100 writing rules, without its dictionary): plain words, one idea per sentence, active voice, the point first, about the system rather than how the document was made. `ses prose-lint` checks the mechanical part at each design gate, after `/grill` edits the TDD, and at `/deliver`; the handoff summary and source appendices are exempt. They are also what people receive: deliverables are converted from `fdd.md` and `tdd.md` as written, and a cut-down FDD view is made only on request.
 
 ### Keeping `work/` out of git
 
@@ -282,7 +282,7 @@ ses md2pdf  work/PROJ-123/tdd.md          # → deliverables/tdd.pdf
 ses md2confluence work/PROJ-123/tdd.md    # → deliverables/tdd.confluence.txt
 ```
 
-An FDD is converted from its audience view (`ses fdd-view work/PROJ-123/fdd.md --audience business`), never from `fdd.md` directly; the business view also drops the header lines that name workspace files.
+An FDD is converted as written, like the TDD. A cut-down view is rendered only when the user asks for one: `ses fdd-view work/PROJ-123/fdd.md --audience business` drops the handoff summary, the technical regions, Appendix A and the header lines that name workspace files; `--audience technical` drops only the handoff summary and template guidance.
 
 Mermaid diagrams are rendered to images with mermaid-cli (`mmdc`) when it is installed; without it, every conversion warns how many diagrams will reach the reader as source code. For Confluence, attach the images from `deliverables/<name>-diagrams/` to the page.
 
