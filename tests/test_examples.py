@@ -27,6 +27,16 @@ class SampleTaskTest(unittest.TestCase):
         r = run(SCRIPTS / "handoff.py", "check", SAMPLE)
         self.assertEqual(r.returncode, 0, r.stderr)
 
+    def test_sample_fdd_is_in_the_current_format(self):
+        # the worked FDD example: functional level, plain English, run told in order, summary complete
+        fdd = SAMPLE / "fdd.md"
+        for script in ("fdd_lint.py", "prose_lint.py"):
+            with self.subTest(script=script):
+                r = run(SCRIPTS / script, fdd)
+                self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        r = run(SCRIPTS / "handoff.py", "check", fdd)  # by name: a draft FDD is checked too
+        self.assertEqual(r.returncode, 0, r.stderr)
+
 
 class UnderstandSplitTest(unittest.TestCase):
     def test_skill_points_at_explain_md_and_it_has_the_moved_stages(self):

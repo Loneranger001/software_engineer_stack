@@ -13,8 +13,10 @@ Three things live here:
   questions rather than assume).
 - **sample-task/** — a snapshot of a task workspace mid-pipeline (intake and
   research done, tech-design next), showing what the artifacts look like
-  filled in: STATUS.md, an approved scope contract, and PARKED.md with a
-  real-shaped entry. Its paths (`/home/you/workspace/…`) are illustrative, so
+  filled in: STATUS.md, an approved scope contract, PARKED.md with a
+  real-shaped entry, and `fdd.md` — a worked functional design in the
+  current format (why and what for each change, the sequence of events,
+  then each component in run order), as a draft with one open question. Its paths (`/home/you/workspace/…`) are illustrative, so
   check it with `ses status validate examples/sample-task
   --structure-only` and `ses handoff check examples/sample-task`; the
   test suite does both, keeping the example in the current format.

@@ -146,7 +146,7 @@ attached mode. "None" stated explicitly.}
      it to the table. Decisions are diamonds; a failure path ends at its EX#.
      For messages passed between systems, a sequenceDiagram reads better. -->
 ```mermaid
-flowchart LR
+flowchart TD
     subgraph BUYER [Buyer]
         E1([E1 Approve order])
         E5[E5 Deal with skipped orders]
