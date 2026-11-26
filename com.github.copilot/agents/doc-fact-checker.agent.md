@@ -45,7 +45,7 @@ inspection only.
    requires one (properly labelled `INFERRED`/`⚠ UNVERIFIED` items are exempt
    but listed for visibility). A stakeholder decision cited as
    `(decision: <role>, <date>)` is sourced: check that the workspace records
-   that decision (scope contract Q-table, grill log, FDD §13) with the same
+   that decision (scope contract Q-table, grill log, FDD §12) with the same
    content, and list it under DECISION; a decision the workspace does not
    record, or records differently, is WRONG.
 4. Check business-term usage against the workspace glossary,
@@ -71,7 +71,13 @@ inspection only.
    FDD — a business-visible change the FDD omits is an OMISSION. Every
    existing table, column, and code value it
    names must exist with that meaning; ones marked `new` must not collide
-   with an existing name. Proposed behaviour is checked for traceability
+   with an existing name. The §3 sequence of events is a claim about
+   existing timing and order too: each trigger, schedule, and "after …"
+   must match the code (scheduler entries, job chains, callers), and its
+   diagram must show the same events. Each reason in §1 ("Why") needs a
+   source — the brief, the contract's objective, a recorded decision, the
+   ticket or commit message of the change, or the user; a reason with none
+   is UNSOURCED. Proposed behaviour is checked for traceability
    (each FR# cites its S# or brief section), not against code. Functional
    wording is not itself a finding — a step that summarises the code
    faithfully passes; one that drops a condition a business reader relies on

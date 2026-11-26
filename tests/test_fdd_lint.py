@@ -31,6 +31,45 @@ flowchart TD
 """
 
 
+ORDERED = """# FDD — T-1
+
+## 1. Why this change and what it does
+
+### 1.2 What changes and why
+
+#### C1. Orders reach the vendor each night
+
+- Why: a vendor can start work sooner.
+
+## 3. Sequence of events
+
+| # | When | What happens | Who or what does it | Detail |
+|---|---|---|---|---|
+| E1 | 02:00 | (changed, C1) The run sends the orders. | ORDER_EDI job | §4.1 steps 1–2 |
+| E2 | after E1 | The report lists each skipped order. | Exception report | §4.2 |
+
+```mermaid
+flowchart LR
+    E1[E1 Send orders, see §4.2] --> E2
+```
+
+## 4. Step by step
+
+### 4.1 SEND — changed
+
+1. Send the approved orders.
+
+### 4.2 REPORT
+
+1. List the skipped orders.
+
+<!-- handoff:start -->
+## Appendix B. Handoff summary
+- Changes: C1 nightly
+<!-- handoff:end -->
+"""
+
+
 def lint(text, *opts):
     with tempfile.TemporaryDirectory() as d:
         f = Path(d) / "fdd.md"
@@ -93,6 +132,37 @@ class FddLintTest(unittest.TestCase):
         self.assertNotIn("[DATATYPE]", r.stdout)
         self.assertIn("[PLSQL]", r.stdout)
         self.assertEqual(lint(text, "--allow=datatype,plsql").returncode, 0)
+
+    def test_run_told_in_order_passes(self):
+        self.assertEqual(lint(ORDERED).returncode, 0, lint(ORDERED).stdout)
+
+    def test_steps_without_a_sequence_of_events(self):
+        r = lint(ORDERED.replace("## 3. Sequence of events", "## 3. Overview"))
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("[SEQUENCE] no 'Sequence of events' section", r.stdout)
+
+    def test_component_no_event_names(self):
+        r = lint(ORDERED.replace("| §4.2 |", "| §9 |"))
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("[SEQUENCE] §4.2 REPORT: no event in the sequence of events names it", r.stdout)
+        self.assertNotIn("§4.1 SEND", r.stdout)
+
+    def test_components_out_of_run_order(self):
+        swapped = ORDERED.replace("| §4.1 steps 1–2 |", "| §4.X |").replace("| §4.2 |", "| §4.1 |") \
+                         .replace("| §4.X |", "| §4.2 |")
+        r = lint(swapped)
+        self.assertIn("[SEQUENCE] §4.2 REPORT: runs before §4.1 in the sequence of events", r.stdout)
+
+    def test_change_not_marked_in_the_run(self):
+        r = lint(ORDERED.replace("(changed, C1)", "(changed)"))
+        self.assertIn("[SEQUENCE] C1: no event or step is marked with it", r.stdout)
+        # the handoff summary naming C1 does not count as marking it in the run
+        self.assertEqual(lint(ORDERED.replace("(changed, C1)", "(changed)"), "--allow", "SEQUENCE").returncode, 0)
+
+    def test_sequence_check_needs_the_step_by_step_section(self):
+        # an FDD laid out before 0.20.0 ("Component functional design") is not held to it
+        self.assertEqual(lint(ORDERED.replace("Step by step", "Component functional design")
+                              .replace("## 3. Sequence of events", "## 3. Actors")).returncode, 0)
 
     def test_usage_errors(self):
         self.assertEqual(subprocess.run(LINT, capture_output=True).returncode, 2)

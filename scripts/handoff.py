@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
-"""handoff.py — read and check the handoff summary at the top of a stage document.
+"""handoff.py — read and check the handoff summary of a stage document.
 
 Each stage document (scope-contract.md, research-notes.md, fdd.md, tdd.md)
-opens with a bounded summary between these markers:
+carries a bounded summary between these markers — at the top, except in
+fdd.md, which people read first, so its summary is the last appendix
+("## Appendix B. Handoff summary"). This script finds it by its markers,
+wherever it sits:
 
     <!-- handoff:start -->
     ## Handoff summary

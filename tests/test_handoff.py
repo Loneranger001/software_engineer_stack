@@ -145,6 +145,23 @@ class HandoffTest(unittest.TestCase):
         self.assertEqual(r.returncode, 1)
         self.assertIn("fdd.md: summary omits ID(s) the body defines or traces: FR2", r.stderr)
 
+    def test_fdd_summary_at_the_end_is_read_and_checked(self):
+        # the FDD keeps its summary as its last appendix, so people start with §1
+        self.write("scope-contract.md", CONTRACT.format(version=1))
+        body = ("# FDD\n\n## 2. Scope\n\n| # | Requirement | Source |\n|---|---|---|\n"
+                "| FR1 | x | S1 |\n| FR2 | y | S2 |\n\n")
+        summary = ("<!-- handoff:start -->\n## Appendix B. Handoff summary\n- Contract version: 1\n"
+                   "- Requirements: FR1 x{more}\n<!-- handoff:end -->\n")
+        self.write("fdd.md", body + summary.format(more=""))
+        r = run("check", self.ws / "fdd.md")
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("summary omits ID(s) the body defines or traces: FR2", r.stderr)
+        self.write("fdd.md", body + summary.format(more="; FR2 y"))
+        self.assertEqual(run("check", self.ws / "fdd.md").returncode, 0)
+        shown = run("show", self.ws / "fdd.md").stdout
+        self.assertIn("FR2 y", shown)
+        self.assertNotIn("| FR1 |", shown)
+
     def test_draft_fdd_is_skipped_in_a_full_workspace_until_approved(self):
         self.write("scope-contract.md", CONTRACT.format(version=1))
         self.write("fdd.md", "# FDD draft, no summary yet\n")

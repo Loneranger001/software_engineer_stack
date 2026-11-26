@@ -40,9 +40,10 @@ packaging is parked in `parked/`). Full docs: README.md.
 | `/verify-code` | Run PL/SQL, SQL, KSH, or Python against live dev environments. | `skills/verify-code/SKILL.md` |
 
 4. Task state lives in `work/<task-id>/`: the stage documents (the scope
-   contract, research notes, FDD and TDD each open with a handoff summary;
-   the terse, agent-only impl doc is read whole), `scope-contract.md` (scope truth),
-   `ASSUMPTIONS.md`, `PARKED.md`, `evidence/`, and a minimal `STATUS.md`
+   contract, research notes and TDD each open with a handoff summary, the
+   FDD ends with one; the terse, agent-only impl doc is read whole),
+   `scope-contract.md` (scope truth), `ASSUMPTIONS.md`, `PARKED.md`,
+   `evidence/`, and a minimal `STATUS.md`
    whose gates are checked and set only with `ses status` (`require` exits
    non-zero when a gate is not met). The one domain glossary — only terms whose
    meaning holds in every repo — sits beside them as `work/domain-glossary.md`. Each

@@ -22,6 +22,15 @@ Findings, one per line as `<file>:<line>: [KIND] <match> — <fix>`:
     PYTHON      Python syntax (def/class/import lines, self., try:/except …:)
     DATATYPE    column data types or precision (VARCHAR2(30), NUMBER(12,4), CLOB,
                 a "Data type" table column) — state the business limit in words
+    SEQUENCE    the run is not told in order. Checked only in a document with
+                the template's "Step by step" section (an FDD laid out before
+                0.20.0 has none and is skipped):
+                - it has no "Sequence of events" section;
+                - a numbered "Step by step" subsection (§4.n) that no
+                  sequence-of-events text names, or that comes before a
+                  subsection that the sequence of events names earlier;
+                - a "What changes and why" block (C#) that no event and no
+                  step is marked with, so the reader cannot find it in the run.
 
 --allow skips the named kinds — only for content a format the repo's rules or
 the user prescribe requires (recorded in the workspace, see the skill).
@@ -45,6 +54,9 @@ FIX = {
     "SHELL": "describe what the script does and when, not its commands",
     "PYTHON": "describe what the program does, not its code",
     "DATATYPE": "state the business limit in words (\"up to 30 characters\"); types belong in the TDD",
+    "SEQUENCE": "tell the run in order: name every component in the sequence of events, order the "
+                "step-by-step sections as they first run, and mark each change where it happens "
+                "(\"(changed, C1)\")",
 }
 
 RULES: list[tuple[str, re.Pattern[str]]] = [(k, re.compile(p, f)) for k, p, f in (
@@ -121,7 +133,95 @@ def lint(text: str, allow: frozenset[str] = frozenset()) -> list[tuple[int, str,
             if hit:
                 found.append((n, kind, hit.group(0).strip()))
                 break  # one finding per line is enough to send the author back to it
-    return found
+    if "SEQUENCE" not in allow:
+        found += sequence(text)
+    return sorted(found, key=lambda f: f[0])
+
+
+HEADING = re.compile(r"^(#{2,4})\s+(.*?)\s*$")
+NUMBERED = re.compile(r"^(\d+(?:\.\d+)+)\.?\s+(.*)$")
+CHANGE_ID = re.compile(r"^(C\d+)\b")
+
+
+def prose_lines(text: str) -> list[str]:
+    """The document's lines with comments and fenced blocks (diagrams included) blanked."""
+    out, fence = [], None
+    for line in strip_comments(text).splitlines():
+        m = FENCE.match(line)
+        if fence is not None:
+            if m and m.group(1) == fence and not m.group(2):
+                fence = None
+            out.append("")
+            continue
+        if m:
+            fence = m.group(1)
+            out.append("")
+            continue
+        out.append(line)
+    return out
+
+
+def headings(lines: list[str]) -> list[tuple[int, int, str]]:
+    """(line, level, title) of every ##–#### heading."""
+    return [(n, len(h.group(1)), h.group(2)) for n, line in enumerate(lines, 1)
+            if (h := HEADING.match(line))]
+
+
+def sequence(text: str) -> list[tuple[int, str, str]]:
+    """SEQUENCE findings: the reader can follow the run from the sequence of events through
+    the step-by-step sections, in order, and find each change where it happens."""
+    lines = prose_lines(text)  # the table names each component; a diagram label does not count
+    hs = headings(lines)
+
+    def find(pattern: str) -> int | None:
+        return next((i for i, (_n, _lv, t) in enumerate(hs) if re.search(pattern, t, I)), None)
+
+    def body(i: int) -> str:
+        """Text under heading i, up to the next heading of the same or a higher level."""
+        n, level, _t = hs[i]
+        end = next((m for m, lv, _t in hs[i + 1:] if lv <= level), len(lines) + 1)
+        return "\n".join(lines[n:end - 1])
+
+    steps = find(r"\bstep by step\b")
+    if steps is None:
+        return []
+    seq = find(r"\bsequence of events\b")
+    if seq is None:
+        return [(hs[steps][0], "SEQUENCE", "no 'Sequence of events' section before the steps")]
+    seq_text = body(seq)
+    out: list[tuple[int, str, str]] = []
+
+    # numbered subsections of "Step by step", in document order
+    level = hs[steps][1]
+    comps = []
+    for n, lv, title in hs[steps + 1:]:
+        if lv <= level:
+            break
+        m = NUMBERED.match(title)
+        if lv == level + 1 and m:
+            comps.append((n, m.group(1), m.group(2)))
+    prev = None  # (position in the sequence text, number) of the last component found there
+    for n, num, title in comps:
+        hit = re.search(rf"§\s?{re.escape(num)}(?![\d])(?!\.\d)", seq_text)
+        label = f"§{num} {title[:30]}"
+        if not hit:
+            out.append((n, "SEQUENCE", f"{label}: no event in the sequence of events names it"))
+            continue
+        if prev and hit.start() < prev[0]:
+            out.append((n, "SEQUENCE", f"{label}: runs before §{prev[1]} in the sequence of events"))
+        prev = (hit.start(), num)
+
+    changes = find(r"\bwhat changes and why\b")
+    if changes is not None:
+        run_text = seq_text + "\n" + body(steps)
+        clevel = hs[changes][1]
+        for n, lv, title in hs[changes + 1:]:
+            if lv <= clevel:
+                break
+            m = CHANGE_ID.match(title)
+            if m and not re.search(rf"\b{m.group(1)}\b", run_text):
+                out.append((n, "SEQUENCE", f"{m.group(1)}: no event or step is marked with it"))
+    return out
 
 
 def main(argv: list[str]) -> int:
@@ -152,8 +252,8 @@ def main(argv: list[str]) -> int:
             print(f"{p}:{n}: [{kind}] {match[:80]} — {FIX[kind]}")
             total += 1
     if total:
-        print(f"{total} code-level finding(s) — lift each to the functional level "
-              f"(not reworded to dodge the pattern)", file=sys.stderr)
+        print(f"{total} finding(s) — lift code-level content to the functional level and tell the "
+              f"run in order (never reworded to dodge the pattern)", file=sys.stderr)
         return 1
     print(f"fdd lint ok ({len(args)} file(s){', allowed: ' + ','.join(sorted(allow)) if allow else ''})")
     return 0

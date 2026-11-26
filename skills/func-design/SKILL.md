@@ -1,6 +1,6 @@
 ---
 name: func-design
-description: Produce a functional design document (FDD) - what the system does, when, and under which business rules, with each component's logic as numbered plain-language steps and data named at table/column level, but no code, SQL, pseudocode, or DDL. Works forward (a proposed change, from an approved scope contract or a brief), as-built (existing functionality), or for a change already implemented (before vs after, from the delivered diff); fact-checked against the code, linted for code-level content and plain English, user-approved, and delivered as that one document, converted as written (a cut-down business or technical view only when asked for). Use when a functional design, functional specification, FDD, or business-readable description of a package, job, interface, or change is needed - including after the change was built - to discuss with non-technical stakeholders.
+description: Produce a functional design document (FDD) - why the change is made and what changes, then what the system does, when, and under which business rules, told in the order the run happens, with each component's logic as numbered plain-language steps and data named at table/column level, but no code, SQL, pseudocode, or DDL. Works forward (a proposed change, from an approved scope contract or a brief), as-built (existing functionality), or for a change already implemented (before vs after, from the delivered diff); fact-checked against the code, linted for code-level content and plain English, user-approved, and delivered as that one document, converted as written (a cut-down business or technical view only when asked for). Use when a functional design, functional specification, FDD, or business-readable description of a package, job, interface, or change is needed - including after the change was built - to discuss with non-technical stakeholders.
 argument-hint: "<task-id> | brief <path> | as-built <component> | change <repo> <base>..<head>   [view=business|technical]"
 ---
 
@@ -16,11 +16,13 @@ argument-hint: "<task-id> | brief <path> | as-built <component> | change <repo> 
 Produce `<ws>/fdd.md` and get it user-approved. It is the only version of
 the FDD: people read, approve and receive it, converted as written, with its
 handoff summary and template guidance left in place. The FDD tells
-stakeholders WHAT the solution does, in their language; the TDD says HOW. It
-is one document for people and agents: complete and traceable, and written in
+stakeholders WHY the change is made and WHAT the solution does, in their
+language, and in the order that it happens; the TDD says HOW. It is one
+document for people and agents: complete and traceable, and written in
 plain words that a person can follow (**Writing** below). It is optional
 in every lifecycle — nothing gates on it. The defining rule is the
-abstraction level — see **Abstraction rules** below.
+abstraction level — see **Abstraction rules** below; the layout follows the
+run — see **Structure**.
 
 ## Invocation
 
@@ -100,7 +102,8 @@ One template for all modes (`<root>/templates/fdd.md`):
    lists. If they — or the user, with a client-mandated FDD template —
    prescribe a format, map the content onto it and record the choice
    (`ses status field <ws> doc-format "..."`); the abstraction rules still
-   apply. If that format requires content the lint flags (a data-type column,
+   apply, and so does **Structure** — why first, then the run in order,
+   wherever the format allows it. If that format requires content the lint flags (a data-type column,
    say), record the kinds (`ses status field <ws> fdd-lint-allow "DATATYPE"`)
    and pass them as `--allow` — never otherwise.
 5. Unknowns follow `<root>/core/decision-protocol.md`.
@@ -151,6 +154,39 @@ data types). It is a floor, not the judgment: a finding is fixed by lifting
 the content to the functional level, never by rewording around the pattern,
 and a clean lint does not excuse a step that fails the litmus test.
 
+## Structure — the reader follows the run
+
+Reviewers lose an FDD when they cannot tell what happens when, or why it
+changes. So fdd.md tells the run in time order and keeps reference material
+after it:
+
+1. **§1 — why, and what changes.** §1.1 gives the business reason. §1.2 has
+   one block per change a stakeholder would notice (C#), in run order:
+   today, after this change, why, who notices, and where it happens. "Why"
+   also says why it works this way where a reader would expect another way.
+   §1.3 lists what the reader must decide. A reason comes from a source:
+   the brief, the contract's objective, a recorded decision, the ticket or
+   commit message that made the change, or the user. A reason that no
+   source gives is a Q#, asked of the user and never invented. As-built
+   mode: §1.1 says what the function is for and §1.2 what it does.
+2. **§3 — the sequence of events, the spine.** Every event from the trigger
+   to the last thing a person sees or does, one row each, in time order
+   (E#): when, what happens, who or what does it, and the §4 subsection
+   with the detail. Its diagram shows the same events in lanes, one per
+   actor or system, each node labelled with its E#.
+3. **§4 — step by step, in the same order.** One subsection per component,
+   in the order it first runs in §3. "Starts when" and "Hands over to" tie
+   it to its neighbours. A step says its rule and its failure in a few
+   words with the ID; §5 and §8 hold the full statement. A new or changed
+   step names its C#.
+4. **§5–§11 — reference.** Rules, data, interfaces, exceptions, reports,
+   security, operations. A reader looks things up there and never needs
+   them to follow the run. Then questions, test scenarios and sign-off.
+   Appendix B, the handoff summary for later stages, is last.
+
+`ses fdd-lint` checks the mechanical part (SEQUENCE): every §4 component is
+named in §3, §4 follows §3's order, and every C# is marked where it happens.
+
 ## Writing
 
 People read and approve fdd.md, so every sentence follows
@@ -194,8 +230,10 @@ common forms:
      contract's Change bullet in analysis.md, or its A#). A change with no
      S# or a planned S# with no change is reported to the user as a Q#.
 2. Existing behaviour, in every mode, comes from the code, not the brief or
-   folklore: entry points, callers and schedules (§3 actors), data read and
-   changed (§7), outputs and their consumers (§8), error paths (§9). Search
+   folklore: entry points, callers and schedules, and the order they run in
+   (§3 sequence of events — scheduler entries, job chains, the caller that
+   runs each component and what it waits for), data read and changed (§6),
+   outputs and their consumers (§7), error paths (§8). Search
    every repo in `<repo-set>` with
    `ses search --ws <ws> --ref mainline -- <patterns>` (counts first) and
    keep its per-repo rows in evidence — "no other consumer" needs the search
@@ -205,43 +243,50 @@ common forms:
    against the schema — DDL in the repo, or the live data dictionary where
    `$SES_DB_CONN` is reachable (read-only queries, output captured with
    `ses capture` into `evidence/`). New ones are
-   marked `new` in §7.1 and must not collide with an existing name.
-4. Build Appendix A (claim → source) as you go — it is the fact-checker's
+   marked `new` in §6.1 and must not collide with an existing name.
+4. Collect the reason for each change as you go (§1, **Structure**): the
+   brief, the contract's objective and each S#'s source, recorded
+   decisions, and in change mode the ticket or commit messages of the
+   change. A change you cannot give a sourced reason for becomes a Q#.
+5. Build Appendix A (claim → source) as you go — it is the fact-checker's
    input and the resume point. Change mode cites the head commit for "after"
    claims and the base commit for "before" claims.
-5. Standalone: `ses status set <ws> analyze=done`.
+6. Standalone: `ses status set <ws> analyze=done`.
 
 ## 2. Draft
 
 1. Copy `<root>/templates/fdd.md` → `<ws>/fdd.md`.
-2. Fill §2.1 FIRST. Every FR# must land in at least one §5 step and one §14
-   scenario; attached forward mode, every A# appears in §14 too. An FR# with
-   no natural home in §5 means the design is incomplete.
-3. §4: the business-level flow — the traced flow (as-built, change) or the
-   research call graph plus the proposed change (forward), never from
-   memory. Forward and change modes fill **Before and after this change**:
-   for stakeholders it is the most-read part of the document, so every row
-   is concrete ("orders reach the vendor the same night", not "improved
-   processing").
-4. §5: one subsection per component the function involves; unchanged ones
-   only where a reader needs them for context, marked so. Change mode marks
-   each step `(new)` or `(changed)`. Steps reference BR#, EX#, and
-   `table.column` — every rule stated once in §6, every failure path once in
-   §9 with its business recovery. Keep each component's Inputs table, and
-   Appendix A, inside the technical markers.
-5. Write for the readers in the header's Audience line, per **Writing**:
-   complete and exact, in plain words and short sentences. §1 comes first
-   and carries the point: a reader who stops there knows what changes and
-   what to decide. A sentence outside the technical regions must read
-   without them, so a business view still makes sense if one is requested.
-   No section is dropped: "None" is stated, with the reason where
-   it is not obvious.
-6. Run `ses fdd-lint [--allow <kinds>] <ws>/fdd.md`
+2. Fill §2.1 FIRST. Every FR# must land in at least one §4 step and one §13
+   scenario; attached forward mode, every A# appears in §13 too. An FR# with
+   no natural home in §4 means the design is incomplete.
+3. §3, the sequence of events, next — the spine the rest hangs on: the
+   traced flow and schedules (as-built, change) or the research call graph
+   plus the proposed change (forward), never from memory. Then its diagram,
+   with the same E# labels.
+4. §1.2 in forward and change modes: one block per change, in the order of
+   §3. Every line is concrete ("orders reach the vendor the same night",
+   not "improved processing"), and every "Why" has its source. Then §1.1,
+   the business reason, and §1.3, the decisions needed.
+5. §4: one subsection per component the function involves, in the order it
+   first runs in §3; unchanged ones only where a reader needs them for
+   context, marked so. Forward and change modes mark each new or changed
+   step `(new, C#)` or `(changed, C#)`. A step says its rule (BR#) and
+   failure (EX#) in a few words; the full statement is once in §5 or §8,
+   with its business recovery, and the words agree. Steps name
+   `table.column` where it pins the meaning. Keep each component's Inputs
+   table, and Appendix A, inside the technical markers.
+6. Write for the readers in the header's Audience line, per **Writing**:
+   complete and exact, in plain words and short sentences. A reader who
+   stops after §1 knows why, what changes, and what to decide. A sentence
+   outside the technical regions must read without them, so a business
+   view still makes sense if one is requested. No section is dropped:
+   "None" is stated, with the reason where it is not obvious.
+7. Run `ses fdd-lint [--allow <kinds>] <ws>/fdd.md`
    (kinds from `ses status get <ws> fdd-lint-allow`, if recorded) and fix
-   every finding per the abstraction rules. Run `ses prose-lint <ws>/fdd.md`
-   and fix every finding by rewriting the sentence, never by working around
-   the pattern.
-7. Standalone: `ses status set <ws> draft=done`.
+   every finding per the abstraction rules and **Structure**. Run
+   `ses prose-lint <ws>/fdd.md` and fix every finding by rewriting the
+   sentence, never by working around the pattern.
+8. Standalone: `ses status set <ws> draft=done`.
 
 ## 3. Quality gates
 
@@ -260,15 +305,15 @@ common forms:
    "Re-checks"), recorded with `--scope "§…"` — until a report says PASS;
    `ses review require <ws> doc-fact-checker fdd` must pass. Standalone:
    `ses status set <ws> fact-check=done`.
-3. Write the **handoff summary** block now — after the fact-check fixes —
+3. Write the **handoff summary** block (Appendix B, at the end) now — after the fact-check fixes —
    then run `ses handoff check <ws>/fdd.md`, `ses fdd-lint` and
    `ses prose-lint` again; all must pass.
 4. Present fdd.md itself — no view is rendered for approval — then the
-   summary: requirements and traceability, before vs after, business
+   summary: what changes and why, requirements and traceability, business
    rules, exceptions, open Q# items, how the fact-check ran (name a
    self-pass), plus open ASSUMPTIONS.md entries for
    ratification (decision-protocol §4). Approval with a Q# still open needs
-   the user to defer it explicitly, recorded in its §13 status. Iterate until
+   the user to defer it explicitly, recorded in its §12 status. Iterate until
    approved — each revision updates the summary in the same edit and
    re-runs the handoff check and both lints. Revisions are not fact-checked
    one at a time: when you present them, name the sections not yet
@@ -323,7 +368,8 @@ changed (`ses review changed`, `<root>/core/reviewers.md` "Re-checks"), after
 its last edit, not one per edit. `ses review require <ws> doc-fact-checker fdd`
 must pass before the re-approval is recorded. A scope-contract change
 reaches the FDD through its S# → FR# traceability: amend and re-check only
-the requirements, rules and steps of the added or changed S# items. Re-approval is recorded in the header
+the requirements, rules and steps of the added or changed S# items, with
+their §1.2 blocks and §3 events. Re-approval is recorded in the header
 and in STATUS: `ses status field <ws> fdd "approved <date> by <who> (amended)"`
 attached, `ses status set <ws> approval=approved --note "amended"` standalone. Attached forward mode: when /tech-design, /grill, or
 /implement finds the FDD wrong or incomplete, the FDD is amended and
@@ -332,6 +378,7 @@ the code changes after approval, re-pin `change-head` and re-run from §1.
 
 ## Fault tolerance
 
-Write incrementally. On resume, diff §2.1 against §5 and §14 to find FR#
-without a home, and Appendix A against §5 to find unsourced steps; standalone
+Write incrementally. On resume, diff §2.1 against §4 and §13 to find FR#
+without a home, Appendix A against §4 to find unsourced steps, and run
+`ses fdd-lint` for components or changes missing from §3; standalone
 stage state comes from `ses status show <ws>`.

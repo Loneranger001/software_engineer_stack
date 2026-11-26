@@ -93,6 +93,11 @@ a workspace that nobody hands over.
   changes and why, a KB article with the short answer. A reader who stops
   after the first section of a design knows the approach, the main risk,
   and what to decide.
+- Describe a process in the order that it happens. Say when each step
+  happens and what starts it. Put reference material, such as rule tables
+  and data lists, after the description of the process.
+- Give the reason for a change next to the change. A reason comes from a
+  source. If no source gives one, ask; do not make one up.
 - Use a numbered list for a sequence, a bulleted list for items at the same
   level, and a table for items that have the same attributes. Do not put
   long prose in a table.

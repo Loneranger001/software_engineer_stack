@@ -50,7 +50,7 @@ below).
    names — its business rules
    (BR#) and exceptions (EX#) are honoured, and a design that has to depart
    from it goes back to the user as an FDD amendment, re-approved before the
-   TDD diverges. Deferred FDD questions (§13) become §11 risks.
+   TDD diverges. Deferred FDD questions (§12) become §11 risks.
 4. Unknowns follow `<root>/core/decision-protocol.md`: design
    judgment calls that pass §2 (high confidence, reversible, in-scope, no
    dangerous surface) go to ASSUMPTIONS.md; anything else stops and asks.
